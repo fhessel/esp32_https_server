@@ -2,7 +2,7 @@
 
 **Disclaimer**: This code is work-in-progress and contains many non-existing features and bugs which are not documented.
 
-This repository contains an HTTPS server implementation that can be used with the (ESP32 Arduino Core)[https://github.com/espressif/arduino-esp32].
+This repository contains an HTTPS server implementation that can be used with the [ESP32 Arduino Core](https://github.com/espressif/arduino-esp32).
 
 The main goals for the server are:
 - Ability to handle multiple clients in parallel
