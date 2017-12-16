@@ -41,17 +41,25 @@ bool HTTPResponse::isHeaderWritten() {
 /**
  * Writes a string to the response. May be called several times.
  */
-void HTTPResponse::print(const std::string &str) {
-	printHeader();
-	printInternal(str);
+void HTTPResponse::printStd(const std::string &str) {
+	write((uint8_t*)str.c_str(), str.length());
 }
 
 /**
  * Writes bytes to the response. May be called several times.
  */
-void HTTPResponse::writeBytes(const void * data, int length) {
+size_t  HTTPResponse::write(const uint8_t *buffer, size_t size) {
 	printHeader();
-	writeBytesInternal(data, length);
+	return writeBytesInternal(buffer, size);
+}
+
+/**
+ * Writes a single byte to the response.
+ */
+size_t  HTTPResponse::write(uint8_t b) {
+	printHeader();
+	byte ba[] = {b};
+	return writeBytesInternal(ba, 1);
 }
 
 /**
@@ -78,11 +86,12 @@ void HTTPResponse::printHeader() {
 }
 
 void HTTPResponse::printInternal(const std::string &str) {
-	writeBytesInternal(str.c_str(), str.length());
+	writeBytesInternal((uint8_t*)str.c_str(), str.length());
 }
 
-void HTTPResponse::writeBytesInternal(const void * data, int length) {
+size_t HTTPResponse::writeBytesInternal(const void * data, int length) {
 	SSL_write(_con->ssl(), data, length);
+	return length;
 }
 
 } /* namespace httpsserver */

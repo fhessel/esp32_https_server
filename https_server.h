@@ -28,6 +28,9 @@
 #include "data/cert/cert.h"
 #include "data/cert/private_key.h"
 
+// The favicon (binary)
+#include "data/favicon.h"
+
 // Inlcudes for setting up the server
 #include "https/HTTPSServer.hpp"
 

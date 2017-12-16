@@ -24,7 +24,7 @@
 
 namespace httpsserver {
 
-class HTTPResponse {
+class HTTPResponse : public Print {
 public:
 	HTTPResponse(ConnectionContext * con);
 	virtual ~HTTPResponse();
@@ -33,12 +33,16 @@ public:
 	void setStatusText(std::string statusText);
 	void setHeader(std::string name, std::string value);
 	bool isHeaderWritten();
-	void print(const std::string &str);
-	void writeBytes(const void * data, int length);
+
+	void printStd(const std::string &str);
+
+	// From Print:
+	size_t write(const uint8_t *buffer, size_t size);
+	size_t write(uint8_t);
 private:
 	void printHeader();
 	void printInternal(const std::string &str);
-	void writeBytesInternal(const void * data, int length);
+	size_t writeBytesInternal(const void * data, int length);
 
 	ConnectionContext * _con;
 
