@@ -107,7 +107,7 @@ void HTTPSConnection::closeConnection() {
 
 	// Tear down SSL
 	if (_ssl) {
-		// TODO: wait here so that SSL_shutdown returns 1
+		// wait here so that SSL_shutdown returns 1
 		while(SSL_shutdown(_ssl) == 0) delay(1);
 		SSL_free(_ssl);
 		_ssl = NULL;
@@ -297,8 +297,6 @@ size_t HTTPSConnection::getCacheSize() {
 }
 
 void HTTPSConnection::loop() {
-	//char staticResponse[] = "HTTP/1.1 200 OK\r\nServer: esp32https\r\nConnection:close\r\nContent-Type: text/html\r\nContent-Length:21\r\n\r\n<h1>Hello world!</h1>";
-
 	// First, update the buffer
 	// newByteCount will contain the number of new bytes that have to be processed
 	updateBuffer();

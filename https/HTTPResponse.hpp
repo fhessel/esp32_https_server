@@ -9,7 +9,6 @@
 #define HTTPS_HTTPRESPONSE_HPP_
 
 #include <Arduino.h>
-#include <sstream>
 #include <string>
 // Arduino declares it's own min max, incompatible with the stl...
 #undef min
