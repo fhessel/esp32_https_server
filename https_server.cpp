@@ -28,9 +28,9 @@ void testCallback(HTTPRequest * req, HTTPResponse * res) {
 	res->println("<h1>Hello world!</h1>");
 	res->println("<p>... from your ESP32</p>");
 	// The image resource is created in the awesomeCallback some lines below
-	res->println("<img src=\"images/fede58/awesome.svg\" alt=\"Awesome face\" style=\"width:250px;\" />");
-	res->println("<img src=\"images/de58fe/awesome.svg\" alt=\"Awesome face\" style=\"width:250px;\" />");
-	res->println("<img src=\"images/58fede/awesome.svg\" alt=\"Awesome face\" style=\"width:250px;\" />");
+	res->println("<img src=\"images/awesome.svg\" alt=\"Awesome face\" style=\"width:250px;\" />");
+	res->println("<img src=\"images/awesome.svg?color=de58fe\" alt=\"Awesome face\" style=\"width:250px;\" />");
+	res->println("<img src=\"images/awesome.svg?color=58fede\" alt=\"Awesome face\" style=\"width:250px;\" />");
 	res->print("<p>System has been up for ");
 	res->print((int)(millis()/1000), DEC);
 	res->println(" seconds.</p>");
@@ -91,20 +91,23 @@ void awesomeCallback(HTTPRequest * req, HTTPResponse * res) {
 	// Check if there is a suitabel fill color in the parameter:
 	std::string fillColor = "fede58";
 
-	//FIXME: Turn this into a request param
-	std::string requestColor = params->getUrlParameter(0);
-	if (requestColor.length()==6) {
-		bool colorOk = true;
-		for(int i = 1; i < 6 && colorOk; i++) {
-			if (!(
-					(requestColor[i]>='0' && requestColor[i]<='9' ) ||
-					(requestColor[i]>='a' && requestColor[i]<='f' )
-			)) {
-				colorOk = false;
+	// Get request parameter
+	std::string colorParamName = "color";
+	if (params->isRequestParameterSet(colorParamName)) {
+		std::string requestColor = params->getRequestParameter(colorParamName);
+		if (requestColor.length()==6) {
+			bool colorOk = true;
+			for(int i = 1; i < 6 && colorOk; i++) {
+				if (!(
+						(requestColor[i]>='0' && requestColor[i]<='9' ) ||
+						(requestColor[i]>='a' && requestColor[i]<='f' )
+				)) {
+					colorOk = false;
+				}
 			}
-		}
-		if (colorOk) {
-			fillColor = requestColor;
+			if (colorOk) {
+				fillColor = requestColor;
+			}
 		}
 	}
 
@@ -209,7 +212,7 @@ void serverTask(void *params) {
 	ResourceNode faviconNode  = ResourceNode("/favicon.ico", "GET", &faviconCallback);
 
 	// The awesomeCallback is very similar to the favicon.
-	ResourceNode awesomeNode  = ResourceNode("/images/*/awesome.svg", "GET", &awesomeCallback);
+	ResourceNode awesomeNode  = ResourceNode("/images/awesome.svg", "GET", &awesomeCallback);
 
 	// A simple callback showing URL parameters. Every asterisk (*) is a placeholder value
 	// So, the following URL has two placeholders that have to be filled.

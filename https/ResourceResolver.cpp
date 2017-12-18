@@ -40,8 +40,43 @@ void ResourceResolver::resolveNode(const std::string &method, const std::string 
 	// Memory management of this object will be performed by the ResolvedResource instance
 	ResourceParameters * params = new ResourceParameters();
 
-	// TODO: Split URL in resource name and request params, set request params in params object
-	std::string resourceName = url;
+	// Split URL in resource name and request params. Request params start after an optional '?'
+	size_t reqparamIdx = url.find('?');
+
+	// If no '?' is contained in url, 0:npos will return the string as it is
+	std::string resourceName = url.substr(0, reqparamIdx);
+
+	// Set request params in params object if a '?' exists
+	if (reqparamIdx != std::string::npos) {
+		do {
+			// Drop the '?' or '&'
+			reqparamIdx += 1;
+
+			// Parameters are separated by '&'
+			size_t nextparamIdx = url.find('&', reqparamIdx);
+
+			// Get the "name=value" string
+			std::string param = url.substr(reqparamIdx, nextparamIdx - reqparamIdx);
+
+			// Find the position where the string has to be split
+			size_t nvSplitIdx = param.find('=');
+
+			// Use empty string if only name is set. /foo?bar&baz=1 will return "" for bar
+			std::string name  = param.substr(0, nvSplitIdx);
+			std::string value = "";
+			if (nvSplitIdx != std::string::npos) {
+				// TODO: There may be url encoding in here.
+				value = param.substr(nvSplitIdx+1);
+			}
+
+			// Now we finally have name and value.
+			params->setRequestParameter(name, value);
+
+			// Update reqparamIdx
+			reqparamIdx = nextparamIdx;
+
+		} while(reqparamIdx != std::string::npos);
+	}
 
 
 	// Check whether a resource matches

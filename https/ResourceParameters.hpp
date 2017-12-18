@@ -15,18 +15,23 @@
 #undef min
 #undef max
 #include <vector>
+#include <utility>
 
 #include "util.hpp"
 
 namespace httpsserver {
+
+struct requestparam_t {std::string name; std::string value;};
 
 class ResourceParameters {
 public:
 	ResourceParameters();
 	virtual ~ResourceParameters();
 
+	bool isRequestParameterSet(std::string &name);
 	std::string getRequestParameter(std::string &name);
 	uint16_t getRequestParameterInt(std::string &name);
+	void setRequestParameter(std::string name, std::string value);
 
 	std::string getUrlParameter(uint8_t idx);
 	uint16_t getUrlParameterInt(uint8_t idx);
@@ -36,6 +41,7 @@ public:
 
 private:
 	std::vector<std::string> _urlParams;
+	std::vector<std::pair<std::string, std::string>> _reqParams;
 };
 
 } /* namespace httpsserver */

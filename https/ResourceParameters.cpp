@@ -17,13 +17,33 @@ ResourceParameters::~ResourceParameters() {
 
 }
 
+bool ResourceParameters::isRequestParameterSet(std::string &name) {
+	for(auto reqParam = _reqParams.begin(); reqParam != _reqParams.end(); ++reqParam) {
+		if ((*reqParam).first.compare(name)==0) {
+			return true;
+		}
+	}
+	return false;
+}
 
 std::string ResourceParameters::getRequestParameter(std::string &name) {
+	for(auto reqParam = _reqParams.begin(); reqParam != _reqParams.end(); ++reqParam) {
+		if ((*reqParam).first.compare(name)==0) {
+			return (*reqParam).second;
+		}
+	}
 	return "";
 }
 
 uint16_t ResourceParameters::getRequestParameterInt(std::string &name) {
 	return parseInt(getRequestParameter(name));
+}
+
+void ResourceParameters::setRequestParameter(std::string name, std::string value) {
+	std::pair<std::string, std::string> param;
+	param.first = std::move(name);
+	param.second = std::move(value);
+	_reqParams.push_back(param);
 }
 
 /**
