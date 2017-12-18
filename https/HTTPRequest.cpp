@@ -9,9 +9,10 @@
 
 namespace httpsserver {
 
-HTTPRequest::HTTPRequest(ConnectionContext * con, HTTPHeaders * headers):
+HTTPRequest::HTTPRequest(ConnectionContext * con, HTTPHeaders * headers, ResourceParameters * params):
 	_con(con),
-	_headers(headers) {
+	_headers(headers),
+	_params(params) {
 
 	HTTPHeader * contentLength = headers->get("Content-Length");
 	if (contentLength == NULL) {
@@ -26,6 +27,11 @@ HTTPRequest::HTTPRequest(ConnectionContext * con, HTTPHeaders * headers):
 
 HTTPRequest::~HTTPRequest() {
 
+}
+
+
+ResourceParameters * HTTPRequest::getParams() {
+	return _params;
 }
 
 std::string HTTPRequest::getHeader(std::string name) {

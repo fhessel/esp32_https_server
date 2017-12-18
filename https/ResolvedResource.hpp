@@ -9,6 +9,7 @@
 #define HTTPS_RESOLVEDRESOURCE_HPP_
 
 #include "ResourceNode.hpp"
+#include "ResourceParameters.hpp"
 
 namespace httpsserver {
 
@@ -20,9 +21,12 @@ public:
 	void setMatchingNode(ResourceNode * node);
 	ResourceNode * getMatchingNode();
 	bool didMatch();
+	ResourceParameters * getParams();
+	void setParams(ResourceParameters * params);
 
 private:
 	ResourceNode * _matchingNode;
+	ResourceParameters * _params;
 };
 
 } /* namespace httpsserver */

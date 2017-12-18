@@ -97,7 +97,8 @@ void HTTPResponse::printHeader() {
 		HTTPS_DLOG("[   ] Printing headers")
 
 		// Status line, like: "HTTP/1.1 200 OK\r\n"
-		std::string statusLine = "HTTP/1.1 " + intToString(_statusCode) + " " + _statusText + "\r\n";
+				//intToString(_statusCode)
+		std::string statusLine = "HTTP/1.1 200 " + _statusText + "\r\n";
 		printInternal(statusLine, true);
 
 		// Each header, like: "Host: myEsp32\r\n"
@@ -141,7 +142,7 @@ size_t HTTPResponse::writeBytesInternal(const void * data, int length, bool skip
 				if (!_headerWritten) {
 					setHeader("Connection", "close");
 				}
-				drainBuffer();
+				drainBuffer(true);
 			}
 		}
 		HTTPS_DLOG("[   ] Writing response data to ssl socket");
@@ -152,9 +153,9 @@ size_t HTTPResponse::writeBytesInternal(const void * data, int length, bool skip
 	}
 }
 
-void HTTPResponse::drainBuffer() {
+void HTTPResponse::drainBuffer(bool onOverflow) {
 	if (!_headerWritten) {
-		if (_responseCache != NULL) {
+		if (_responseCache != NULL && !onOverflow) {
 			_headers.set(new HTTPHeader("Content-Length", intToString(_responseCachePointer)));
 		}
 		printHeader();
@@ -162,7 +163,10 @@ void HTTPResponse::drainBuffer() {
 
 	if (_responseCache != NULL) {
 		HTTPS_DLOG("[   ] Draining response buffer")
-		SSL_write(_con->ssl(), _responseCache, _responseCachePointer);
+		// Check for 0 as it may be an overflow reaction without any data that has been written earlier
+		if(_responseCachePointer > 0) {
+			SSL_write(_con->ssl(), _responseCache, _responseCachePointer);
+		}
 		delete[] _responseCache;
 		_responseCache = NULL;
 	}

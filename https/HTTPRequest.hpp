@@ -14,6 +14,7 @@
 #include "util.hpp"
 
 #include "ConnectionContext.hpp"
+#include "ResourceParameters.hpp"
 #include "HTTPHeaders.hpp"
 #include "HTTPHeader.hpp"
 
@@ -21,7 +22,7 @@ namespace httpsserver {
 
 class HTTPRequest {
 public:
-	HTTPRequest(ConnectionContext * con, HTTPHeaders * headers);
+	HTTPRequest(ConnectionContext * con, HTTPHeaders * headers, ResourceParameters * resource);
 	virtual ~HTTPRequest();
 
 	std::string getHeader(std::string name);
@@ -30,10 +31,13 @@ public:
 	size_t readBytes(byte * buffer, size_t length);
 	size_t getContentLength();
 	bool   requestComplete();
+	ResourceParameters * getParams();
 private:
 	ConnectionContext * _con;
 
 	HTTPHeaders * _headers;
+
+	ResourceParameters * _params;
 
 	bool _contentLengthSet;
 	size_t _remainingContent;

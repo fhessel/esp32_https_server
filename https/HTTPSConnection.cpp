@@ -392,7 +392,7 @@ void HTTPSConnection::loop() {
 					}
 
 					// Create request context
-					HTTPRequest req  = HTTPRequest(this, _httpHeaders);
+					HTTPRequest req  = HTTPRequest(this, _httpHeaders, resolvedResource.getParams());
 					HTTPResponse res = HTTPResponse(this);
 
 					// Call the callback

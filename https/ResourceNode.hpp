@@ -23,6 +23,13 @@ public:
 	const std::string _method;
 	const HTTPSCallbackFunction * _callback;
 
+	bool hasUrlParameter();
+	uint8_t getUrlParamCount();
+	size_t getParamIdx(uint8_t);
+
+private:
+	uint8_t _urlParamCount;
+	size_t * _urlParamIdx;
 };
 
 } /* namespace httpsserver */

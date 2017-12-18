@@ -28,7 +28,9 @@ void testCallback(HTTPRequest * req, HTTPResponse * res) {
 	res->println("<h1>Hello world!</h1>");
 	res->println("<p>... from your ESP32</p>");
 	// The image resource is created in the awesomeCallback some lines below
-	res->println("<img src=\"images/awesome.svg\" alt=\"Awesome face\" />");
+	res->println("<img src=\"images/fede58/awesome.svg\" alt=\"Awesome face\" style=\"width:250px;\" />");
+	res->println("<img src=\"images/de58fe/awesome.svg\" alt=\"Awesome face\" style=\"width:250px;\" />");
+	res->println("<img src=\"images/58fede/awesome.svg\" alt=\"Awesome face\" style=\"width:250px;\" />");
 	res->print("<p>System has been up for ");
 	res->print((int)(millis()/1000), DEC);
 	res->println(" seconds.</p>");
@@ -48,17 +50,72 @@ void faviconCallback(HTTPRequest * req, HTTPResponse * res) {
 	res->write(FAVICON_DATA, FAVICON_LENGTH);
 }
 
+/**
+ * The URL Param Callback demonstrates the usage of placeholders in the URL.
+ *
+ * This callback function is mapped to "param/ * / *" (ignore the spaces, they are required
+ * because of the C comment syntax).
+ *
+ * The placeholder values can be accessed through HTTPRequest::getParams. They are indexed
+ * beginning from 0.
+ */
+void urlParamCallback(HTTPRequest * req, HTTPResponse * res) {
+	// Get access to the parameters
+	ResourceParameters * params = req->getParams();
+
+	// Set a simple content type
+	res->setHeader("Content-Type", "text/plain");
+
+	// Print the first parameter
+	res->print("Parameter 1: ");
+	res->printStd(params->getUrlParameter(0));
+
+	// Print the second parameter
+	res->print("\nParameter 2: ");
+	res->printStd(params->getUrlParameter(1));
+}
+
+/**
+ * This callback responds with an SVG image to a GET request. The icon is the awesome smiley.
+ *
+ * If the color request parameter is set (so the URL is like awesome.svg?color=fede58), the
+ * background of our awesome face is changed.
+ */
 void awesomeCallback(HTTPRequest * req, HTTPResponse * res) {
+	// Get access to the parameters
+	ResourceParameters * params = req->getParams();
+
+	// Set SVG content type
 	res->setHeader("Content-Type", "image/svg+xml");
-	// We can write anything here :)
-	res->setStatusText("Awesome");
+
+	// Check if there is a suitabel fill color in the parameter:
+	std::string fillColor = "fede58";
+
+	//FIXME: Turn this into a request param
+	std::string requestColor = params->getUrlParameter(0);
+	if (requestColor.length()==6) {
+		bool colorOk = true;
+		for(int i = 1; i < 6 && colorOk; i++) {
+			if (!(
+					(requestColor[i]>='0' && requestColor[i]<='9' ) ||
+					(requestColor[i]>='a' && requestColor[i]<='f' )
+			)) {
+				colorOk = false;
+			}
+		}
+		if (colorOk) {
+			fillColor = requestColor;
+		}
+	}
 
 	// Print the data
 	// Source: https://commons.wikimedia.org/wiki/File:718smiley.svg
 	res->print("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>");
 	res->print("<svg id=\"svg1923\" width=\"733\" xmlns=\"http://www.w3.org/2000/svg\" height=\"733\">");
 	res->print("<circle cy=\"366.5\" cx=\"366.5\" r=\"366.5\"/>");
-	res->print("<circle cy=\"366.5\" cx=\"366.5\" r=\"336.5\" fill=\"#fede58\"/>");
+	res->print("<circle cy=\"366.5\" cx=\"366.5\" r=\"336.5\" fill=\"#");
+	res->printStd(fillColor);
+	res->print("\"/>");
 	res->print("<path d=\"m325 665c-121-21-194-115-212-233v-8l-25-1-1-18h481c6 13 10 27 13 41 13 94-38 146-114 193-45 23-93 29-142 26z\"/>");
 	res->print("<path d=\"m372 647c52-6 98-28 138-62 28-25 46-56 51-87 4-20 1-57-5-70l-423-1c-2 56 39 118 74 157 31 34 72 54 116 63 11 2 38 2 49 0z\" fill=\"#871945\"/>");
 	res->print("<path d=\"m76 342c-13-26-13-57-9-85 6-27 18-52 35-68 21-20 50-23 77-18 15 4 28 12 39 23 18 17 30 40 36 67 4 20 4 41 0 60l-6 21z\"/>");
@@ -152,7 +209,15 @@ void serverTask(void *params) {
 	ResourceNode faviconNode  = ResourceNode("/favicon.ico", "GET", &faviconCallback);
 
 	// The awesomeCallback is very similar to the favicon.
-	ResourceNode awesomeNode  = ResourceNode("/images/awesome.svg", "GET", &awesomeCallback);
+	ResourceNode awesomeNode  = ResourceNode("/images/*/awesome.svg", "GET", &awesomeCallback);
+
+	// A simple callback showing URL parameters. Every asterisk (*) is a placeholder value
+	// So, the following URL has two placeholders that have to be filled.
+	// This is especially useful for REST-APIs where you want to represent an object ID in the
+	// url. Placeholders are arbitrary strings, but may be converted to integers (Error handling
+	// is up to the callback, eg. returning 404 if there is no suitable resource for that placeholder
+	// value)
+	ResourceNode urlParamNode  = ResourceNode("/param/*/*", "GET", &urlParamCallback);
 
 	// The root node (on GET /) will be called when no directory on the server is specified in
 	// the request, so this node can be accessed through https://myesp/
@@ -174,6 +239,7 @@ void serverTask(void *params) {
 	server.registerNode(&rootNode);
 	server.registerNode(&faviconNode);
 	server.registerNode(&awesomeNode);
+	server.registerNode(&urlParamNode);
 
 	// The web server can be start()ed and stop()ed. When it's stopped, it will close its server port and
 	// all open connections and free the resources. Theoretically, it should be possible to run multiple
