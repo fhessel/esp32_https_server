@@ -38,6 +38,9 @@ int parseInt(std::string s) {
 }
 
 std::string intToString(int i) {
+	if (i==0) {
+		return "0";
+	}
 	// We need this much digits
 	int digits = ceil(log10(i));
 	char c[digits+1];
