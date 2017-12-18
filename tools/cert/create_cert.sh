@@ -55,5 +55,6 @@ openssl rsa -in example.key -outform DER -out example.key.DER
 openssl x509 -in example.crt -outform DER -out example.crt.DER
 
 # create header files
+mkdir ../../data/cert
 xxd -i example.crt.DER > ../../data/cert/cert.h
 xxd -i example.key.DER > ../../data/cert/private_key.h
