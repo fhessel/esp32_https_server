@@ -146,6 +146,21 @@ void corsCallback(HTTPRequest * req, HTTPResponse * res) {
 }
 
 /**
+ * This callback simply copies the requests body into the response body.
+ *
+ * It can be used to test POST and PUT functionality and is configured to reply to
+ * POST /echo and PUT /echo
+ */
+void echoCallback(HTTPRequest * req, HTTPResponse * res) {
+	res->setHeader("Content-Type","text/plain");
+	byte buffer[256];
+	while(!req->requestComplete()) {
+		size_t s = req->readBytes(buffer, 256);
+		res->write(buffer, s);
+	}
+}
+
+/**
  * This callback will be registered as default callback. The default callback is used
  * if no other node matches the request.
  *
@@ -238,6 +253,11 @@ void serverTask(void *params) {
 	// value)
 	ResourceNode urlParamNode  = ResourceNode("/param/*/*", "GET", &urlParamCallback);
 
+	// The echoCallback is configured on the path /echo for POST and PUT requests. It just copies request
+	// body to response body. To enable it for both methods, two nodes have to be created:
+	ResourceNode echoNodePost  = ResourceNode("/echo", "POST", &echoCallback);
+	ResourceNode echoNodePut   = ResourceNode("/echo", "PUT",  &echoCallback);
+
 	// The root node (on GET /) will be called when no directory on the server is specified in
 	// the request, so this node can be accessed through https://myesp/
 	ResourceNode rootNode     = ResourceNode("/", "GET", &testCallback);
@@ -267,6 +287,8 @@ void serverTask(void *params) {
 	server.registerNode(&faviconNode);
 	server.registerNode(&awesomeNode);
 	server.registerNode(&urlParamNode);
+	server.registerNode(&echoNodePost);
+	server.registerNode(&echoNodePut);
 	server.registerNode(&corsNode);
 
 	// The web server can be start()ed and stop()ed. When it's stopped, it will close its server port and
