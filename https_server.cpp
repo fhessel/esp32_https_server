@@ -130,6 +130,22 @@ void awesomeCallback(HTTPRequest * req, HTTPResponse * res) {
 }
 
 /**
+ * This callback is configured to match all OPTIONS requests (see pattern configuration below)
+ *
+ * This allows to define headers there that are required to allow cross-domain-xhr-requests,
+ * which enabled a REST-API that can be used on the esp32, while the WebInterface is hosted
+ * somewhere else (on a host with more storage space to provide huge JS libraries etc.)
+ *
+ * An example use case would be an IoT dashboard that connects to a bunch of local esp32s,
+ * which provide data via their REST-interfaces that is aggregated in the dashboard.
+ */
+void corsCallback(HTTPRequest * req, HTTPResponse * res) {
+	res->setHeader("Access-Control-Allow-Methods", "HEAD,GET,POST,DELETE,PUT,OPTIONS");
+	res->setHeader("Access-Control-Allow-Origin",  "*");
+	res->setHeader("Access-Control-Allow-Headers", "*");
+}
+
+/**
  * This callback will be registered as default callback. The default callback is used
  * if no other node matches the request.
  *
@@ -226,6 +242,14 @@ void serverTask(void *params) {
 	// the request, so this node can be accessed through https://myesp/
 	ResourceNode rootNode     = ResourceNode("/", "GET", &testCallback);
 
+	// As mentioned above, we want to answer all OPTIONS requests with a response that allows
+	// cross-domain XHR. To do so, we bind the corsCallback to match all options request
+	// (we can exploit the asterisk functionality for this. The callback is not required to
+	// process the parameters in any way.)
+	// Note the difference to the "/" in the rootNode above - "/" matches ONLY that specific
+	// resource, while slash and asterisk is more or less provides a catch all behavior
+	ResourceNode corsNode     = ResourceNode("/*", "OPTIONS", &corsCallback);
+
 	// The not found node will be used when no other node matches, and it's configured as
 	// defaultNode in the server.
 	// Note: Despite resource and method string have to be specified when a node is created,
@@ -243,6 +267,7 @@ void serverTask(void *params) {
 	server.registerNode(&faviconNode);
 	server.registerNode(&awesomeNode);
 	server.registerNode(&urlParamNode);
+	server.registerNode(&corsNode);
 
 	// The web server can be start()ed and stop()ed. When it's stopped, it will close its server port and
 	// all open connections and free the resources. Theoretically, it should be possible to run multiple
