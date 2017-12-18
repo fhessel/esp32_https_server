@@ -22,6 +22,8 @@ HTTPSConnection::HTTPSConnection(ResourceResolver * resResolver):
 	_connectionState = STATE_UNDEFINED;
 	_clientState = CSTATE_UNDEFINED;
 	_httpHeaders = NULL;
+	_isKeepAlive = false;
+	_lastTransmissionTS = millis();
 }
 
 HTTPSConnection::~HTTPSConnection() {
@@ -53,6 +55,7 @@ int HTTPSConnection::initialize(int serverSocketID, SSL_CTX * sslCtx) {
 				if (success) {
 					_connectionState = STATE_INITIAL;
 					_httpHeaders = new HTTPHeaders();
+					refreshTimeout();
 					return _socket;
 				}
 			}
@@ -66,6 +69,23 @@ int HTTPSConnection::initialize(int serverSocketID, SSL_CTX * sslCtx) {
 	}
 	// Error: The connection has already been established or could not be established
 	return -1;
+}
+
+
+/**
+ * True if the connection is timed out.
+ *
+ * (Should be checkd in the loop and transition should go to CONNECTION_CLOSE if exceeded)
+ */
+bool HTTPSConnection::isTimeoutExceeded() {
+	return _lastTransmissionTS + HTTPS_CONNECTION_TIMEOUT < millis();
+}
+
+/**
+ * Resets the timeout to allow again the full HTTPS_CONNECTION_TIMEOUT milliseconds
+ */
+void HTTPSConnection::refreshTimeout() {
+	_lastTransmissionTS = millis();
 }
 
 /**
@@ -175,6 +195,7 @@ int HTTPSConnection::updateBuffer() {
 
 				if (readReturnCode > 0) {
 					_bufferUnusedIdx += readReturnCode;
+					refreshTimeout();
 					return readReturnCode;
 
 				} else if (readReturnCode == 0) {
@@ -251,6 +272,30 @@ void HTTPSConnection::readLine(int lengthLimit) {
 	}
 }
 
+/**
+ * Called by the request to signal that the client has closed the connection
+ */
+void HTTPSConnection::signalClientClose() {
+	_clientState = CSTATE_CLOSED;
+}
+
+/**
+ * Called by the request to signal that an error has occured
+ */
+void HTTPSConnection::signalRequestError() {
+	// TODO: Check that no response has been transmitted yet
+	serverError();
+}
+
+/**
+ * Returns the cache size that should be cached (in the response) to enable keep-alive requests.
+ *
+ * 0 = no keep alive.
+ */
+size_t HTTPSConnection::getCacheSize() {
+	return (_isKeepAlive ? HTTPS_KEEPALIVE_CACHESIZE : 0);
+}
+
 void HTTPSConnection::loop() {
 	//char staticResponse[] = "HTTP/1.1 200 OK\r\nServer: esp32https\r\nConnection:close\r\nContent-Type: text/html\r\nContent-Length:21\r\n\r\n<h1>Hello world!</h1>";
 
@@ -263,6 +308,11 @@ void HTTPSConnection::loop() {
 	}
 
 	if (_clientState == CSTATE_CLOSED && _bufferProcessed == _bufferUnusedIdx && _connectionState < STATE_HEADERS_FINISHED) {
+		closeConnection();
+	}
+
+	if (!isClosed() && isTimeoutExceeded()) {
+		HTTPS_DLOGHEX("[zZz] Connection timeout exceeded, closing connection. fid=", _socket)
 		closeConnection();
 	}
 
@@ -333,8 +383,18 @@ void HTTPSConnection::loop() {
 				ResolvedResource resolvedResource;
 				_resResolver->resolveNode(_httpMethod, _httpResource, resolvedResource);
 				if (resolvedResource.didMatch()) {
+					// Did the client request connection:keep-alive?
+					HTTPHeader * connectionHeader = _httpHeaders->get("Connection");
+					if (connectionHeader != NULL && std::string("keep-alive").compare(connectionHeader->_value)==0) {
+						HTTPS_DLOGHEX("[   ] Keep-Alive activated. fid=", _socket);
+						_isKeepAlive = true;
+					} else {
+						HTTPS_DLOGHEX("[   ] Keep-Alive disabled. fid=", _socket);
+						_isKeepAlive = false;
+					}
+
 					// Create request context
-					HTTPRequest req = HTTPRequest(this, _httpHeaders);
+					HTTPRequest req  = HTTPRequest(this, _httpHeaders);
 					HTTPResponse res = HTTPResponse(this);
 
 					// Call the callback
@@ -342,9 +402,25 @@ void HTTPSConnection::loop() {
 					resolvedResource.getMatchingNode()->_callback(&req, &res);
 					HTTPS_DLOG("[   ] Handler function done, requeste complete");
 
-					// We are done. Transition to next state.
-					if (!isClosed()) {
-						_connectionState = STATE_BODY_FINISHED;
+					if (!_isKeepAlive) {
+						// No KeepAlive -> We are done. Transition to next state.
+						if (!isClosed()) {
+							_connectionState = STATE_BODY_FINISHED;
+						}
+					} else {
+						if (res.isResponseBuffered()) {
+							// If the response could be buffered:
+							res.setHeader("Connection", "keep-alive");
+							res.finalize();
+							if (_clientState != CSTATE_CLOSED) {
+								refreshTimeout();
+								_connectionState = STATE_INITIAL;
+							}
+						}
+						// The response could not be buffered or the client has closed:
+						if (!isClosed() && _connectionState!=STATE_INITIAL) {
+							_connectionState = STATE_BODY_FINISHED;
+						}
 					}
 				} else {
 					HTTPS_DLOG("[ERR] Could not find a matching resource. Server error.");

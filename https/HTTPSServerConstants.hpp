@@ -28,4 +28,11 @@
 // Chunk size used for reading data from the ssl-enabled socket
 #define HTTPS_CONNECTION_DATA_CHUNK_SIZE       512
 
+// Size (in bytes) of the Connection:keep-alive Cache (we need to be able to
+// store-and-forward the response to calculate the content-size)
+#define HTTPS_KEEPALIVE_CACHESIZE              1400
+
+// Timeout for an HTTPS connection without any transmission
+#define HTTPS_CONNECTION_TIMEOUT               20000
+
 #endif /* HTTPS_HTTPSSERVERCONSTANTS_HPP_ */

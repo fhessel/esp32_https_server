@@ -49,7 +49,13 @@ private:
 	void clientError();
 	void readLine(int lengthLimit);
 
+	bool isTimeoutExceeded();
+	void refreshTimeout();
+
 	SSL* ssl() {return _ssl;};
+	void signalClientClose();
+	void signalRequestError();
+	size_t getCacheSize();
 
 	// The receive buffer
 	char _receiveBuffer[HTTPS_CONNECTION_DATA_CHUNK_SIZE];
@@ -80,6 +86,12 @@ private:
 	std::string _httpMethod;
 	std::string _httpResource;
 	HTTPHeaders * _httpHeaders;
+
+	// Should we use keep alive
+	bool _isKeepAlive;
+
+	// Timestamp of the last transmission action
+	unsigned long _lastTransmissionTS;
 
 	// Internal state machine of the connection:
 	//

@@ -16,10 +16,23 @@ HTTPResponse::HTTPResponse(ConnectionContext * con):
 	_statusCode = 200;
 	_statusText = "OK";
 	_headerWritten = false;
+	_isError = false;
+
+	_responseCacheSize = con->getCacheSize();
+	_responseCachePointer = 0;
+	if (_responseCacheSize > 0) {
+		HTTPS_DLOGHEX("[   ] Creating buffered response. Buffer size: ", _responseCacheSize);
+		_responseCache = new byte[_responseCacheSize];
+	} else {
+		HTTPS_DLOG("[   ] Creating non-buffered response.")
+		_responseCache = NULL;
+	}
 }
 
 HTTPResponse::~HTTPResponse() {
-
+	if (_responseCache != NULL) {
+		delete[] _responseCache;
+	}
 }
 
 void HTTPResponse::setStatusCode(uint16_t statusCode) {
@@ -38,6 +51,16 @@ bool HTTPResponse::isHeaderWritten() {
 	return _headerWritten;
 }
 
+bool HTTPResponse::isResponseBuffered() {
+	return _responseCache != NULL;
+}
+
+void HTTPResponse::finalize() {
+	if (isResponseBuffered()) {
+		drainBuffer();
+	}
+}
+
 /**
  * Writes a string to the response. May be called several times.
  */
@@ -49,7 +72,9 @@ void HTTPResponse::printStd(const std::string &str) {
  * Writes bytes to the response. May be called several times.
  */
 size_t  HTTPResponse::write(const uint8_t *buffer, size_t size) {
-	printHeader();
+	if(!isResponseBuffered()) {
+		printHeader();
+	}
 	return writeBytesInternal(buffer, size);
 }
 
@@ -57,7 +82,9 @@ size_t  HTTPResponse::write(const uint8_t *buffer, size_t size) {
  * Writes a single byte to the response.
  */
 size_t  HTTPResponse::write(uint8_t b) {
-	printHeader();
+	if(!isResponseBuffered()) {
+		printHeader();
+	}
 	byte ba[] = {b};
 	return writeBytesInternal(ba, 1);
 }
@@ -67,31 +94,78 @@ size_t  HTTPResponse::write(uint8_t b) {
  */
 void HTTPResponse::printHeader() {
 	if (!_headerWritten) {
+		HTTPS_DLOG("[   ] Printing headers")
 		// FIXME: The usage of ostringstream increses the binary size by 200kB.
 		// std::to_string is only available for the 2011 standard, but maybe
 		// one can change this to a int-string-conversion this is performed manually
 		std::ostringstream statusLine;
 		statusLine << "HTTP/1.1" << _statusCode << " " << _statusText << "\r\n";
-		printInternal(statusLine.str());
+		printInternal(statusLine.str(), true);
 		std::vector<HTTPHeader *> * headers = _headers.getAll();
 		for(std::vector<HTTPHeader*>::iterator header = headers->begin(); header != headers->end(); ++header) {
-			printInternal((*header)->print()+"\r\n");
+			printInternal((*header)->print()+"\r\n", true);
 		}
-		printInternal("\r\n");
-
-		// TODO: If we wanted to use Connection: keep-alive, we need to know the content size now.
+		printInternal("\r\n", true);
 
 		_headerWritten=true;
 	}
 }
 
-void HTTPResponse::printInternal(const std::string &str) {
-	writeBytesInternal((uint8_t*)str.c_str(), str.length());
+/**
+ * This method can be called to cancel the ongoing transmission and send the error page (if possible)
+ */
+void HTTPResponse::error() {
+	_con->signalRequestError();
 }
 
-size_t HTTPResponse::writeBytesInternal(const void * data, int length) {
-	SSL_write(_con->ssl(), data, length);
-	return length;
+void HTTPResponse::printInternal(const std::string &str, bool skipBuffer) {
+	writeBytesInternal((uint8_t*)str.c_str(), str.length(), skipBuffer);
+}
+
+size_t HTTPResponse::writeBytesInternal(const void * data, int length, bool skipBuffer) {
+	if (!_isError) {
+		if (isResponseBuffered() && !skipBuffer) {
+			// We are buffering ...
+			if(length <= _responseCacheSize - _responseCachePointer) {
+				// ... and there is space left in the buffer -> Write to buffer
+				size_t end = _responseCachePointer + length;
+				size_t i = 0;
+				while(_responseCachePointer < end) {
+					_responseCache[_responseCachePointer++] = ((byte*)data)[i++];
+				}
+				// Returning skips the SSL_write below
+				return length;
+			} else {
+				// .., and the buffer is too small. This is the point where we switch from
+				// caching to streaming
+				if (!_headerWritten) {
+					setHeader("Connection", "close");
+				}
+				drainBuffer();
+			}
+		}
+		HTTPS_DLOG("[   ] Writing response data to ssl socket");
+		SSL_write(_con->ssl(), data, length);
+		return length;
+	} else {
+		return 0;
+	}
+}
+
+void HTTPResponse::drainBuffer() {
+	if (!_headerWritten) {
+		if (_responseCache != NULL) {
+			_headers.set(new HTTPHeader("Content-Length", intToString(_responseCachePointer)));
+		}
+		printHeader();
+	}
+
+	if (_responseCache != NULL) {
+		HTTPS_DLOG("[   ] Draining response buffer")
+		SSL_write(_con->ssl(), _responseCache, _responseCachePointer);
+		delete[] _responseCache;
+		_responseCache = NULL;
+	}
 }
 
 } /* namespace httpsserver */

@@ -18,6 +18,8 @@
 
 #include <openssl/ssl.h>
 
+#include "util.hpp"
+
 #include "ConnectionContext.hpp"
 #include "HTTPHeaders.hpp"
 #include "HTTPHeader.hpp"
@@ -39,10 +41,16 @@ public:
 	// From Print:
 	size_t write(const uint8_t *buffer, size_t size);
 	size_t write(uint8_t);
+
+	void error();
+
+	bool isResponseBuffered();
+	void finalize();
 private:
 	void printHeader();
-	void printInternal(const std::string &str);
-	size_t writeBytesInternal(const void * data, int length);
+	void printInternal(const std::string &str, bool skipBuffer = false);
+	size_t writeBytesInternal(const void * data, int length, bool skipBuffer = false);
+	void drainBuffer();
 
 	ConnectionContext * _con;
 
@@ -50,6 +58,12 @@ private:
 	std::string _statusText;
 	HTTPHeaders _headers;
 	bool _headerWritten;
+	bool _isError;
+
+	// Response cache
+	byte * _responseCache;
+	size_t _responseCacheSize;
+	size_t _responseCachePointer;
 };
 
 } /* namespace httpsserver */

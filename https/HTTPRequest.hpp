@@ -11,6 +11,8 @@
 #include <Arduino.h>
 #include <string>
 
+#include "util.hpp"
+
 #include "ConnectionContext.hpp"
 #include "HTTPHeaders.hpp"
 #include "HTTPHeader.hpp"
@@ -23,10 +25,18 @@ public:
 	virtual ~HTTPRequest();
 
 	std::string getHeader(std::string name);
+
+	size_t readChars(char * buffer, size_t length);
+	size_t readBytes(byte * buffer, size_t length);
+	size_t getContentLength();
+	bool   requestComplete();
 private:
 	ConnectionContext * _con;
 
 	HTTPHeaders * _headers;
+
+	bool _contentLengthSet;
+	size_t _remainingContent;
 };
 
 } /* namespace httpsserver */

@@ -22,6 +22,9 @@ public:
 	virtual ~ConnectionContext();
 
 	virtual SSL* ssl() = 0;
+	virtual void signalRequestError() = 0;
+	virtual void signalClientClose() = 0;
+	virtual size_t getCacheSize() = 0;
 };
 
 } /* namespace httpsserver */
