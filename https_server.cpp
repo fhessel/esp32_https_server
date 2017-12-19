@@ -234,8 +234,8 @@ void serverTask(void *params) {
 	// non-volatile memory after creating them on the fly when the device is launched for the
 	// first time.
 	SSLCert cert = SSLCert(
-			pariot_crt_DER, pariot_crt_DER_len,
-			pariot_key_DER, pariot_key_DER_len
+			example_crt_DER, example_crt_DER_len,
+			example_key_DER, example_key_DER_len
 	);
 
 	// The faviconCallback now is assigned to the /favicon.ico node, when accessed by GET
