@@ -50,32 +50,17 @@ size_t HTTPRequest::readBytes(byte * buffer, size_t length) {
 		length = _remainingContent;
 	}
 
-	if(length > 0 && SSL_want_read(_con->ssl())) {
-		size_t res = SSL_read(_con->ssl(), buffer, length);
-		if (res == 0) {
-			// Connection is closed.
-			// TODO: Is there _any_ way to differentiate between a closed connection and a
-			// connections that's still open but that won't provide any more bytes?
-			_con->signalClientClose();
-			return 0;
-		} else if (res == -1) {
-			// An error has occured, signal this
-			_con->signalRequestError();
-			return -1;
-		} else {
-			if (_contentLengthSet) {
-				_remainingContent -= res;
-			}
-			return res;
-		}
-	} else {
-		// No data to read, return 0.
-		return 0;
+	size_t bytesRead = _con->readBuffer(buffer, length);
+
+	if (_contentLengthSet) {
+		_remainingContent -= bytesRead;
 	}
+
+	return bytesRead;
 }
 
 size_t HTTPRequest::readChars(char * buffer, size_t length) {
-	return 0;
+	return readBytes((byte*)buffer, length);
 }
 
 size_t HTTPRequest::getContentLength() {
@@ -83,7 +68,13 @@ size_t HTTPRequest::getContentLength() {
 }
 
 bool HTTPRequest::requestComplete() {
-	return true;
+	if (_contentLengthSet) {
+		// If we have a content size, rely on it.
+		return (_remainingContent == 0);
+	} else {
+		// If there is no more input...
+		return (_con->pendingBufferSize() == 0);
+	}
 }
 
 } /* namespace httpsserver */

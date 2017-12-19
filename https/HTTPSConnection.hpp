@@ -56,6 +56,8 @@ private:
 	void signalClientClose();
 	void signalRequestError();
 	size_t getCacheSize();
+	size_t readBuffer(byte* buffer, size_t length);
+	size_t pendingBufferSize();
 
 	// The receive buffer
 	char _receiveBuffer[HTTPS_CONNECTION_DATA_CHUNK_SIZE];

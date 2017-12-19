@@ -177,8 +177,8 @@ int HTTPSConnection::updateBuffer() {
 			// start at 0x1000, so we need to use _socket+1 here
 			select(_socket + 1, &sockfds, NULL, NULL, &timeout);
 
-			// TODO: Check which one is relevant here (maybe both)
 			if (FD_ISSET(_socket, &sockfds) || SSL_pending(_ssl) > 0) {
+
 				HTTPS_DLOGHEX("[   ] There is data on the connection socket. fid=", _socket)
 
 				// The return code of SSL_read means:
@@ -211,10 +211,31 @@ int HTTPSConnection::updateBuffer() {
 					closeConnection();
 					return -1;
 				}
-			}
-		}
+			} // data pending
+		} // buffer can read more
 	}
 	return 0;
+}
+
+size_t HTTPSConnection::readBuffer(byte* buffer, size_t length) {
+	updateBuffer();
+	size_t bufferSize = _bufferUnusedIdx - _bufferProcessed;
+
+	if (length > bufferSize) {
+		length = bufferSize;
+	}
+
+	// Write until length is reached (either by param of by empty buffer
+	for(int i = 0; i < length; i++) {
+		buffer[i] = _receiveBuffer[_bufferProcessed++];
+	}
+
+	return length;
+}
+
+size_t HTTPSConnection::pendingBufferSize() {
+	updateBuffer();
+	return _bufferUnusedIdx - _bufferProcessed + SSL_pending(_ssl);
 }
 
 void HTTPSConnection::serverError() {
@@ -354,6 +375,11 @@ void HTTPSConnection::loop() {
 					if (_parserLine.text.empty()) {
 						HTTPS_DLOG("[   ] Headers finished");
 						_connectionState = STATE_HEADERS_FINISHED;
+
+						// Break, so that the rest of the body does not get flushed through
+						_parserLine.parsingFinished = false;
+						_parserLine.text = "";
+						break;
 					} else {
 						int idxColon = _parserLine.text.find(':');
 						if ( (idxColon != std::string::npos) && (_parserLine.text[idxColon+1]==' ') ) {
