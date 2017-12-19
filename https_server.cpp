@@ -154,7 +154,7 @@ void corsCallback(HTTPRequest * req, HTTPResponse * res) {
 void echoCallback(HTTPRequest * req, HTTPResponse * res) {
 	res->setHeader("Content-Type","text/plain");
 	byte buffer[256];
-	while(!req->requestComplete()) {
+	while(!(req->requestComplete())) {
 		size_t s = req->readBytes(buffer, 256);
 		res->write(buffer, s);
 	}
@@ -203,6 +203,8 @@ void setup()
 	// especially important for data that should be accessed by the main thread and
 	// the server.
 	Serial.println("Creating server task... ");
+	// If stack canary errors occur, try to increase the stack size (3rd parameter)
+	// or to put as much stuff as possible onto the heap (ResourceNodes etc)
 	xTaskCreatePinnedToCore(serverTask, "https443", 4096, NULL, 1, NULL, ARDUINO_RUNNING_CORE);
 
 	Serial.println("Beginning to loop()...");
@@ -240,10 +242,10 @@ void serverTask(void *params) {
 	// This means, it can be accessed by opening https://myesp/favicon.ico in all
 	// web browsers. Most browser fetch this file in background every time a new webserver
 	// is used to show the icon in the tab of that website.
-	ResourceNode faviconNode  = ResourceNode("/favicon.ico", "GET", &faviconCallback);
+	ResourceNode * faviconNode   = new ResourceNode("/favicon.ico", "GET", &faviconCallback);
 
 	// The awesomeCallback is very similar to the favicon.
-	ResourceNode awesomeNode  = ResourceNode("/images/awesome.svg", "GET", &awesomeCallback);
+	ResourceNode * awesomeNode   = new ResourceNode("/images/awesome.svg", "GET", &awesomeCallback);
 
 	// A simple callback showing URL parameters. Every asterisk (*) is a placeholder value
 	// So, the following URL has two placeholders that have to be filled.
@@ -251,16 +253,16 @@ void serverTask(void *params) {
 	// url. Placeholders are arbitrary strings, but may be converted to integers (Error handling
 	// is up to the callback, eg. returning 404 if there is no suitable resource for that placeholder
 	// value)
-	ResourceNode urlParamNode  = ResourceNode("/param/*/*", "GET", &urlParamCallback);
+	ResourceNode * urlParamNode  = new ResourceNode("/param/*/*", "GET", &urlParamCallback);
 
 	// The echoCallback is configured on the path /echo for POST and PUT requests. It just copies request
 	// body to response body. To enable it for both methods, two nodes have to be created:
-	ResourceNode echoNodePost  = ResourceNode("/echo", "POST", &echoCallback);
-	ResourceNode echoNodePut   = ResourceNode("/echo", "PUT",  &echoCallback);
+	ResourceNode * echoNodePost  = new ResourceNode("/echo", "POST", &echoCallback);
+	ResourceNode * echoNodePut   = new ResourceNode("/echo", "PUT",  &echoCallback);
 
 	// The root node (on GET /) will be called when no directory on the server is specified in
 	// the request, so this node can be accessed through https://myesp/
-	ResourceNode rootNode     = ResourceNode("/", "GET", &testCallback);
+	ResourceNode * rootNode      = new ResourceNode("/", "GET", &testCallback);
 
 	// As mentioned above, we want to answer all OPTIONS requests with a response that allows
 	// cross-domain XHR. To do so, we bind the corsCallback to match all options request
@@ -268,28 +270,28 @@ void serverTask(void *params) {
 	// process the parameters in any way.)
 	// Note the difference to the "/" in the rootNode above - "/" matches ONLY that specific
 	// resource, while slash and asterisk is more or less provides a catch all behavior
-	ResourceNode corsNode     = ResourceNode("/*", "OPTIONS", &corsCallback);
+	ResourceNode * corsNode      = new ResourceNode("/*", "OPTIONS", &corsCallback);
 
 	// The not found node will be used when no other node matches, and it's configured as
 	// defaultNode in the server.
 	// Note: Despite resource and method string have to be specified when a node is created,
 	// they are ignored for the default node. However, this makes it possible to register another
 	// node as default node as well.
-	ResourceNode notFoundNode = ResourceNode("/", "GET", &notfoundCallback);
+	ResourceNode * notFoundNode  = new ResourceNode("/", "GET", &notfoundCallback);
 
 	// Create the server. The constructor takes some optional parameters, eg. to specify the TCP
 	// port that should be used. However, defining a certificate is mandatory.
 	HTTPSServer server = HTTPSServer(&cert);
 
 	// Register the nodes that have been configured on the web server.
-	server.setDefaultNode(&notFoundNode);
-	server.registerNode(&rootNode);
-	server.registerNode(&faviconNode);
-	server.registerNode(&awesomeNode);
-	server.registerNode(&urlParamNode);
-	server.registerNode(&echoNodePost);
-	server.registerNode(&echoNodePut);
-	server.registerNode(&corsNode);
+	server.setDefaultNode(notFoundNode);
+	server.registerNode(rootNode);
+	server.registerNode(faviconNode);
+	server.registerNode(awesomeNode);
+	server.registerNode(urlParamNode);
+	server.registerNode(echoNodePost);
+	server.registerNode(echoNodePut);
+	server.registerNode(corsNode);
 
 	// The web server can be start()ed and stop()ed. When it's stopped, it will close its server port and
 	// all open connections and free the resources. Theoretically, it should be possible to run multiple
