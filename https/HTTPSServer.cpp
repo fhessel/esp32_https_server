@@ -10,10 +10,11 @@
 namespace httpsserver {
 
 
-HTTPSServer::HTTPSServer(SSLCert * cert, const uint16_t port, const uint8_t maxConnections):
+HTTPSServer::HTTPSServer(SSLCert * cert, const uint16_t port, const uint8_t maxConnections, const in_addr_t bindAddress):
 	_cert(cert),
 	_port(port),
-	_maxConnections(maxConnections) {
+	_maxConnections(maxConnections),
+	_bindAddress(bindAddress) {
 
 	// Create space for the connections
 	_connections = new HTTPSConnection*[maxConnections];
@@ -213,7 +214,7 @@ uint8_t HTTPSServer::setupSocket() {
 	if (_socket>=0) {
 		_sock_addr.sin_family = AF_INET;
 		// Listen on all interfaces
-		_sock_addr.sin_addr.s_addr = 0;
+		_sock_addr.sin_addr.s_addr = _bindAddress;
 		// Set the server port
 		_sock_addr.sin_port = htons(_port);
 

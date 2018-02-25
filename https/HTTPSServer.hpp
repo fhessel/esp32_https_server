@@ -22,6 +22,7 @@
 #include "lwip/netdb.h"
 #undef read
 #include "lwip/sockets.h"
+#include "lwip/inet.h"
 
 // Internal includes
 #include "HTTPSServerConstants.hpp"
@@ -35,7 +36,7 @@ namespace httpsserver {
 
 class HTTPSServer : public ResourceResolver {
 public:
-	HTTPSServer(SSLCert * cert, const uint16_t port = 443, const uint8_t maxConnections = 4);
+	HTTPSServer(SSLCert * cert, const uint16_t port = 443, const uint8_t maxConnections = 4, const in_addr_t bindAddress = 0);
 	virtual ~HTTPSServer();
 
 	uint8_t start();
@@ -52,6 +53,8 @@ private:
 	const uint16_t _port;
 	// Max parallel connections that the server will accept
 	const uint8_t _maxConnections;
+	// Address to bind to (0 = all interfaces)
+	const in_addr_t _bindAddress;
 
 	//// Runtime data ============================================
 	// The array of connections that are currently active
