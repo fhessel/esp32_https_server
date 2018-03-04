@@ -26,6 +26,8 @@
 
 // Internal includes
 #include "HTTPSServerConstants.hpp"
+#include "HTTPHeaders.hpp"
+#include "HTTPHeader.hpp"
 #include "ResourceNode.hpp"
 #include "ResourceResolver.hpp"
 #include "ResolvedResource.hpp"
@@ -44,6 +46,8 @@ public:
 	bool isRunning();
 
 	void loop();
+
+	void setDefaultHeader(std::string name, std::string value);
 
 private:
 	// Static configuration. Port, keys, etc. ====================
@@ -67,6 +71,8 @@ private:
 	int _socket;
 	// The server socket address, that our service is bound to
 	sockaddr_in _sock_addr;
+	// Headers that are included in every response
+	HTTPHeaders _defaultHeaders;
 
 	// Setup functions
 	uint8_t setupSSLCTX();

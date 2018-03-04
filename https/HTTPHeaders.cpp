@@ -15,9 +15,7 @@ HTTPHeaders::HTTPHeaders() {
 }
 
 HTTPHeaders::~HTTPHeaders() {
-	for(std::vector<HTTPHeader*>::iterator header = _headers->begin(); header != _headers->end(); ++header) {
-		delete (*header);
-	}
+	clearAll();
 	delete _headers;
 }
 
@@ -43,6 +41,16 @@ void HTTPHeaders::set(HTTPHeader * header) {
 
 std::vector<HTTPHeader *> * HTTPHeaders::getAll() {
 	return _headers;
+}
+
+/**
+ * Deletes all headers
+ */
+void HTTPHeaders::clearAll() {
+	for(std::vector<HTTPHeader*>::iterator header = _headers->begin(); header != _headers->end(); ++header) {
+		delete (*header);
+	}
+	_headers->clear();
 }
 
 } /* namespace httpsserver */

@@ -293,6 +293,10 @@ void serverTask(void *params) {
 	server.registerNode(echoNodePut);
 	server.registerNode(corsNode);
 
+	// Add a default header to the server that will be added to every response. In this example, we
+	// use it only for adding the server name, but it could also be used to add CORS-headers to every response
+	server.setDefaultHeader("Server", "esp32-http-server");
+
 	// The web server can be start()ed and stop()ed. When it's stopped, it will close its server port and
 	// all open connections and free the resources. Theoretically, it should be possible to run multiple
 	// web servers in parallel, however, there might be some restrictions im memory.

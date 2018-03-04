@@ -96,6 +96,15 @@ void HTTPSServer::stop() {
 }
 
 /**
+ * Adds a default header that is included in every response.
+ *
+ * This could be used for example to add a Server: header or for CORS options
+ */
+void HTTPSServer::setDefaultHeader(std::string name, std::string value) {
+	_defaultHeaders.set(new HTTPHeader(name, value));
+}
+
+/**
  * The loop method can either be called by periodical interrupt or in the main loop and handles processing
  * of data
  */
@@ -150,7 +159,7 @@ void HTTPSServer::loop() {
 			_connections[freeConnectionIdx] = new HTTPSConnection(this);
 
 			// Start to accept data on the socket
-			int socketIdentifier = _connections[freeConnectionIdx]->initialize(_socket, _sslctx);
+			int socketIdentifier = _connections[freeConnectionIdx]->initialize(_socket, _sslctx, &_defaultHeaders);
 
 			// If initializing did not work, discard the new socket immediately
 			if (socketIdentifier < 0) {

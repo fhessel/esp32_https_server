@@ -22,6 +22,7 @@ HTTPSConnection::HTTPSConnection(ResourceResolver * resResolver):
 	_connectionState = STATE_UNDEFINED;
 	_clientState = CSTATE_UNDEFINED;
 	_httpHeaders = NULL;
+	_defaultHeaders = NULL;
 	_isKeepAlive = false;
 	_lastTransmissionTS = millis();
 }
@@ -36,8 +37,9 @@ HTTPSConnection::~HTTPSConnection() {
  *
  * The call WILL BLOCK if accept(serverSocketID) blocks. So use select() to check for that in advance.
  */
-int HTTPSConnection::initialize(int serverSocketID, SSL_CTX * sslCtx) {
+int HTTPSConnection::initialize(int serverSocketID, SSL_CTX * sslCtx, HTTPHeaders *defaultHeaders) {
 	if (_connectionState == STATE_UNDEFINED) {
+		_defaultHeaders = defaultHeaders;
 		_socket = accept(serverSocketID, (struct sockaddr * )&_sockAddr, &_addrLen);
 
 		// Build up SSL Connection context if the socket has been created successfully
@@ -421,6 +423,12 @@ void HTTPSConnection::loop() {
 					HTTPRequest req  = HTTPRequest(this, _httpHeaders, resolvedResource.getParams());
 					HTTPResponse res = HTTPResponse(this);
 
+					// Add default headers to the response
+					auto allDefaultHeaders = _defaultHeaders->getAll();
+					for(std::vector<HTTPHeader*>::iterator header = allDefaultHeaders->begin(); header != allDefaultHeaders->end(); ++header) {
+						res.setHeader((*header)->_name, (*header)->_value);
+					}
+
 					// Call the callback
 					HTTPS_DLOG("[   ] Calling handler function");
 					resolvedResource.getMatchingNode()->_callback(&req, &res);
@@ -437,7 +445,11 @@ void HTTPSConnection::loop() {
 							res.setHeader("Connection", "keep-alive");
 							res.finalize();
 							if (_clientState != CSTATE_CLOSED) {
+								// Refresh the timeout for the new request
 								refreshTimeout();
+								// Reset headers for the new connection
+								_httpHeaders->clearAll();
+								// Go back to initial state
 								_connectionState = STATE_INITIAL;
 							}
 						}

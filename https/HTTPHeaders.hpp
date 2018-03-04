@@ -29,6 +29,8 @@ public:
 
 	std::vector<HTTPHeader *> * getAll();
 
+	void clearAll();
+
 private:
 	std::vector<HTTPHeader*> * _headers;
 };

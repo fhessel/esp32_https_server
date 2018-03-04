@@ -37,7 +37,7 @@ public:
 	HTTPSConnection(ResourceResolver * resResolver);
 	virtual ~HTTPSConnection();
 
-	int initialize(int serverSocketID, SSL_CTX * sslCtx);
+	int initialize(int serverSocketID, SSL_CTX * sslCtx, HTTPHeaders *defaultHeaders);
 	void loop();
 	void closeConnection();
 	bool isClosed();
@@ -88,6 +88,9 @@ private:
 	std::string _httpMethod;
 	std::string _httpResource;
 	HTTPHeaders * _httpHeaders;
+
+	// Default headers that are applied to every response
+	HTTPHeaders * _defaultHeaders;
 
 	// Should we use keep alive
 	bool _isKeepAlive;
