@@ -48,18 +48,26 @@ int HTTPSConnection::initialize(int serverSocketID, SSL_CTX * sslCtx, HTTPHeader
 
 			_ssl = SSL_new(sslCtx);
 
-			// Bind SSL to the socket
-			int success = SSL_set_fd(_ssl, _socket);
-			if (success) {
-
-				// Perform the handshake
-				success = SSL_accept(_ssl);
+			if (_ssl) {
+				// Bind SSL to the socket
+				int success = SSL_set_fd(_ssl, _socket);
 				if (success) {
-					_connectionState = STATE_INITIAL;
-					_httpHeaders = new HTTPHeaders();
-					refreshTimeout();
-					return _socket;
+
+					// Perform the handshake
+					success = SSL_accept(_ssl);
+					if (success) {
+						_connectionState = STATE_INITIAL;
+						_httpHeaders = new HTTPHeaders();
+						refreshTimeout();
+						return _socket;
+					} else {
+						HTTPS_DLOG("[ERR] SSL_accept failed. Aborting handshake.");
+					}
+				} else {
+					HTTPS_DLOG("[ERR] SSL_set_fd failed. Aborting handshake.");
 				}
+			} else {
+				HTTPS_DLOG("[ERR] SSL_new failed. Aborting handshake.");
 			}
 		}
 		_connectionState = STATE_ERROR;
