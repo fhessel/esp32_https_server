@@ -440,8 +440,25 @@ void HTTPSConnection::loop() {
 					// Call the callback
 					HTTPS_DLOG("[   ] Calling handler function");
 					resolvedResource.getMatchingNode()->_callback(&req, &res);
-					HTTPS_DLOG("[   ] Handler function done, requeste complete");
 
+					// The callback-function should have read all of the request body.
+					// However, if it does not, we need to clear the request body now,
+					// because otherwise it would be parsed in the next request.
+					if (!req.requestComplete()) {
+						HTTPS_DLOG("[ERR] Callback function did not parse full request body");
+						byte buf[16];
+						while(!req.requestComplete()) {
+							// Just drain the buffer
+							req.readBytes(buf, 16);
+						}
+					}
+
+					// Handling the request is done
+					HTTPS_DLOG("[   ] Handler function done, request complete");
+
+					// Now we need to check if we can use keep-alive to reuse the SSL connection
+					// However, if the client did not set content-size or defined connection: close,
+					// we have no chance to do so.
 					if (!_isKeepAlive) {
 						// No KeepAlive -> We are done. Transition to next state.
 						if (!isClosed()) {
