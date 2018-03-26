@@ -167,6 +167,8 @@ void echoCallback(HTTPRequest * req, HTTPResponse * res) {
  * Again, another content type is shown (json).
  */
 void notfoundCallback(HTTPRequest * req, HTTPResponse * res) {
+	// Discard the request body, as the 404-handler may also be used for put and post actions
+	req->discardRequestBody();
 	res->setStatusCode(404);
 	res->setStatusText("Not found");
 	res->setHeader("Content-Type", "application/json");

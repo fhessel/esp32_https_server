@@ -77,4 +77,14 @@ bool HTTPRequest::requestComplete() {
 	}
 }
 
+/**
+ * This function will drop whatever is remaining of the request body
+ */
+void HTTPRequest::discardRequestBody() {
+	byte buf[16];
+	while(!requestComplete()) {
+		readBytes(buf, 16);
+	}
+}
+
 } /* namespace httpsserver */

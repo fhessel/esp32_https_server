@@ -31,6 +31,7 @@ public:
 	size_t readBytes(byte * buffer, size_t length);
 	size_t getContentLength();
 	bool   requestComplete();
+	void   discardRequestBody();
 	ResourceParameters * getParams();
 private:
 	ConnectionContext * _con;

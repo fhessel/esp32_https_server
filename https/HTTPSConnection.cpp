@@ -446,11 +446,7 @@ void HTTPSConnection::loop() {
 					// because otherwise it would be parsed in the next request.
 					if (!req.requestComplete()) {
 						HTTPS_DLOG("[ERR] Callback function did not parse full request body");
-						byte buf[16];
-						while(!req.requestComplete()) {
-							// Just drain the buffer
-							req.readBytes(buf, 16);
-						}
+						req.discardRequestBody();
 					}
 
 					// Handling the request is done
