@@ -79,19 +79,24 @@ bool HTTPSServer::isRunning() {
 void HTTPSServer::stop() {
 
 	if (_running) {
+		// Set the flag that the server is stopped
+		_running = false;
+
+		// Clean up the connections
+		for(int i = 0; i < _maxConnections; i++) {
+			if (_connections[i] != NULL) {
+				_connections[i]->closeConnection();
+				delete _connections[i];
+			}
+		}
+
+		// Close the actual server socket
 		close(_socket);
 		_socket = -1;
 
-		// Reset the context
+		// Tear down the SSL context
 		SSL_CTX_free(_sslctx);
 		_sslctx = NULL;
-	}
-
-	// Clean up the connections
-	for(int i = 0; i < _maxConnections; i++) {
-		if (_connections[i] != NULL) {
-
-		}
 	}
 }
 
@@ -109,6 +114,9 @@ void HTTPSServer::setDefaultHeader(std::string name, std::string value) {
  * of data
  */
 void HTTPSServer::loop() {
+
+	// Only handle requests if the server is still running
+	if(!_running) return;
 
 	// Step 1: Process existing connections
 	// Process open connections and store the index of a free connection
