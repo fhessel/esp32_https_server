@@ -83,11 +83,23 @@ void HTTPSServer::stop() {
 		_running = false;
 
 		// Clean up the connections
-		for(int i = 0; i < _maxConnections; i++) {
-			if (_connections[i] != NULL) {
-				_connections[i]->closeConnection();
-				delete _connections[i];
+		bool hasOpenConnections = true;
+		while(hasOpenConnections) {
+			hasOpenConnections = false;
+			for(int i = 0; i < _maxConnections; i++) {
+				if (_connections[i] != NULL) {
+					_connections[i]->closeConnection();
+
+					// Check if closing succeeded. If not, we need to call the close function multiple times
+					// and wait for the client
+					if (_connections[i]->isClosed()) {
+						delete _connections[i];
+					} else {
+						hasOpenConnections = true;
+					}
+				}
 			}
+			delay(1);
 		}
 
 		// Close the actual server socket

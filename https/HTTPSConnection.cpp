@@ -25,6 +25,7 @@ HTTPSConnection::HTTPSConnection(ResourceResolver * resResolver):
 	_defaultHeaders = NULL;
 	_isKeepAlive = false;
 	_lastTransmissionTS = millis();
+	_shutdownTS = 0;
 }
 
 HTTPSConnection::~HTTPSConnection() {
@@ -115,29 +116,53 @@ bool HTTPSConnection::isError() {
 void HTTPSConnection::closeConnection() {
 	// TODO: Call an event handler here, maybe?
 
-	// Tear down SSL
-	if (_ssl) {
-		// wait here so that SSL_shutdown returns 1
-		while(SSL_shutdown(_ssl) == 0) delay(1);
-		SSL_free(_ssl);
-		_ssl = NULL;
-	}
 
-	// Tear down the socket
-	if (_socket >= 0) {
-		HTTPS_DLOGHEX("[<--] Connection has been closed. fid = ", _socket);
-		close(_socket);
-		_socket = -1;
-		_addrLen = 0;
-	}
+	if (_connectionState != STATE_ERROR && _connectionState != STATE_CLOSED) {
 
-	if (_connectionState != STATE_ERROR) {
-		_connectionState = STATE_CLOSED;
-	}
+		// First call to closeConnection - set the timestamp to calculate the timeout later on
+		if (_connectionState != STATE_CLOSING) {
+			_shutdownTS = millis();
+		}
 
-	if (_httpHeaders != NULL) {
-		delete _httpHeaders;
-		_httpHeaders = NULL;
+		// Set the connection state to closing. We stay in closing as long as SSL has not been shutdown
+		// correctly
+		_connectionState = STATE_CLOSING;
+
+		// Try to tear down SSL
+		if (_ssl) {
+			if(SSL_shutdown(_ssl) == 0) {
+				// SSL_shutdown will return 1 as soon as the client answered with close notify
+				// This means we are safe to close the socket
+				SSL_free(_ssl);
+				_ssl = NULL;
+			} else if (_shutdownTS + HTTPS_SHUTDOWN_TIMEOUT < millis()) {
+				// The timeout has been hit, we force SSL shutdown now by freeing the context
+				SSL_free(_ssl);
+				_ssl = NULL;
+				HTTPS_DLOG("[ERR] SSL_shutdown did not receive close notification from the client");
+				_connectionState = STATE_ERROR;
+			}
+		}
+
+		// If SSL has been brought down, close the socket
+		if (!_ssl) {
+			// Tear down the socket
+			if (_socket >= 0) {
+				HTTPS_DLOGHEX("[<--] Connection has been closed. fid = ", _socket);
+				close(_socket);
+				_socket = -1;
+				_addrLen = 0;
+			}
+
+			if (_connectionState != STATE_ERROR) {
+				_connectionState = STATE_CLOSED;
+			}
+
+			if (_httpHeaders != NULL) {
+				delete _httpHeaders;
+				_httpHeaders = NULL;
+			}
+		}
 	}
 }
 
@@ -487,6 +512,9 @@ void HTTPSConnection::loop() {
 			}
 			break;
 		case STATE_BODY_FINISHED: // Request is complete
+			closeConnection();
+			break;
+		case STATE_CLOSING: // As long as we are in closing state, we call closeConnection() again and wait for it to finish or timeout
 			closeConnection();
 			break;
 		case STATE_WEBSOCKET: // Do handling of the websocket

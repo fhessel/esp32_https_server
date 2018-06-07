@@ -98,15 +98,20 @@ private:
 	// Timestamp of the last transmission action
 	unsigned long _lastTransmissionTS;
 
+	// Timestamp of when the shutdown was started
+	unsigned long _shutdownTS;
+
 	// Internal state machine of the connection:
 	//
 	// O --- > STATE_UNDEFINED -- initialize() --> STATE_INITIAL -- get / http/1.1 --> STATE_REQUEST_FINISHED --.
 	//                     |                          |                                       |                 |
 	//                     |                          |                                       |                 | Host: ...\r\n
 	// STATE_ERROR <- on error-----------------------<---------------------------------------<                  | Foo: bar\r\n
-	//                                                |                                       |                 | \r\n
-	//              close()                           |                                       |                 | \r\n
-	// STATE_CLOSED <----- STATE_WEBSOCKET <-.        |                                       |                 |
+	// ^                                              |                                       |                 | \r\n
+	// | shutdown   .--> STATE_CLOSED                 |                                       |                 | \r\n
+	// | fails     |                                  |                                       |                 |
+	// |           | close()                          |                                       |                 |
+	// STATE_CLOSING <---- STATE_WEBSOCKET <-.        |                                       |                 |
 	//  ^                                    |        |                                       |                 |
 	//  `---------- close() ---------- STATE_BODY_FINISHED <-- Body received or GET -- STATE_HEADERS_FINISHED <-´
 	//
@@ -125,6 +130,8 @@ private:
 		STATE_BODY_FINISHED,
 		// The connection is in websocket mode
 		STATE_WEBSOCKET,
+		// The connection is about to close (and waiting for the client to send close notify)
+		STATE_CLOSING,
 		// The connection has been closed
 		STATE_CLOSED,
 		// An error has occured

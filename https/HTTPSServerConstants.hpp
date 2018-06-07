@@ -35,4 +35,8 @@
 // Timeout for an HTTPS connection without any transmission
 #define HTTPS_CONNECTION_TIMEOUT               20000
 
+// Timeout used to wait for shutdown of SSL connection (ms)
+// (time for the client to return notify close flag) - without it, truncation attacks might be possible
+#define HTTPS_SHUTDOWN_TIMEOUT                 5000
+
 #endif /* HTTPS_HTTPSSERVERCONSTANTS_HPP_ */
