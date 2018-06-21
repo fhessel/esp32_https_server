@@ -129,41 +129,41 @@ void HTTPSConnection::closeConnection() {
 		// Set the connection state to closing. We stay in closing as long as SSL has not been shutdown
 		// correctly
 		_connectionState = STATE_CLOSING;
+	}
 
-		// Try to tear down SSL
-		if (_ssl) {
-			if(SSL_shutdown(_ssl) == 0) {
-				// SSL_shutdown will return 1 as soon as the client answered with close notify
-				// This means we are safe to close the socket
-				SSL_free(_ssl);
-				_ssl = NULL;
-			} else if (_shutdownTS + HTTPS_SHUTDOWN_TIMEOUT < millis()) {
-				// The timeout has been hit, we force SSL shutdown now by freeing the context
-				SSL_free(_ssl);
-				_ssl = NULL;
-				HTTPS_DLOG("[ERR] SSL_shutdown did not receive close notification from the client");
-				_connectionState = STATE_ERROR;
-			}
+	// Try to tear down SSL while we are in the _shutdownTS timeout period or if an error occurred
+	if (_ssl) {
+		if(_connectionState == STATE_ERROR || SSL_shutdown(_ssl) == 0) {
+			// SSL_shutdown will return 1 as soon as the client answered with close notify
+			// This means we are safe to close the socket
+			SSL_free(_ssl);
+			_ssl = NULL;
+		} else if (_shutdownTS + HTTPS_SHUTDOWN_TIMEOUT < millis()) {
+			// The timeout has been hit, we force SSL shutdown now by freeing the context
+			SSL_free(_ssl);
+			_ssl = NULL;
+			HTTPS_DLOG("[ERR] SSL_shutdown did not receive close notification from the client");
+			_connectionState = STATE_ERROR;
+		}
+	}
+
+	// If SSL has been brought down, close the socket
+	if (!_ssl) {
+		// Tear down the socket
+		if (_socket >= 0) {
+			HTTPS_DLOGHEX("[<--] Connection has been closed. fid = ", _socket);
+			close(_socket);
+			_socket = -1;
+			_addrLen = 0;
 		}
 
-		// If SSL has been brought down, close the socket
-		if (!_ssl) {
-			// Tear down the socket
-			if (_socket >= 0) {
-				HTTPS_DLOGHEX("[<--] Connection has been closed. fid = ", _socket);
-				close(_socket);
-				_socket = -1;
-				_addrLen = 0;
-			}
+		if (_connectionState != STATE_ERROR) {
+			_connectionState = STATE_CLOSED;
+		}
 
-			if (_connectionState != STATE_ERROR) {
-				_connectionState = STATE_CLOSED;
-			}
-
-			if (_httpHeaders != NULL) {
-				delete _httpHeaders;
-				_httpHeaders = NULL;
-			}
+		if (_httpHeaders != NULL) {
+			delete _httpHeaders;
+			_httpHeaders = NULL;
 		}
 	}
 }
