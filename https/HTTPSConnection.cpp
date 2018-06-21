@@ -70,6 +70,8 @@ int HTTPSConnection::initialize(int serverSocketID, SSL_CTX * sslCtx, HTTPHeader
 			} else {
 				HTTPS_DLOG("[ERR] SSL_new failed. Aborting handshake.");
 			}
+		} else {
+			HTTPS_DLOG("[ERR] Could not accept() new connection");
 		}
 		_connectionState = STATE_ERROR;
 		_clientState = CSTATE_ACTIVE;

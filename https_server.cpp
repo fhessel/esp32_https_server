@@ -215,10 +215,13 @@ void setup()
 // The loop function is called in an endless loop
 void loop() {
 	// Use your normal loop without thinking of the server in the background
-	Serial.println("Hello from main loop!");
 
-	// Delay for about half a minute and print some message on the Serial console.
-	delay(30*1000);
+	// Delay for about five seconds and print some message on the Serial console.
+	delay(5 * 1000);
+
+	// We use this loop only to show memory usage for debugging purposes
+	uint32_t freeheap = ESP.getFreeHeap();
+	Serial.printf("Free Heap: %9d \n", freeheap);
 }
 
 /**
