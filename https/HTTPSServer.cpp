@@ -183,7 +183,6 @@ void HTTPSServer::loop() {
 
 			// If initializing did not work, discard the new socket immediately
 			if (socketIdentifier < 0) {
-				Serial.println("Fail.");
 				delete _connections[freeConnectionIdx];
 				_connections[freeConnectionIdx] = NULL;
 			}
@@ -199,6 +198,8 @@ void HTTPSServer::loop() {
 uint8_t HTTPSServer::setupSSLCTX() {
 	_sslctx = SSL_CTX_new(TLSv1_2_server_method());
 	if (_sslctx) {
+		// Set SSL Timeout to 5 minutes
+		SSL_CTX_set_timeout(_sslctx, 300);
 		return 1;
 	} else {
 		_sslctx = NULL;
