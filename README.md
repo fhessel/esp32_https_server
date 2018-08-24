@@ -7,7 +7,7 @@ This repository contains an HTTPS server implementation that can be used with th
 The main goals for the server are:
 - Ability to handle multiple clients in parallel (works, but memory limits it to 3-4 clients)
 - Possibility to be executed in a task without interrupting the main program (works)
-- Ability to handle `Connection: keep-alive` (works), SSL Session Reuse (works) and WebSockets (tbd, see [Issue 9](https://github.com/fhessel/esp32_https_server/issues/9)) to reduce the SSL-overhead for streaming data operations
+- Ability to handle `Connection: keep-alive` (works), SSL Session Reuse (works) and WebSockets (tbd, see [Issue 13](https://github.com/fhessel/esp32_https_server/issues/9)) to reduce the SSL-overhead for streaming data operations
 - Provide a simple user interface for request handling (works) and middleware functionality (tbd, see [Issue 10](https://github.com/fhessel/esp32_https_server/issues/10))
 
 For the future, the project structure will be converted to serve as a regular Arduino Library. For the moment, you may just
