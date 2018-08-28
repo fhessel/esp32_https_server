@@ -193,7 +193,8 @@ void setup()
 		Serial.print(".");
 		delay(100);
 	}
-	Serial.println(" connected.");
+	Serial.print(" connected. IP=");
+	Serial.println(WiFi.localIP());
 
 	// Setup the server as a separate task.
 	//
