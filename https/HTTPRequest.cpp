@@ -39,7 +39,7 @@ std::string HTTPRequest::getHeader(std::string name) {
 	if (h != NULL) {
 		return h->_value;
 	} else {
-		return NULL;
+		return std::string();
 	}
 }
 
