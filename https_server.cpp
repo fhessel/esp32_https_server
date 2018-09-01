@@ -22,10 +22,16 @@ void testCallback(HTTPRequest * req, HTTPResponse * res) {
 	res->println("<!DOCTYPE html>");
 	res->println("<html>");
 	res->println("<head>");
-	res->println("<title>HTTPS Server on ESP32</title>");
+  if (res->_con->ssl()) // test if connection is encrypted
+	  res->println("<title>HTTPS Server on ESP32</title>");
+  else
+    res->println("<title>HTTP Server on ESP32</title>");
 	res->println("</head>");
 	res->println("<body>");
-	res->println("<h1>Hello world!</h1>");
+  if (res->_con->ssl()) // test if connection is encrypted
+	  res->println("<h1>Hello HTTPS world!</h1>");
+  else
+    res->println("<h1>Hello HTTP world!</h1>");
 	res->println("<p>... from your ESP32</p>");
 	// The image resource is created in the awesomeCallback some lines below
 	res->println("<img src=\"images/awesome.svg\" alt=\"Awesome face\" style=\"width:250px;\" />");
