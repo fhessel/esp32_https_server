@@ -5,6 +5,10 @@
  *      Author: frank
  */
 
+// needed for HTTP sockets
+#include <Arduino.h>
+#include "lwip/sockets.h"
+
 #include "HTTPResponse.hpp"
 
 namespace httpsserver {
@@ -145,8 +149,14 @@ size_t HTTPResponse::writeBytesInternal(const void * data, int length, bool skip
 				drainBuffer(true);
 			}
 		}
-		HTTPS_DLOG("[   ] Writing response data to ssl socket");
-		SSL_write(_con->ssl(), data, length);
+   
+    if (_con->ssl()) { // HTTPS
+  		HTTPS_DLOG("[   ] Writing response data to ssl socket");
+  		SSL_write(_con->ssl(), data, length);
+    } else { // HTTP
+      HTTPS_DLOG("[   ] Writing response data to socket");
+      send(_con->__socket(), data, length, 0);
+    }
 		return length;
 	} else {
 		return 0;
@@ -165,7 +175,13 @@ void HTTPResponse::drainBuffer(bool onOverflow) {
 		HTTPS_DLOG("[   ] Draining response buffer")
 		// Check for 0 as it may be an overflow reaction without any data that has been written earlier
 		if(_responseCachePointer > 0) {
-			SSL_write(_con->ssl(), _responseCache, _responseCachePointer);
+
+      if (_con->ssl()) { // HTTPS
+			  SSL_write(_con->ssl(), _responseCache, _responseCachePointer);
+      } else { // HTTP
+        send(_con->__socket(), _responseCache, _responseCachePointer, 0);
+      }
+      
 		}
 		delete[] _responseCache;
 		_responseCache = NULL;

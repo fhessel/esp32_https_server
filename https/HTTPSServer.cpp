@@ -10,9 +10,10 @@
 namespace httpsserver {
 
 
-HTTPSServer::HTTPSServer(SSLCert * cert, const uint16_t port, const uint8_t maxConnections, const in_addr_t bindAddress):
+HTTPSServer::HTTPSServer(SSLCert * cert, const uint16_t portHTTPS, const uint16_t portHTTP, const uint8_t maxConnections, const in_addr_t bindAddress):
 	_cert(cert),
-	_port(port),
+	_portHTTPS(portHTTPS),
+  _portHTTP(portHTTP),
 	_maxConnections(maxConnections),
 	_bindAddress(bindAddress) {
 
@@ -22,7 +23,9 @@ HTTPSServer::HTTPSServer(SSLCert * cert, const uint16_t port, const uint8_t maxC
 
 	// Configure runtime data
 	_sslctx = NULL;
-	_socket = -1;
+	_socketHTTPS = -1;
+  _socketHTTP = -1;
+
 	_running = false;
 }
 
@@ -55,11 +58,11 @@ uint8_t HTTPSServer::start() {
 			return 0;
 		}
 
-		if (setupSocket()) {
+		if (setupSockets()) {
 			_running = true;
 			return 1;
 		} else {
-			Serial.println("setupSocket failed");
+			Serial.println("setupSockets failed");
 			SSL_CTX_free(_sslctx);
 			_sslctx = NULL;
 			return 0;
@@ -102,9 +105,11 @@ void HTTPSServer::stop() {
 			delay(1);
 		}
 
-		// Close the actual server socket
-		close(_socket);
-		_socket = -1;
+		// Close the actual server sockets
+		close(_socketHTTPS);
+		_socketHTTPS = -1;
+    close(_socketHTTP);
+    _socketHTTP = -1;
 
 		// Tear down the SSL context
 		SSL_CTX_free(_sslctx);
@@ -152,7 +157,7 @@ void HTTPSServer::loop() {
 			}
 		}
 	}
-
+ 
 	// Step 2: Check for new connections
 	// This makes only sense if there is space to store the connection
 	if (freeConnectionIdx > -1) {
@@ -161,7 +166,7 @@ void HTTPSServer::loop() {
 		fd_set sockfds;
 		// Out socket is the only socket in this set
 		FD_ZERO(&sockfds);
-		FD_SET(_socket, &sockfds);
+		FD_SET(_socketHTTPS, &sockfds);
 
 		// We define a "immediate" timeout
 		timeval timeout;
@@ -171,25 +176,51 @@ void HTTPSServer::loop() {
 		// Wait for input
 		// As by 2017-12-14, it seems that FD_SETSIZE is defined as 0x40, but socket IDs now
 		// start at 0x1000, so we need to use _socket+1 here
-		select(_socket + 1, &sockfds, NULL, NULL, &timeout);
+		select(_socketHTTPS + 1, &sockfds, NULL, NULL, &timeout);
 
 		// There is input
-		if (FD_ISSET(_socket, &sockfds)) {
-
+		if (FD_ISSET(_socketHTTPS, &sockfds)) {
 			_connections[freeConnectionIdx] = new HTTPSConnection(this);
 
 			// Start to accept data on the socket
-			int socketIdentifier = _connections[freeConnectionIdx]->initialize(_socket, _sslctx, &_defaultHeaders);
+			int socketIdentifier = _connections[freeConnectionIdx]->initialize(_socketHTTPS, _sslctx, &_defaultHeaders, true);
 
 			// If initializing did not work, discard the new socket immediately
 			if (socketIdentifier < 0) {
 				delete _connections[freeConnectionIdx];
 				_connections[freeConnectionIdx] = NULL;
 			}
+
+      return; // stop here if free space for new connection is taken by HTTPS ...
 		}
+
+    // ... if not then we try with HTTP
+    // Clear a file descriptor 
+    // Out socket is the only socket in this set
+    FD_ZERO(&sockfds);
+    FD_SET(_socketHTTP, &sockfds);
+
+    // "immediate" timeout is already defined
+
+    // Wait for input
+    // As by 2017-12-14, it seems that FD_SETSIZE is defined as 0x40, but socket IDs now
+    // start at 0x1000, so we need to use _socket+1 here
+    select(_socketHTTP + 1, &sockfds, NULL, NULL, &timeout);
+
+    // There is input
+    if (FD_ISSET(_socketHTTP, &sockfds)) {
+      _connections[freeConnectionIdx] = new HTTPSConnection(this);
+
+      // Start to accept data on the socket
+      int socketIdentifier = _connections[freeConnectionIdx]->initialize(_socketHTTP, _sslctx, &_defaultHeaders, false);
+      // If initializing did not work, discard the new socket immediately
+      if (socketIdentifier < 0) {
+        delete _connections[freeConnectionIdx];
+        _connections[freeConnectionIdx] = NULL;
+      }
+    } 
+   
 	}
-
-
 }
 
 /**
@@ -234,41 +265,87 @@ uint8_t HTTPSServer::setupCert() {
 /**
  * This method prepares the tcp server socket
  */
-uint8_t HTTPSServer::setupSocket() {
+uint8_t HTTPSServer::setupSockets() {
 	// (AF_INET = IPv4, SOCK_STREAM = TCP)
-	_socket = socket(AF_INET, SOCK_STREAM, 0);
+	_socketHTTPS = socket(AF_INET, SOCK_STREAM, 0);
 
-	Serial.print("Server Socket fid=0x");
-	Serial.println(_socket, HEX);
+	Serial.print("Server Socket (HTTPS) fid=0x");
+	Serial.println(_socketHTTPS, HEX);
 
-	if (_socket>=0) {
+	if (_socketHTTPS>=0) {
 		_sock_addr.sin_family = AF_INET;
 		// Listen on all interfaces
 		_sock_addr.sin_addr.s_addr = _bindAddress;
 		// Set the server port
-		_sock_addr.sin_port = htons(_port);
+		_sock_addr.sin_port = htons(_portHTTPS);
 
 		// Now bind the TCP socket we did create above to the socket address we specified
 		// (The TCP-socket now listens on 0.0.0.0:port)
-		int err = bind(_socket, (struct sockaddr* )&_sock_addr, sizeof(_sock_addr));
+		int err = bind(_socketHTTPS, (struct sockaddr* )&_sock_addr, sizeof(_sock_addr));
 		if(!err) {
-			err = listen(_socket, _maxConnections);
+			err = listen(_socketHTTPS, _maxConnections);
 			if (!err) {
-				return 1;
+        Serial.printf ("Starting listening on port 443\n");
+        goto setupHttpSocket;
+				// return 1;
 			} else {
-				close(_socket);
-				_socket = -1;
+				close(_socketHTTPS);
+				_socketHTTPS = -1;
 				return 0;
 			}
 		} else {
-			close(_socket);
-			_socket = -1;
+			close(_socketHTTPS);
+			_socketHTTPS = -1;
 			return 0;
 		}
 	} else {
-		_socket = -1;
+		_socketHTTPS = -1;
 		return 0;
 	}
+
+setupHttpSocket:
+  // (AF_INET = IPv4, SOCK_STREAM = TCP)
+  _socketHTTP = socket(AF_INET, SOCK_STREAM, 0);
+
+  Serial.print("Server Socket (HTTP) fid=0x");
+  Serial.println(_socketHTTP, HEX);
+
+  if (_socketHTTP>=0) {
+    _sock_addr.sin_family = AF_INET;
+    // Listen on all interfaces
+    _sock_addr.sin_addr.s_addr = _bindAddress;
+    // Set the server port
+    _sock_addr.sin_port = htons(_portHTTP);
+
+    // Now bind the TCP socket we did create above to the socket address we specified
+    // (The TCP-socket now listens on 0.0.0.0:port)
+    int err = bind(_socketHTTP, (struct sockaddr* )&_sock_addr, sizeof(_sock_addr));
+    if(!err) {
+      err = listen(_socketHTTP, _maxConnections);
+      if (!err) {
+        Serial.printf ("Starting listening on port 80\n");
+        return 1;
+      } else {
+        close(_socketHTTP); 
+        _socketHTTP = -1;
+        close(_socketHTTPS);
+        _socketHTTPS = -1;
+        return 0;
+      }
+    } else {
+      close(_socketHTTP);
+      _socketHTTP = -1;
+      close(_socketHTTPS);
+      _socketHTTPS = -1;
+      return 0;
+    }
+  } else {
+    _socketHTTP = -1;
+    close(_socketHTTPS);
+    _socketHTTPS = -1;
+    return 0;
+  }
+ 
 }
 
 } /* namespace httpsserver */

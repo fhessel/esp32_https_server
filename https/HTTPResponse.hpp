@@ -46,13 +46,14 @@ public:
 
 	bool isResponseBuffered();
 	void finalize();
+
+  ConnectionContext * _con;
+  
 private:
 	void printHeader();
 	void printInternal(const std::string &str, bool skipBuffer = false);
 	size_t writeBytesInternal(const void * data, int length, bool skipBuffer = false);
 	void drainBuffer(bool onOverflow = false);
-
-	ConnectionContext * _con;
 
 	uint16_t _statusCode;
 	std::string _statusText;

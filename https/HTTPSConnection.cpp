@@ -38,7 +38,7 @@ HTTPSConnection::~HTTPSConnection() {
  *
  * The call WILL BLOCK if accept(serverSocketID) blocks. So use select() to check for that in advance.
  */
-int HTTPSConnection::initialize(int serverSocketID, SSL_CTX * sslCtx, HTTPHeaders *defaultHeaders) {
+int HTTPSConnection::initialize(int serverSocketID, SSL_CTX * sslCtx, HTTPHeaders *defaultHeaders, bool isSSLSocket) {
 	if (_connectionState == STATE_UNDEFINED) {
 		_defaultHeaders = defaultHeaders;
 		_socket = accept(serverSocketID, (struct sockaddr * )&_sockAddr, &_addrLen);
@@ -47,32 +47,45 @@ int HTTPSConnection::initialize(int serverSocketID, SSL_CTX * sslCtx, HTTPHeader
 		if (_socket >= 0) {
 			HTTPS_DLOGHEX("[-->] New connection. Socket fid is: ", _socket);
 
-			_ssl = SSL_new(sslCtx);
+      if (isSSLSocket) { // HTTPS
 
-			if (_ssl) {
-				// Bind SSL to the socket
-				int success = SSL_set_fd(_ssl, _socket);
-				if (success) {
+			  _ssl = SSL_new(sslCtx);
+  
+  			if (_ssl) {
+  				// Bind SSL to the socket
+  				int success = SSL_set_fd(_ssl, _socket);
+  				if (success) {
+  
+  					// Perform the handshake
+  					success = SSL_accept(_ssl);
+  					if (success) {
+  						_connectionState = STATE_INITIAL;
+  						_httpHeaders = new HTTPHeaders();
+  						refreshTimeout();
+  						return _socket;
+  					} else {
+  						HTTPS_DLOG("[ERR] SSL_accept failed. Aborting handshake.");
+  					}
+  				} else {
+  					HTTPS_DLOG("[ERR] SSL_set_fd failed. Aborting handshake.");
+  				}
+  			} else {
+  				HTTPS_DLOG("[ERR] SSL_new failed. Aborting handshake.");
+  			}
 
-					// Perform the handshake
-					success = SSL_accept(_ssl);
-					if (success) {
-						_connectionState = STATE_INITIAL;
-						_httpHeaders = new HTTPHeaders();
-						refreshTimeout();
-						return _socket;
-					} else {
-						HTTPS_DLOG("[ERR] SSL_accept failed. Aborting handshake.");
-					}
-				} else {
-					HTTPS_DLOG("[ERR] SSL_set_fd failed. Aborting handshake.");
-				}
-			} else {
-				HTTPS_DLOG("[ERR] SSL_new failed. Aborting handshake.");
-			}
+      } else { // HTTP
+
+        _connectionState = STATE_INITIAL;
+        _httpHeaders = new HTTPHeaders();
+        refreshTimeout();
+        return _socket;        
+        
+      }
+     
 		} else {
 			HTTPS_DLOG("[ERR] Could not accept() new connection");
 		}
+   
 		_connectionState = STATE_ERROR;
 		_clientState = CSTATE_ACTIVE;
 
@@ -214,41 +227,90 @@ int HTTPSConnection::updateBuffer() {
 			// start at 0x1000, so we need to use _socket+1 here
 			select(_socket + 1, &sockfds, NULL, NULL, &timeout);
 
-			if (FD_ISSET(_socket, &sockfds) || SSL_pending(_ssl) > 0) {
+      if (_ssl) { // HTTPS
 
-				HTTPS_DLOGHEX("[   ] There is data on the connection socket. fid=", _socket)
+  			if (FD_ISSET(_socket, &sockfds) || SSL_pending(_ssl) > 0) {
+  
+  				HTTPS_DLOGHEX("[   ] There is data on the connection socket. fid=", _socket)
+  
+          int readReturnCode;
+  
+  			  // The return code of SSL_read means:
+  			  // > 0 : Length of the data that has been read
+  			  // < 0 : Error
+  			  // = 0 : Connection closed
+  			  readReturnCode = SSL_read(
+  					_ssl,
+  					// Only after the part of the buffer that has not been processed yet
+  					_receiveBuffer + sizeof(char) * _bufferUnusedIdx,
+  					// Only append up to the end of the buffer
+  					HTTPS_CONNECTION_DATA_CHUNK_SIZE - _bufferUnusedIdx
+  				);
+  
+  				if (readReturnCode > 0) {
+  					_bufferUnusedIdx += readReturnCode;
+  					refreshTimeout();
+  					return readReturnCode;
+  
+  				} else if (readReturnCode == 0) {
+  					// The connection has been closed by the client
+  					_clientState = CSTATE_CLOSED;
+  					HTTPS_DLOGHEX("[ x ] Client closed connection, fid=", _socket);
+  					// TODO: If we are in state websocket, we might need to do something here
+  					return 0;
+  				} else {
+  					// An error occured
+  					_connectionState = STATE_ERROR;
+  					HTTPS_DLOGHEX("[ERR] An SSL error occured, fid=", _socket);
+  					closeConnection();
+  					return -1;
+  				}
+  			} // data pending
 
-				// The return code of SSL_read means:
-				// > 0 : Length of the data that has been read
-				// < 0 : Error
-				// = 0 : Connection closed
-				int readReturnCode = SSL_read(
-						_ssl,
-						// Only after the part of the buffer that has not been processed yet
-						_receiveBuffer + sizeof(char) * _bufferUnusedIdx,
-						// Only append up to the end of the buffer
-						HTTPS_CONNECTION_DATA_CHUNK_SIZE - _bufferUnusedIdx
-				);
+      } else { // HTTP
+    
+        if (FD_ISSET(_socket, &sockfds)) {
+  
+          HTTPS_DLOGHEX("[   ] There is data on the connection socket. fid=", _socket)
+  
+          int readReturnCode;
+  
+          // The return code of SSL_read means:
+          // > 0 : Length of the data that has been read
+          // < 0 : Error
+          // = 0 : Connection closed
+  
+          readReturnCode = recv(
+            _socket,
+            // Only after the part of the buffer that has not been processed yet
+            _receiveBuffer + sizeof(char) * _bufferUnusedIdx,
+            // Only append up to the end of the buffer
+            HTTPS_CONNECTION_DATA_CHUNK_SIZE - _bufferUnusedIdx,
+            MSG_WAITALL | MSG_DONTWAIT 
+          );
+          if (readReturnCode > 0) {
+              _bufferUnusedIdx += readReturnCode;
+              refreshTimeout();
+              return readReturnCode;
+    
+          } else if (readReturnCode == 0) {
+            // The connection has been closed by the client
+            _clientState = CSTATE_CLOSED;
+            HTTPS_DLOGHEX("[ x ] Client closed connection, fid=", _socket);
+            // TODO: If we are in state websocket, we might need to do something here
+            return 0;
+          } else {
+            // An error occured
+            _connectionState = STATE_ERROR;
+            HTTPS_DLOGHEX("[ERR] An recv error occured, fid=", _socket);
+            closeConnection();
+            return -1;
+          }
+    
+        } // data pending
 
-				if (readReturnCode > 0) {
-					_bufferUnusedIdx += readReturnCode;
-					refreshTimeout();
-					return readReturnCode;
+      }
 
-				} else if (readReturnCode == 0) {
-					// The connection has been closed by the client
-					_clientState = CSTATE_CLOSED;
-					HTTPS_DLOGHEX("[ x ] Client closed connection, fid=", _socket);
-					// TODO: If we are in state websocket, we might need to do something here
-					return 0;
-				} else {
-					// An error occured
-					_connectionState = STATE_ERROR;
-					HTTPS_DLOGHEX("[ERR] An SSL error occured, fid=", _socket);
-					closeConnection();
-					return -1;
-				}
-			} // data pending
 		} // buffer can read more
 	}
 	return 0;
@@ -272,30 +334,40 @@ size_t HTTPSConnection::readBuffer(byte* buffer, size_t length) {
 
 size_t HTTPSConnection::pendingBufferSize() {
 	updateBuffer();
-	return _bufferUnusedIdx - _bufferProcessed + SSL_pending(_ssl);
+  
+  if (_ssl) // HTTPS
+  	return _bufferUnusedIdx - _bufferProcessed + SSL_pending(_ssl);
+  else // HTTP
+    return _bufferUnusedIdx - _bufferProcessed;
 }
 
 void HTTPSConnection::serverError() {
-	_connectionState = STATE_ERROR;
+  _connectionState = STATE_ERROR;
 
-	// TODO: Write 500
-	Serial.println("Server error");
-	char staticResponse[] = "HTTP/1.1 500 Internal Server Error\r\nServer: esp32https\r\nConnection:close\r\nContent-Type: text/html\r\nContent-Length:34\r\n\r\n<h1>500 Internal Server Error</h1>";
-	SSL_write(_ssl, staticResponse, strlen(staticResponse));
+  // TODO: Write 500
+  Serial.println("Server error");
+  char staticResponse[] = "HTTP/1.1 500 Internal Server Error\r\nServer: esp32https\r\nConnection:close\r\nContent-Type: text/html\r\nContent-Length:34\r\n\r\n<h1>500 Internal Server Error</h1>";
+  if (_ssl) // HTTPS
+    SSL_write(_ssl, staticResponse, strlen(staticResponse));
+  else // HTTP
+    send(_socket, staticResponse, strlen(staticResponse), 0); 
 
-	closeConnection();
+  closeConnection();
 }
 
 
 void HTTPSConnection::clientError() {
-	_connectionState = STATE_ERROR;
+  _connectionState = STATE_ERROR;
 
-	// TODO: Write 400
-	Serial.println("Client error");
-	char staticResponse[] = "HTTP/1.1 400 Bad Request\r\nServer: esp32https\r\nConnection:close\r\nContent-Type: text/html\r\nContent-Length:26\r\n\r\n<h1>400 Bad Request</h1>";
-	SSL_write(_ssl, staticResponse, strlen(staticResponse));
-
-	closeConnection();
+  // TODO: Write 400
+  Serial.println("Client error");
+  char staticResponse[] = "HTTP/1.1 400 Bad Request\r\nServer: esp32https\r\nConnection:close\r\nContent-Type: text/html\r\nContent-Length:26\r\n\r\n<h1>400 Bad Request</h1>";
+  if (_ssl) // HTTPS
+    SSL_write(_ssl, staticResponse, strlen(staticResponse));
+  else // HTTP
+    send(_socket, staticResponse, strlen(staticResponse), 0);  
+  
+  closeConnection();
 }
 
 void HTTPSConnection::readLine(int lengthLimit) {

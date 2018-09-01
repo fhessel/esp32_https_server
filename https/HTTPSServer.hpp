@@ -38,7 +38,7 @@ namespace httpsserver {
 
 class HTTPSServer : public ResourceResolver {
 public:
-	HTTPSServer(SSLCert * cert, const uint16_t port = 443, const uint8_t maxConnections = 4, const in_addr_t bindAddress = 0);
+	HTTPSServer(SSLCert * cert, const uint16_t portHTTPS = 443, const uint16_t portHTTP = 80, const uint8_t maxConnections = 4, const in_addr_t bindAddress = 0);
 	virtual ~HTTPSServer();
 
 	uint8_t start();
@@ -54,7 +54,9 @@ private:
 	// Certificate that should be used (includes private key)
 	SSLCert * _cert;
 	// Port that the server will listen on
-	const uint16_t _port;
+	const uint16_t _portHTTPS;
+  const uint16_t _portHTTP; 
+ 
 	// Max parallel connections that the server will accept
 	const uint8_t _maxConnections;
 	// Address to bind to (0 = all interfaces)
@@ -68,7 +70,9 @@ private:
 	// Status of the server: Are we running, or not?
 	boolean _running;
 	// The server socket
-	int _socket;
+	int _socketHTTPS; // https listening socket
+  int _socketHTTP; // http listening socket
+  
 	// The server socket address, that our service is bound to
 	sockaddr_in _sock_addr;
 	// Headers that are included in every response
@@ -77,7 +81,7 @@ private:
 	// Setup functions
 	uint8_t setupSSLCTX();
 	uint8_t setupCert();
-	uint8_t setupSocket();
+	uint8_t setupSockets();
 };
 
 } /* namespace httpsserver */

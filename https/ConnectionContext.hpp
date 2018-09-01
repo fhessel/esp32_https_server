@@ -21,7 +21,9 @@ public:
 	ConnectionContext();
 	virtual ~ConnectionContext();
 
-	virtual SSL* ssl() = 0;
+	virtual SSL* ssl() = 0; // needed for HTTPS
+  virtual int __socket() = 0; // needed for HTTP
+ 
 	virtual void signalRequestError() = 0;
 	virtual void signalClientClose() = 0;
 	virtual size_t getCacheSize() = 0;

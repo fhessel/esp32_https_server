@@ -37,7 +37,7 @@ public:
 	HTTPSConnection(ResourceResolver * resResolver);
 	virtual ~HTTPSConnection();
 
-	int initialize(int serverSocketID, SSL_CTX * sslCtx, HTTPHeaders *defaultHeaders);
+	int initialize(int serverSocketID, SSL_CTX * sslCtx, HTTPHeaders *defaultHeaders, bool isSSLSocket);
 	void loop();
 	void closeConnection();
 	bool isClosed();
@@ -52,7 +52,8 @@ private:
 	bool isTimeoutExceeded();
 	void refreshTimeout();
 
-	SSL* ssl() {return _ssl;};
+	SSL* ssl() {return _ssl;}; // needed for HTTPS
+  int __socket() {return _socket;}; // needed for HTTP
 	void signalClientClose();
 	void signalRequestError();
 	size_t getCacheSize();
