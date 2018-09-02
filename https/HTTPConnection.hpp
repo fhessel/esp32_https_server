@@ -4,6 +4,7 @@
 #include <Arduino.h>
 
 #include <string>
+#include <functional>
 
 // Required for sockets
 #include "lwip/netdb.h"

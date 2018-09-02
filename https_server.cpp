@@ -3,6 +3,9 @@
 
 using namespace httpsserver;
 
+#define HEADER_USERNAME "X-USERNAME"
+#define HEADER_GROUP    "X-GROUP"
+
 /**
  * This callback will be linked to the web server root and answer with
  * a small HTML page that shows the uptime of the esp.
@@ -35,6 +38,7 @@ void testCallback(HTTPRequest * req, HTTPResponse * res) {
 	res->print("<p>System has been up for ");
 	res->print((int)(millis()/1000), DEC);
 	res->println(" seconds.</p>");
+	res->println("<p><a href=\"/internal\">Login</a></p>");
 	res->println("</body>");
 	res->println("</html>");
 }
@@ -162,6 +166,65 @@ void echoCallback(HTTPRequest * req, HTTPResponse * res) {
 }
 
 /**
+ * This callback belongs to the authentication example. It is the user/password
+ * protected page visible as /internal and has a user-specific greeting.
+ */
+void internalCallback(HTTPRequest * req, HTTPResponse * res) {
+	res->setStatusCode(200);
+	res->setStatusText("OK");
+	res->setHeader("Content-Type", "text/html; charset=utf8");
+ 	res->println("<!DOCTYPE html>");
+	res->println("<html>");
+	res->println("<head>");
+	res->println("<title>Internal Area</title>");
+	res->println("</head>");
+	res->println("<body>");
+	res->print("<h1>Hello ");
+	// We can safely use the header value, this area is only accessible if it's set.
+	res->printStd(req->getHeader(HEADER_USERNAME));
+	res->print("!</h1>");
+	res->println("<p>Welcome to the internal area. Congratulations to successfully entering your password!</p>");
+ 	// The "admin area" will only be shown if the correct group has been assigned in the authenticationMiddleware
+	if (req->getHeader(HEADER_GROUP) == "ADMIN") {
+		res->println("<div style=\"border:1px solid red;margin: 20px auto;padding:10px;background:#ff8080\">");
+		res->println("<h2>You are an administrator</h2>");
+		res->println("<p>If this was more than a simple example, you could do crazy things here.</p>");
+		res->println("<p><a href=\"/internal/admin\">Go to secret admin page</a></p>");
+		res->println("</div>");
+	}
+ 	res->println("<p><a href=\"/\">Go back home</a></p>");
+	res->println("</body>");
+	res->println("</html>");
+}
+
+/**
+ * This resource callback also has limited access, but it manages it manually instead of letting the middleware do all the stuff.
+ */
+void internalAdminCallback(HTTPRequest * req, HTTPResponse * res) {
+	res->setHeader("Content-Type", "text/html; charset=utf8");
+ 	std::string header = "<!DOCTYPE html><html><head><title>Secret Admin Page</title></head><body><h1>Secret Admin Page</h1>";
+	std::string footer = "</body></html>";
+ 	// Checking permissions can not only be done centrally in the middleware function but also in the actual request handler.
+	// This would be handy if you provide an API with lists of resources, but access rights are defined object-based.
+	if (req->getHeader(HEADER_GROUP) == "ADMIN") {
+		res->setStatusCode(200);
+		res->setStatusText("OK");
+		res->printStd(header);
+		res->println("<div style=\"border:1px solid red;margin: 20px auto;padding:10px;background:#ff8080\">");
+		res->println("<h1>Congratulations</h1>");
+		res->println("<p>You found the secret administrator page!</p>");
+		res->println("<p><a href=\"/internal\">Go back</a></p>");
+		res->println("</div>");
+	} else {
+		res->printStd(header);
+		res->setStatusCode(403);
+		res->setStatusText("Unauthorized");
+		res->println("<p><strong>403 Unauthorized</strong> You have no power here!</p>");
+	}
+ 	res->printStd(footer);
+}
+
+/**
  * This callback will be registered as default callback. The default callback is used
  * if no other node matches the request.
  *
@@ -177,7 +240,111 @@ void notfoundCallback(HTTPRequest * req, HTTPResponse * res) {
 	res->print("{\"error\":\"not found\", \"code\":404}");
 }
 
+/**
+ * The loggingMiddleware is an example for a middleware function. It will be called for every
+ * request, but before the request is passed to the actual handler function. It may just do
+ * some generic functions like logging, but it may also modify the request and response directly.
+ *
+ * Additionally to the Request and Response parameters that are similar to the request handler
+ * function, it also gets a function pointer to a next() function. Only if next is called,
+ * the request handler function will be called. It is also possible to chain multiple middleware
+ * functions using this, handing over control step by step.
+ *
+ * Not calling the next() function will not handle the request even though it might be configured in
+ * a resource node.  This allows functionality like access control.
+ *
+ * Make sure to place your code correctly before, after or around the next() call. In this example,
+ * we want to log the request method, the request url, login user name and the status code. The first
+ * two bits of information are available from the request, but the status code is only set after the
+ * response is finished and the username header is set by a middleware function later in the chain.
+ * So we have to place our logging call below the next() function.
+ */
+void loggingMiddleware(HTTPRequest * req, HTTPResponse * res, std::function<void()> next) {
+	next();
+	Serial.printf("loggingMiddleware: %3d\t%s\t%s\t%s\n",
+			res->getStatusCode(),
+			req->getMethod().c_str(),
+			req->getHeader(HEADER_USERNAME).length() > 0 ? req->getHeader(HEADER_USERNAME).c_str() : "NOBODY",
+			req->getRequestString().c_str());
+}
 
+/**
+ * The following middleware function is one of two functions dealing with access control. The
+ * authenticationMiddleware will interpret the HTTP Basic Auth header, check usernames and password,
+ * and if they are valid, set the X-USERNAME and X-GROUP header.
+ *
+ * If they are invalid, the X-USERNAME and X-GROUP header will be unset. This is important because
+ * otherwise the client may manipulate those internal headers.
+ *
+ * From then on, further middleware functions and the request handler functions will be able to just
+ * use req->getHeader("X-USERNAME") to find out if the user is logged in correctly.
+ *
+ * Furthermore, if the user supplies credentials and they are invalid, he will receive an 403 response
+ * without any other functions being called.
+ */
+void authenticationMiddleware(HTTPRequest * req, HTTPResponse * res, std::function<void()> next) {
+	// Unset both headers to discard any value from the client
+	req->setHeader(HEADER_USERNAME, "");
+	req->setHeader(HEADER_GROUP, "");
+ 	// Get login information from request
+	std::string reqUsername = req->getBasicAuthUser();
+	std::string reqPassword = req->getBasicAuthPassword();
+ 	// If the user entered login information, we will check it
+	if (reqUsername.length() + reqPassword.length() > 0) {
+		// _Very_ simple user database
+		bool authValid = true;
+		std::string group = "";
+		if (reqUsername == "admin" && reqPassword == "secret") {
+			group = "ADMIN";
+		} else if (reqUsername == "user" && reqPassword == "test") {
+			group = "USER";
+		} else {
+			authValid = false;
+		}
+ 		// If authentication was successful
+		if (authValid) {
+			// set custom headers and delegate control
+			req->setHeader(HEADER_USERNAME, reqUsername);
+			req->setHeader(HEADER_GROUP, group);
+			next();
+		} else {
+			// Display error page
+			res->setStatusCode(401);
+			res->setStatusText("Unauthorized");
+			res->setHeader("Content-Type", "text/plain");
+			// This should trigger the browser user/password dialog:
+			res->setHeader("WWW-Authenticate", "Basic realm=\"ESP32 privileged area\"");
+			res->println("401. Unauthorized (try admin/secret or user/test)");
+		}
+	} else {
+		// Otherwise just let the request pass through
+		next();
+	}
+}
+
+/**
+ * This function plays together with the authenticationMiddleware. While the first function checks the
+ * username/password combination and stores it in the request, this function makes use of this information
+ * to allow or deny access.
+ *
+ * This example only prevents unauthorized access to every ResourceNode stored under an /internal/... path.
+ */
+void authorizationMiddleware(HTTPRequest * req, HTTPResponse * res, std::function<void()> next) {
+	std::string username = req->getHeader(HEADER_USERNAME);
+ 	// Check that only logged-in users may get to the internal area (All URLs starting with /internal
+	// Only a simple example, more complicated configuration is up to you.
+	if (username == "" && req->getRequestString().substr(0,9) == "/internal") {
+		// Same as above
+		res->setStatusCode(401);
+		res->setStatusText("Unauthorized");
+		res->setHeader("Content-Type", "text/plain");
+		res->setHeader("WWW-Authenticate", "Basic realm=\"ESP32 privileged area\"");
+		res->println("401. Unauthorized (try admin/secret or user/test)");
+	} else {
+		// Everything else will be allowed.
+		next();
+	}
+}
 
 //The setup function is called once at startup of the sketch
 void setup()
@@ -209,7 +376,10 @@ void setup()
 	Serial.println("Creating server task... ");
 	// If stack canary errors occur, try to increase the stack size (3rd parameter)
 	// or to put as much stuff as possible onto the heap (ResourceNodes etc)
-	xTaskCreatePinnedToCore(serverTask, "https443", 4096, NULL, 1, NULL, ARDUINO_RUNNING_CORE);
+	// 4096 byte _should_ suffice for the https server only, but with the http server
+	// running in the same task, that's not enough for stable operation, so we use
+	// a bit more here.
+	xTaskCreatePinnedToCore(serverTask, "https443", 6144, NULL, 1, NULL, ARDUINO_RUNNING_CORE);
 
 	Serial.println("Beginning to loop()...");
 }
@@ -279,6 +449,13 @@ void serverTask(void *params) {
 	// resource, while slash and asterisk is more or less provides a catch all behavior
 	ResourceNode * corsNode      = new ResourceNode("/*", "OPTIONS", &corsCallback);
 
+	// Those two nodes belong to the middleware authentication and authorization example.
+	// They are protected if no user/password is given (see authenticationMiddleware and authorizationMiddleware
+	// for details.
+	ResourceNode * internalNode      = new ResourceNode("/internal", "GET", &internalCallback);
+	ResourceNode * internalAdminNode = new ResourceNode("/internal/admin", "GET", &internalAdminCallback);
+
+
 	// The not found node will be used when no other node matches, and it's configured as
 	// defaultNode in the server.
 	// Note: Despite resource and method string have to be specified when a node is created,
@@ -308,11 +485,17 @@ void serverTask(void *params) {
 		server->registerNode(echoNodePost);
 		server->registerNode(echoNodePut);
 		server->registerNode(corsNode);
+		server->registerNode(internalNode);
+		server->registerNode(internalAdminNode);
 
 		// Add a default header to the server that will be added to every response. In this example, we
 		// use it only for adding the server name, but it could also be used to add CORS-headers to every response
 		server->setDefaultHeader("Server", "esp32-http-server");
 
+		// Add all middleware functions to the server. Order is important!
+		//server->addMiddleware(&loggingMiddleware);
+		//server->addMiddleware(&authenticationMiddleware);
+		//server->addMiddleware(&authorizationMiddleware);
 	}
 
 	// The web server can be start()ed and stop()ed. When it's stopped, it will close its server port and

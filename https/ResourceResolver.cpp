@@ -180,6 +180,18 @@ void ResourceResolver::resolveNode(const std::string &method, const std::string 
 	}
 }
 
+void ResourceResolver::addMiddleware(const HTTPSMiddlewareFunction * mwFunction) {
+	_middleware.push_back(mwFunction);
+}
+
+void ResourceResolver::removeMiddleware(const HTTPSMiddlewareFunction * mwFunction) {
+	_middleware.erase(std::remove(_middleware.begin(), _middleware.end(), mwFunction), _middleware.end());
+}
+
+const std::vector<HTTPSMiddlewareFunction*> ResourceResolver::getMiddleware() {
+	return _middleware;
+}
+
 void ResourceResolver::setDefaultNode(ResourceNode * defaultNode) {
 	_defaultNode = defaultNode;
 }
