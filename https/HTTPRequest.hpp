@@ -33,6 +33,7 @@ public:
 	bool   requestComplete();
 	void   discardRequestBody();
 	ResourceParameters * getParams();
+	bool   isSecure();
 private:
 	ConnectionContext * _con;
 

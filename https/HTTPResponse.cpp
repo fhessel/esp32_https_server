@@ -149,15 +149,8 @@ size_t HTTPResponse::writeBytesInternal(const void * data, int length, bool skip
 				drainBuffer(true);
 			}
 		}
-   
-    if (_con->ssl()) { // HTTPS
-  		HTTPS_DLOG("[   ] Writing response data to ssl socket");
-  		SSL_write(_con->ssl(), data, length);
-    } else { // HTTP
-      HTTPS_DLOG("[   ] Writing response data to socket");
-      send(_con->__socket(), data, length, 0);
-    }
-		return length;
+
+		return _con->writeBuffer((byte*)data, length);
 	} else {
 		return 0;
 	}
@@ -175,13 +168,8 @@ void HTTPResponse::drainBuffer(bool onOverflow) {
 		HTTPS_DLOG("[   ] Draining response buffer")
 		// Check for 0 as it may be an overflow reaction without any data that has been written earlier
 		if(_responseCachePointer > 0) {
-
-      if (_con->ssl()) { // HTTPS
-			  SSL_write(_con->ssl(), _responseCache, _responseCachePointer);
-      } else { // HTTP
-        send(_con->__socket(), _responseCache, _responseCachePointer, 0);
-      }
-      
+			// FIXME: Return value?
+			_con->writeBuffer((byte*)_responseCache, _responseCachePointer);
 		}
 		delete[] _responseCache;
 		_responseCache = NULL;

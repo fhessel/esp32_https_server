@@ -20,9 +20,6 @@ class ConnectionContext {
 public:
 	ConnectionContext();
 	virtual ~ConnectionContext();
-
-	virtual SSL* ssl() = 0; // needed for HTTPS
-  virtual int __socket() = 0; // needed for HTTP
  
 	virtual void signalRequestError() = 0;
 	virtual void signalClientClose() = 0;
@@ -30,6 +27,10 @@ public:
 
 	virtual size_t readBuffer(byte* buffer, size_t length) = 0;
 	virtual size_t pendingBufferSize() = 0;
+
+	virtual size_t writeBuffer(byte* buffer, size_t length) = 0;
+
+	virtual bool isSecure() = 0;
 };
 
 } /* namespace httpsserver */

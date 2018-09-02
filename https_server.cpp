@@ -22,16 +22,11 @@ void testCallback(HTTPRequest * req, HTTPResponse * res) {
 	res->println("<!DOCTYPE html>");
 	res->println("<html>");
 	res->println("<head>");
-  if (res->_con->ssl()) // test if connection is encrypted
-	  res->println("<title>HTTPS Server on ESP32</title>");
-  else
-    res->println("<title>HTTP Server on ESP32</title>");
+	// test if connection is encrypted
+	res->println(req->isSecure() ? "<title>HTTPS Server on ESP32</title>" : "<title>HTTP Server on ESP32</title>");
 	res->println("</head>");
 	res->println("<body>");
-  if (res->_con->ssl()) // test if connection is encrypted
-	  res->println("<h1>Hello HTTPS world!</h1>");
-  else
-    res->println("<h1>Hello HTTP world!</h1>");
+	res->println(req->isSecure() ? "<h1>Hello HTTPS world!</h1>" : "<h1>Hello HTTP world!</h1>");
 	res->println("<p>... from your ESP32</p>");
 	// The image resource is created in the awesomeCallback some lines below
 	res->println("<img src=\"images/awesome.svg\" alt=\"Awesome face\" style=\"width:250px;\" />");
@@ -291,35 +286,48 @@ void serverTask(void *params) {
 	// node as default node as well.
 	ResourceNode * notFoundNode  = new ResourceNode("/", "GET", &notfoundCallback);
 
-	// Create the server. The constructor takes some optional parameters, eg. to specify the TCP
+	// Create the SSL server. The constructor takes some optional parameters, eg. to specify the TCP
 	// port that should be used. However, defining a certificate is mandatory.
-	HTTPSServer server = HTTPSServer(&cert);
+	HTTPSServer secureServer = HTTPSServer(&cert);
 
-	// Register the nodes that have been configured on the web server.
-	server.setDefaultNode(notFoundNode);
-	server.registerNode(rootNode);
-	server.registerNode(faviconNode);
-	server.registerNode(awesomeNode);
-	server.registerNode(urlParamNode);
-	server.registerNode(echoNodePost);
-	server.registerNode(echoNodePut);
-	server.registerNode(corsNode);
+	// We also create a default HTTP server without encryption on port 80
+	HTTPServer insecureServer = HTTPServer();
 
-	// Add a default header to the server that will be added to every response. In this example, we
-	// use it only for adding the server name, but it could also be used to add CORS-headers to every response
-	server.setDefaultHeader("Server", "esp32-http-server");
+	// We put references to both servers in an array so we can configure them in a loop (as we are lazy).
+	// Note that you can use the same ResourceNode on multiple servers!
+	HTTPServer * serverList[] = {&secureServer, &insecureServer};
+	for(int i = 0; i < 2; i++) {
+		HTTPServer * server = serverList[i];
+
+		// Register the nodes that have been configured on the web server.
+		server->setDefaultNode(notFoundNode);
+		server->registerNode(rootNode);
+		server->registerNode(faviconNode);
+		server->registerNode(awesomeNode);
+		server->registerNode(urlParamNode);
+		server->registerNode(echoNodePost);
+		server->registerNode(echoNodePut);
+		server->registerNode(corsNode);
+
+		// Add a default header to the server that will be added to every response. In this example, we
+		// use it only for adding the server name, but it could also be used to add CORS-headers to every response
+		server->setDefaultHeader("Server", "esp32-http-server");
+
+	}
 
 	// The web server can be start()ed and stop()ed. When it's stopped, it will close its server port and
 	// all open connections and free the resources. Theoretically, it should be possible to run multiple
 	// web servers in parallel, however, there might be some restrictions im memory.
-	Serial.println("Starting Server...");
-	server.start();
+	Serial.println("Starting HTTP Server...");
+	insecureServer.start();
+	Serial.println("Starting HTTPS Server...");
+	secureServer.start();
 
 	// We check whether the server did come up correctly (it might fail if there aren't enough free resources)
-	if (server.isRunning()) {
+	if (insecureServer.isRunning() && secureServer.isRunning()) {
 
 		// If the server is started, we go into our task's loop
-		Serial.println("Server started.");
+		Serial.println("Servers started.");
 		while(1) {
 			// Run the server loop.
 			// This loop function accepts new clients on the server socket if there are connection slots available
@@ -328,7 +336,8 @@ void serverTask(void *params) {
 			// Finally, it calls the loop() function of each active HTTPSConnection() to process incoming requests,
 			// which will finally trigger calls to the request handler callbacks that have been configured through
 			// the ResourceNodes.
-			server.loop();
+			insecureServer.loop();
+			secureServer.loop();
 			delay(1);
 		}
 	} else {

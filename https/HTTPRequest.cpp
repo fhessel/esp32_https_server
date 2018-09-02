@@ -87,4 +87,8 @@ void HTTPRequest::discardRequestBody() {
 	}
 }
 
+bool HTTPRequest::isSecure() {
+	return _con->isSecure();
+}
+
 } /* namespace httpsserver */
