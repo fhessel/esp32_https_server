@@ -18,13 +18,8 @@
 #include "openssl/ssl.h"
 #undef read
 
-// Required for sockets
-#include "lwip/netdb.h"
-#undef read
-#include "lwip/sockets.h"
-#include "lwip/inet.h"
-
 // Internal includes
+#include "HTTPServer.hpp"
 #include "HTTPSServerConstants.hpp"
 #include "HTTPHeaders.hpp"
 #include "HTTPHeader.hpp"
@@ -36,48 +31,28 @@
 
 namespace httpsserver {
 
-class HTTPSServer : public ResourceResolver {
+class HTTPSServer : public HTTPServer {
 public:
-	HTTPSServer(SSLCert * cert, const uint16_t port = 443, const uint8_t maxConnections = 4, const in_addr_t bindAddress = 0);
+	HTTPSServer(SSLCert * cert, const uint16_t portHTTPS = 443, const uint8_t maxConnections = 4, const in_addr_t bindAddress = 0);
 	virtual ~HTTPSServer();
-
-	uint8_t start();
-	void stop();
-	bool isRunning();
-
-	void loop();
-
-	void setDefaultHeader(std::string name, std::string value);
 
 private:
 	// Static configuration. Port, keys, etc. ====================
 	// Certificate that should be used (includes private key)
 	SSLCert * _cert;
-	// Port that the server will listen on
-	const uint16_t _port;
-	// Max parallel connections that the server will accept
-	const uint8_t _maxConnections;
-	// Address to bind to (0 = all interfaces)
-	const in_addr_t _bindAddress;
-
+ 
 	//// Runtime data ============================================
-	// The array of connections that are currently active
-	HTTPSConnection ** _connections;
-	// The SSL context based on the cert and private key
 	SSL_CTX * _sslctx;
 	// Status of the server: Are we running, or not?
-	boolean _running;
-	// The server socket
-	int _socket;
-	// The server socket address, that our service is bound to
-	sockaddr_in _sock_addr;
-	// Headers that are included in every response
-	HTTPHeaders _defaultHeaders;
 
 	// Setup functions
+	virtual uint8_t setupSocket();
+	virtual void teardownSocket();
 	uint8_t setupSSLCTX();
 	uint8_t setupCert();
-	uint8_t setupSocket();
+
+	// Helper functions
+	virtual int createConnection(int idx);
 };
 
 } /* namespace httpsserver */

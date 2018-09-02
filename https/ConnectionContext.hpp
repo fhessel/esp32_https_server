@@ -20,14 +20,17 @@ class ConnectionContext {
 public:
 	ConnectionContext();
 	virtual ~ConnectionContext();
-
-	virtual SSL* ssl() = 0;
+ 
 	virtual void signalRequestError() = 0;
 	virtual void signalClientClose() = 0;
 	virtual size_t getCacheSize() = 0;
 
 	virtual size_t readBuffer(byte* buffer, size_t length) = 0;
 	virtual size_t pendingBufferSize() = 0;
+
+	virtual size_t writeBuffer(byte* buffer, size_t length) = 0;
+
+	virtual bool isSecure() = 0;
 };
 
 } /* namespace httpsserver */
