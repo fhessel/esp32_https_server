@@ -493,9 +493,9 @@ void serverTask(void *params) {
 		server->setDefaultHeader("Server", "esp32-http-server");
 
 		// Add all middleware functions to the server. Order is important!
-		//server->addMiddleware(&loggingMiddleware);
-		//server->addMiddleware(&authenticationMiddleware);
-		//server->addMiddleware(&authorizationMiddleware);
+		server->addMiddleware(&loggingMiddleware);
+		server->addMiddleware(&authenticationMiddleware);
+		server->addMiddleware(&authorizationMiddleware);
 	}
 
 	// The web server can be start()ed and stop()ed. When it's stopped, it will close its server port and
