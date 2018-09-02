@@ -33,6 +33,8 @@ public:
 
 	void setStatusCode(uint16_t statusCode);
 	void setStatusText(std::string statusText);
+	uint16_t getStatusCode();
+	std::string getStatusText();
 	void setHeader(std::string name, std::string value);
 	bool isHeaderWritten();
 

@@ -47,6 +47,14 @@ void HTTPResponse::setStatusText(std::string statusText) {
 	_statusText = statusText;
 }
 
+uint16_t HTTPResponse::getStatusCode() {
+	return _statusCode;
+}
+
+std::string HTTPResponse::getStatusText() {
+	return _statusText;
+}
+
 void HTTPResponse::setHeader(std::string name, std::string value) {
 	_headers.set(new HTTPHeader(name, value));
 }
@@ -102,7 +110,7 @@ void HTTPResponse::printHeader() {
 
 		// Status line, like: "HTTP/1.1 200 OK\r\n"
 				//intToString(_statusCode)
-		std::string statusLine = "HTTP/1.1 200 " + _statusText + "\r\n";
+		std::string statusLine = "HTTP/1.1 " + intToString(_statusCode) + " " + _statusText + "\r\n";
 		printInternal(statusLine, true);
 
 		// Each header, like: "Host: myEsp32\r\n"
