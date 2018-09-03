@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e
 #------------------------------------------------------------------------------
 # cleanup any previously created files
 rm -f exampleca.* example.* cert.h private_key.h
@@ -16,8 +17,8 @@ distinguished_name     = req_distinguished_name
 prompt                 = no
 [ req_distinguished_name ]
 C = DE
-ST = HE
-L = Darmstadt
+ST = BE
+L = Berlin
 O = MyCompany
 CN = myca.local
 EOF
@@ -37,8 +38,8 @@ distinguished_name     = req_distinguished_name
 prompt                 = no
 [ req_distinguished_name ]
 C = DE
-ST = HE
-L = Darmstadt
+ST = BE
+L = Berlin
 O = MyCompany
 CN = esp32.local
 EOF
@@ -55,6 +56,24 @@ openssl rsa -in example.key -outform DER -out example.key.DER
 openssl x509 -in example.crt -outform DER -out example.crt.DER
 
 # create header files
-mkdir ../examples/cert
-xxd -i example.crt.DER > ../examples/cert/cert.h
-xxd -i example.key.DER > ../examples/cert/private_key.h
+xxd -i example.crt.DER > ./cert.h
+xxd -i example.key.DER > ./private_key.h
+
+# Copy files to every example
+for D in ../examples/*; do
+  if [ -d "${D}" ] && [ -f "${D}/$(basename $D).ino" ]; then
+    echo "Adding certificate to example $(basename $D)"
+    cp ./cert.h ./private_key.h "${D}/"
+  fi
+done
+
+echo ""
+echo "Certificates created!"
+echo "---------------------"
+echo "
+echo "  Private key:      private_key.h"
+echo "  Certificate data: cert.h"
+echo ""
+echo "Make sure to have both files available for inclusion when running the examples."
+echo "The files have been copied to all example directories, so if you open an example"
+echo " sketch, you should be fine."
