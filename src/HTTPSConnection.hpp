@@ -1,0 +1,62 @@
+/*
+ * HTTPSConnection.hpp
+ *
+ *  Created on: Dec 6, 2017
+ *      Author: frank
+ */
+
+#ifndef SRC_HTTPSCONNECTION_HPP_
+#define SRC_HTTPSCONNECTION_HPP_
+
+#include <Arduino.h>
+
+#include <string>
+
+// Required for SSL
+#include "openssl/ssl.h"
+#undef read
+
+// Required for sockets
+#include "lwip/netdb.h"
+#undef read
+#include "lwip/sockets.h"
+
+#include "../src/HTTPSServerConstants.hpp"
+#include "../src/HTTPConnection.hpp"
+#include "../src/HTTPHeaders.hpp"
+#include "../src/HTTPHeader.hpp"
+#include "../src/ResourceResolver.hpp"
+#include "../src/ResolvedResource.hpp"
+#include "../src/ResourceNode.hpp"
+#include "../src/HTTPRequest.hpp"
+#include "../src/HTTPResponse.hpp"
+
+namespace httpsserver {
+
+class HTTPSConnection : public HTTPConnection {
+public:
+	HTTPSConnection(ResourceResolver * resResolver);
+	virtual ~HTTPSConnection();
+
+	virtual int initialize(int serverSocketID, SSL_CTX * sslCtx, HTTPHeaders *defaultHeaders);
+	virtual void closeConnection();
+	virtual bool isSecure();
+
+protected:
+	friend class HTTPRequest;
+	friend class HTTPResponse;
+
+	virtual size_t readBytesToBuffer(byte* buffer, size_t length);
+	virtual size_t pendingByteCount();
+
+	virtual size_t writeBuffer(byte* buffer, size_t length);
+
+private:
+	// SSL context for this connection
+	SSL * _ssl;
+
+};
+
+} /* namespace httpsserver */
+
+#endif /* SRC_HTTPSCONNECTION_HPP_ */

@@ -32,11 +32,11 @@
 #include "data/favicon.h"
 
 // Inlcudes for setting up the server
-#include "https/HTTPSServer.hpp"
+#include "src/HTTPSServer.hpp"
 
 // Includes to define request handler callbacks
-#include "https/HTTPRequest.hpp"
-#include "https/HTTPResponse.hpp"
+#include "src/HTTPRequest.hpp"
+#include "src/HTTPResponse.hpp"
 
 // The server loop will be configured as a separate task, so the server will run
 // independently from all other code.
