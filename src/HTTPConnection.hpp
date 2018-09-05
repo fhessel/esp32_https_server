@@ -41,6 +41,7 @@ protected:
 
 	virtual size_t writeBuffer(byte* buffer, size_t length);
 	virtual size_t readBytesToBuffer(byte* buffer, size_t length);
+	virtual bool canReadData();
 	virtual size_t pendingByteCount();
 
 	// Timestamp of the last transmission action

@@ -116,4 +116,8 @@ size_t HTTPSConnection::pendingByteCount() {
 	return SSL_pending(_ssl);
 }
 
+bool HTTPSConnection::canReadData() {
+	return HTTPConnection::canReadData() || (SSL_pending(_ssl) > 0);
+}
+
 } /* namespace httpsserver */

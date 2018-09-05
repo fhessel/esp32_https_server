@@ -157,22 +157,7 @@ int HTTPConnection::updateBuffer() {
 		}
 
 		if (_bufferUnusedIdx < HTTPS_CONNECTION_DATA_CHUNK_SIZE) {
-			// Check only this socket for data
-			fd_set sockfds;
-			FD_ZERO( &sockfds );
-			FD_SET(_socket, &sockfds);
-
-			// We define an immediate timeout (return immediately, if there's no data)
-			timeval timeout;
-			timeout.tv_sec  = 0;
-			timeout.tv_usec = 0;
-
-			// Check for input
-			// As by 2017-12-14, it seems that FD_SETSIZE is defined as 0x40, but socket IDs now
-			// start at 0x1000, so we need to use _socket+1 here
-			select(_socket + 1, &sockfds, NULL, NULL, &timeout);
-
-			if (FD_ISSET(_socket, &sockfds)) { // FIXME: Is SSL_pending(_ssl) > 0 required here?
+			if (canReadData()) {
 
 				HTTPS_DLOGHEX("[   ] There is data on the connection socket. fid=", _socket)
 
@@ -213,6 +198,24 @@ int HTTPConnection::updateBuffer() {
 		} // buffer can read more
 	}
 	return 0;
+}
+
+bool HTTPConnection::canReadData() {
+	fd_set sockfds;
+	FD_ZERO( &sockfds );
+	FD_SET(_socket, &sockfds);
+
+	// We define an immediate timeout (return immediately, if there's no data)
+	timeval timeout;
+	timeout.tv_sec  = 0;
+	timeout.tv_usec = 0;
+
+	// Check for input
+	// As by 2017-12-14, it seems that FD_SETSIZE is defined as 0x40, but socket IDs now
+	// start at 0x1000, so we need to use _socket+1 here
+	select(_socket + 1, &sockfds, NULL, NULL, &timeout);
+
+	return FD_ISSET(_socket, &sockfds);
 }
 
 size_t HTTPConnection::readBuffer(byte* buffer, size_t length) {
