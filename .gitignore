@@ -49,5 +49,5 @@ Release/
 .scala_dependencies
 .worksheet
 
-examples/wifi/wifi.h
-examples/cert/*.h
+cert.h
+private_key.h

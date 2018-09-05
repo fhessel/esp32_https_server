@@ -12,18 +12,25 @@
  * functionalities:
  *  - Show simple page on web server root
  *  - 404 for everything else
+ * The server will be run in a separate task, so that you can do your own stuff
+ * in the loop() function.
+ * Everything else is just like the Static-Page example
  */
 
 // TODO: Configure your WiFi here
 #define WIFI_SSID "<your ssid goes here>"
 #define WIFI_PSK  "<your pre-shared key goes here>"
 
+/** Check if we have multiple cores */
+#if CONFIG_FREERTOS_UNICORE
+#define ARDUINO_RUNNING_CORE 0
+#else
+#define ARDUINO_RUNNING_CORE 1
+#endif
+
 // Include certificate data (see note above)
 #include "cert.h"
 #include "private_key.h"
-
-// Binary data for the favicon
-#include "favicon.h"
 
 // We will use wifi
 #include <WiFi.h>
@@ -44,60 +51,79 @@ SSLCert cert = SSLCert(
 );
 
 // Create an SSL-enabled server that uses the certificate
-// The contstructor takes some more parameters, but we go for default values here.
 HTTPSServer secureServer = HTTPSServer(&cert);
 
 // Declare some handler functions for the various URLs on the server
-// The signature is always the same for those functions. They get two parameters,
-// which are pointers to the request data (read request body, headers, ...) and
-// to the response data (write response, set status code, ...)
 void handleRoot(HTTPRequest * req, HTTPResponse * res);
-void handleFavicon(HTTPRequest * req, HTTPResponse * res);
 void handle404(HTTPRequest * req, HTTPResponse * res);
 
+// We declare a function that will be the entry-point for the task that is going to be
+// created.
+void serverTask(void *params);
+
 void setup() {
-  // For logging
-  Serial.begin(115200);
+	// For logging
+	Serial.begin(115200);
 
-  // Connect to WiFi
-  Serial.println("Setting up WiFi");
-  WiFi.begin(WIFI_SSID, WIFI_PSK);
-  while (WiFi.status() != WL_CONNECTED) {
-    Serial.print(".");
-    delay(500);
-  }
-  Serial.print("Connected. IP=");
-  Serial.println(WiFi.localIP());
+	// Connect to WiFi
+	Serial.println("Setting up WiFi");
+	WiFi.begin(WIFI_SSID, WIFI_PSK);
+	while (WiFi.status() != WL_CONNECTED) {
+	Serial.print(".");
+	delay(500);
+	}
+	Serial.print("Connected. IP=");
+	Serial.println(WiFi.localIP());
 
-  // For every resource available on the server, we need to create a ResourceNode
-  // The ResourceNode links URL and HTTP method to a handler function
-  ResourceNode * nodeRoot    = new ResourceNode("/", "GET", &handleRoot);
-  ResourceNode * nodeFavicon = new ResourceNode("/favicon.ico", "GET", &handleFavicon);
-  ResourceNode * node404     = new ResourceNode("", "GET", &handle404);
-
-  // Add the root node to the server
-  secureServer.registerNode(nodeRoot);
-
-  // Add the favicon
-  secureServer.registerNode(nodeFavicon);
-
-  // Add the 404 not found node to the server.
-  // The path is ignored for the default node.
-  secureServer.setDefaultNode(node404);
-
-  Serial.println("Starting server...");
-  secureServer.start();
-  if (secureServer.isRunning()) {
-	  Serial.println("Server ready.");
-  }
+	// Setup the server as a separate task.
+	Serial.println("Creating server task... ");
+	// We pass:
+	// serverTask - the function that should be run as separate task
+	// "https443" - a name for the task (mainly used for logging)
+	// 6144       - stack size in byte. If you want up to four clients, you should
+	//              not go below 6kB. If your stack is too small, you will encounter
+	//              Panic and stack canary exceptions, usually during the call to
+	//              SSL_accept.
+	xTaskCreatePinnedToCore(serverTask, "https443", 6144, NULL, 1, NULL, ARDUINO_RUNNING_CORE);
 }
 
 void loop() {
-	// This call will let the server do its work
-	secureServer.loop();
+	Serial.println("loop()");
+	delay(5000);
+}
 
-	// Other code would go here...
-	delay(1);
+void serverTask(void *params) {
+	// In the separate task we first do everything that we would have done in the
+	// setup() function, if we would run the server synchronously.
+
+	// Note: The second task has its own stack, so you need to think about where
+	// you create the server's resources and how to make sure that the server
+	// can access everything it needs to access. Also make sure that concurrent
+	// access is no problem in your sketch or implement countermeasures like locks
+	// or mutexes.
+
+	// Create nodes
+	ResourceNode * nodeRoot    = new ResourceNode("/", "GET", &handleRoot);
+	ResourceNode * node404     = new ResourceNode("", "GET", &handle404);
+
+	// Add nodes to the server
+	secureServer.registerNode(nodeRoot);
+	secureServer.setDefaultNode(node404);
+
+	Serial.println("Starting server...");
+	secureServer.start();
+	if (secureServer.isRunning()) {
+		Serial.println("Server ready.");
+
+		// "loop()" function of the separate task
+		while(true) {
+			// This call will let the server do its work
+			secureServer.loop();
+
+			// Other code would go here...
+			delay(1);
+		}
+	}
 }
 
 void handleRoot(HTTPRequest * req, HTTPResponse * res) {
@@ -118,13 +144,6 @@ void handleRoot(HTTPRequest * req, HTTPResponse * res) {
 	res->println(" seconds.</p>");
 	res->println("</body>");
 	res->println("</html>");
-}
-
-void handleFavicon(HTTPRequest * req, HTTPResponse * res) {
-	// Set Content-Type
-	res->setHeader("Content-Type", "image/vnd.microsoft.icon");
-	// Write data from header file
-	res->write(FAVICON_DATA, FAVICON_LENGTH);
 }
 
 void handle404(HTTPRequest * req, HTTPResponse * res) {
