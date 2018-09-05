@@ -43,17 +43,7 @@ void testCallback(HTTPRequest * req, HTTPResponse * res) {
 	res->println("</html>");
 }
 
-/**
- * Binary data is also supported. We use it to provide a fancy
- * favicon at /favicon.ico.
- *
- * Again, calls to setHeader etc. have to be made before using
- * write or print.
- */
-void faviconCallback(HTTPRequest * req, HTTPResponse * res) {
-	res->setHeader("Content-Type", "image/vnd.microsoft.icon");
-	res->write(FAVICON_DATA, FAVICON_LENGTH);
-}
+
 
 /**
  * The URL Param Callback demonstrates the usage of placeholders in the URL.
