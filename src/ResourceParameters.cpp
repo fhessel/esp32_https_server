@@ -1,11 +1,4 @@
-/*
- * ResourceParameters.cpp
- *
- *  Created on: Dec 18, 2017
- *      Author: frank
- */
-
-#include "../src/ResourceParameters.hpp"
+#include "ResourceParameters.hpp"
 
 namespace httpsserver {
 

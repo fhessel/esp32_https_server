@@ -1,10 +1,3 @@
-/*
- * HTTPRequest.hpp
- *
- *  Created on: Dec 13, 2017
- *      Author: frank
- */
-
 #ifndef SRC_HTTPREQUEST_HPP_
 #define SRC_HTTPREQUEST_HPP_
 
@@ -13,11 +6,11 @@
 
 #include <mbedtls/base64.h>
 
-#include "../src/ConnectionContext.hpp"
-#include "../src/HTTPHeader.hpp"
-#include "../src/HTTPHeaders.hpp"
-#include "../src/ResourceParameters.hpp"
-#include "../src/util.hpp"
+#include "ConnectionContext.hpp"
+#include "HTTPHeader.hpp"
+#include "HTTPHeaders.hpp"
+#include "ResourceParameters.hpp"
+#include "util.hpp"
 
 namespace httpsserver {
 

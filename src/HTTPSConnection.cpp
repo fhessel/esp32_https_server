@@ -1,11 +1,4 @@
-/*
- * HTTPSConnection.cpp
- *
- *  Created on: Dec 6, 2017
- *      Author: frank
- */
-
-#include "../src/HTTPSConnection.hpp"
+#include "HTTPSConnection.hpp"
 
 namespace httpsserver {
 

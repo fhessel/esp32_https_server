@@ -1,10 +1,3 @@
-/*
- * HTTPServer.hpp
- *
- *  Created on: Sep 2, 2018
- *      Author: frank
- */
-
 #ifndef SRC_HTTPSERVER_HPP_
 #define SRC_HTTPSERVER_HPP_
 
@@ -21,13 +14,13 @@
 #include "lwip/inet.h"
 
 // Internal includes
-#include "../src/HTTPSServerConstants.hpp"
-#include "../src/HTTPHeaders.hpp"
-#include "../src/HTTPHeader.hpp"
-#include "../src/ResourceNode.hpp"
-#include "../src/ResourceResolver.hpp"
-#include "../src/ResolvedResource.hpp"
-#include "../src/HTTPConnection.hpp"
+#include "HTTPSServerConstants.hpp"
+#include "HTTPHeaders.hpp"
+#include "HTTPHeader.hpp"
+#include "ResourceNode.hpp"
+#include "ResourceResolver.hpp"
+#include "ResolvedResource.hpp"
+#include "HTTPConnection.hpp"
 
 namespace httpsserver {
 

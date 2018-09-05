@@ -1,10 +1,3 @@
-/*
- * SSLCert.hpp
- *
- *  Created on: Dec 6, 2017
- *      Author: frank
- */
-
 #ifndef SRC_SSLCERT_HPP_
 #define SRC_SSLCERT_HPP_
 

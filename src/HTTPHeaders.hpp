@@ -1,10 +1,3 @@
-/*
- * HTTPHeaders.hpp
- *
- *  Created on: Dec 13, 2017
- *      Author: frank
- */
-
 #ifndef SRC_HTTPHEADERS_HPP_
 #define SRC_HTTPHEADERS_HPP_
 
@@ -14,8 +7,8 @@
 #undef max
 #include <vector>
 
-#include "../src/HTTPSServerConstants.hpp"
-#include "../src/HTTPHeader.hpp"
+#include "HTTPSServerConstants.hpp"
+#include "HTTPHeader.hpp"
 
 namespace httpsserver {
 

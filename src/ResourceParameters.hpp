@@ -1,10 +1,3 @@
-/*
- * ResourceParameters.hpp
- *
- *  Created on: Dec 18, 2017
- *      Author: frank
- */
-
 #ifndef SRC_RESOURCEPARAMETERS_HPP_
 #define SRC_RESOURCEPARAMETERS_HPP_
 
@@ -17,7 +10,7 @@
 #include <vector>
 #include <utility>
 
-#include "../src/util.hpp"
+#include "util.hpp"
 
 namespace httpsserver {
 

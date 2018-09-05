@@ -1,10 +1,3 @@
-/*
- * ConnectionContext.hpp
- *
- *  Created on: Dec 15, 2017
- *      Author: frank
- */
-
 #ifndef SRC_CONNECTIONCONTEXT_HPP_
 #define SRC_CONNECTIONCONTEXT_HPP_
 

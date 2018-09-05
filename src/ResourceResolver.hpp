@@ -1,10 +1,3 @@
-/*
- * ResourceResolver.hpp
- *
- *  Created on: Dec 12, 2017
- *      Author: frank
- */
-
 #ifndef SRC_RESOURCERESOLVER_HPP_
 #define SRC_RESOURCERESOLVER_HPP_
 
@@ -15,9 +8,9 @@
 #include <vector>
 #include <algorithm>
 
-#include "../src/ResourceNode.hpp"
-#include "../src/ResolvedResource.hpp"
-#include "../src/HTTPMiddlewareFunction.hpp"
+#include "ResourceNode.hpp"
+#include "ResolvedResource.hpp"
+#include "HTTPMiddlewareFunction.hpp"
 
 namespace httpsserver {
 

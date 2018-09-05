@@ -1,4 +1,4 @@
-#include "../src/HTTPConnection.hpp"
+#include "HTTPConnection.hpp"
 
 namespace httpsserver {
 

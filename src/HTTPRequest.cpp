@@ -1,11 +1,4 @@
-/*
- * HTTPRequest.cpp
- *
- *  Created on: Dec 13, 2017
- *      Author: frank
- */
-
-#include "../src/HTTPRequest.hpp"
+#include "HTTPRequest.hpp"
 
 namespace httpsserver {
 

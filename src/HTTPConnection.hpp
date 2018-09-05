@@ -11,14 +11,14 @@
 #undef read
 #include "lwip/sockets.h"
 
-#include "../src/HTTPSServerConstants.hpp"
-#include "../src/HTTPHeaders.hpp"
-#include "../src/HTTPHeader.hpp"
-#include "../src/ResourceResolver.hpp"
-#include "../src/ResolvedResource.hpp"
-#include "../src/ResourceNode.hpp"
-#include "../src/HTTPRequest.hpp"
-#include "../src/HTTPResponse.hpp"
+#include "HTTPSServerConstants.hpp"
+#include "HTTPHeaders.hpp"
+#include "HTTPHeader.hpp"
+#include "ResourceResolver.hpp"
+#include "ResolvedResource.hpp"
+#include "ResourceNode.hpp"
+#include "HTTPRequest.hpp"
+#include "HTTPResponse.hpp"
 
 namespace httpsserver {
 

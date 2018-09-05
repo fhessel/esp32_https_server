@@ -1,10 +1,3 @@
-/*
- * HTTPSServer.hpp
- *
- *  Created on: Dec 6, 2017
- *      Author: frank
- */
-
 #ifndef SRC_HTTPSSERVER_HPP_
 #define SRC_HTTPSSERVER_HPP_
 
@@ -19,15 +12,15 @@
 #undef read
 
 // Internal includes
-#include "../src/HTTPServer.hpp"
-#include "../src/HTTPSServerConstants.hpp"
-#include "../src/HTTPHeaders.hpp"
-#include "../src/HTTPHeader.hpp"
-#include "../src/ResourceNode.hpp"
-#include "../src/ResourceResolver.hpp"
-#include "../src/ResolvedResource.hpp"
-#include "../src/HTTPSConnection.hpp"
-#include "../src/SSLCert.hpp"
+#include "HTTPServer.hpp"
+#include "HTTPSServerConstants.hpp"
+#include "HTTPHeaders.hpp"
+#include "HTTPHeader.hpp"
+#include "ResourceNode.hpp"
+#include "ResourceResolver.hpp"
+#include "ResolvedResource.hpp"
+#include "HTTPSConnection.hpp"
+#include "SSLCert.hpp"
 
 namespace httpsserver {
 

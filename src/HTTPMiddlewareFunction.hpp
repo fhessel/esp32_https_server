@@ -3,9 +3,9 @@
 
 #include <functional>
 
-#include "../src/HTTPRequest.hpp"
-#include "../src/HTTPResponse.hpp"
-#include "../src/HTTPSCallbackFunction.hpp"
+#include "HTTPRequest.hpp"
+#include "HTTPResponse.hpp"
+#include "HTTPSCallbackFunction.hpp"
 
 namespace httpsserver {
 	/**

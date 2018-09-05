@@ -1,15 +1,8 @@
-/*
- * ResolvedResource.hpp
- *
- *  Created on: Dec 12, 2017
- *      Author: frank
- */
-
 #ifndef SRC_RESOLVEDRESOURCE_HPP_
 #define SRC_RESOLVEDRESOURCE_HPP_
 
-#include "../src/ResourceNode.hpp"
-#include "../src/ResourceParameters.hpp"
+#include "ResourceNode.hpp"
+#include "ResourceParameters.hpp"
 
 namespace httpsserver {
 

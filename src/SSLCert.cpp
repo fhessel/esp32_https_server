@@ -1,11 +1,4 @@
-/*
- * SSLCert.cpp
- *
- *  Created on: Dec 6, 2017
- *      Author: frank
- */
-
-#include "../src/SSLCert.hpp"
+#include "SSLCert.hpp"
 
 namespace httpsserver {
 

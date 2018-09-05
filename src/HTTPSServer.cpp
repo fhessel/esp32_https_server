@@ -1,11 +1,4 @@
-/*
- * HTTPSServer.cpp
- *
- *  Created on: Dec 6, 2017
- *      Author: frank
- */
-
-#include "../src/HTTPSServer.hpp"
+#include "HTTPSServer.hpp"
 
 namespace httpsserver {
 

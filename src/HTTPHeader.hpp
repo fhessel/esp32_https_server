@@ -1,10 +1,3 @@
-/*
- * HTTPHeader.hpp
- *
- *  Created on: Dec 12, 2017
- *      Author: frank
- */
-
 #ifndef SRC_HTTPHEADER_HPP_
 #define SRC_HTTPHEADER_HPP_
 

@@ -1,10 +1,3 @@
-/*
- * HTTPResponse.hpp
- *
- *  Created on: Dec 13, 2017
- *      Author: frank
- */
-
 #ifndef SRC_HTTPRESPONSE_HPP_
 #define SRC_HTTPRESPONSE_HPP_
 
@@ -18,11 +11,11 @@
 
 #include <openssl/ssl.h>
 
-#include "../src/util.hpp"
+#include "util.hpp"
 
-#include "../src/ConnectionContext.hpp"
-#include "../src/HTTPHeaders.hpp"
-#include "../src/HTTPHeader.hpp"
+#include "ConnectionContext.hpp"
+#include "HTTPHeaders.hpp"
+#include "HTTPHeader.hpp"
 
 namespace httpsserver {
 

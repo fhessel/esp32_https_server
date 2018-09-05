@@ -1,11 +1,4 @@
-/*
- * HTTPHeaders.cpp
- *
- *  Created on: Dec 13, 2017
- *      Author: frank
- */
-
-#include "../src/HTTPHeaders.hpp"
+#include "HTTPHeaders.hpp"
 
 namespace httpsserver {
 

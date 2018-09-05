@@ -1,12 +1,4 @@
-/*
- * util.cpp
- *
- *  Created on: Dec 17, 2017
- *      Author: frank
- */
-
-
-#include "../src/util.hpp"
+#include "util.hpp"
 
 namespace httpsserver {
 

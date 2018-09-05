@@ -1,16 +1,9 @@
-/*
- * ResourceNode.hpp
- *
- *  Created on: Dec 6, 2017
- *      Author: frank
- */
-
 #ifndef SRC_RESOURCENODE_HPP_
 #define SRC_RESOURCENODE_HPP_
 
 #include <string>
 
-#include "../src/HTTPSCallbackFunction.hpp"
+#include "HTTPSCallbackFunction.hpp"
 
 namespace httpsserver {
 

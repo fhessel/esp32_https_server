@@ -1,10 +1,3 @@
-/*
- * HTTPSServerConstants.hpp
- *
- *  Created on: Dec 14, 2017
- *      Author: frank
- */
-
 #ifndef SRC_HTTPSSERVERCONSTANTS_HPP_
 #define SRC_HTTPSSERVERCONSTANTS_HPP_
 

@@ -1,11 +1,4 @@
-/*
- * ResourceResolver.cpp
- *
- *  Created on: Dec 13, 2017
- *      Author: frank
- */
-
-#include "../src/ResourceResolver.hpp"
+#include "ResourceResolver.hpp"
 
 namespace httpsserver {
 

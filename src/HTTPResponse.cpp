@@ -1,12 +1,4 @@
-/*
- * HTTPResponse.cpp
- *
- *  Created on: Dec 13, 2017
- *      Author: frank
- */
-
-// needed for HTTP sockets
-#include "../src/HTTPResponse.hpp"
+#include "HTTPResponse.hpp"
 
 #include <Arduino.h>
 #include "lwip/sockets.h"

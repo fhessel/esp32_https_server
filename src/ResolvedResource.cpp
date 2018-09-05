@@ -1,11 +1,4 @@
-/*
- * ResolvedResource.cpp
- *
- *  Created on: Dec 12, 2017
- *      Author: frank
- */
-
-#include "../src/ResolvedResource.hpp"
+#include "ResolvedResource.hpp"
 
 namespace httpsserver {
 
