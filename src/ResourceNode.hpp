@@ -9,11 +9,12 @@ namespace httpsserver {
 
 class ResourceNode {
 public:
-	ResourceNode(const std::string path, const std::string method, const HTTPSCallbackFunction * callback);
+	ResourceNode(const std::string path, const std::string method, const HTTPSCallbackFunction * callback, const std::string tag = "");
 	virtual ~ResourceNode();
 
 	const std::string _path;
 	const std::string _method;
+	const std::string _tag;
 	const HTTPSCallbackFunction * _callback;
 
 	bool hasUrlParameter();

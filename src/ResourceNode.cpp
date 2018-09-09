@@ -2,10 +2,11 @@
 
 namespace httpsserver {
 
-ResourceNode::ResourceNode(const std::string path, const std::string method, const HTTPSCallbackFunction * callback):
+ResourceNode::ResourceNode(const std::string path, const std::string method, const HTTPSCallbackFunction * callback, const std::string tag):
 	_path(std::move(path)),
 	_method(std::move(method)),
-	_callback(callback) {
+	_callback(callback),
+	_tag(tag) {
 
 	// Count the parameters
 	_urlParamCount = 0;

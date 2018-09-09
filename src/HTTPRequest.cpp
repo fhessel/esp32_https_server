@@ -2,12 +2,13 @@
 
 namespace httpsserver {
 
-HTTPRequest::HTTPRequest(ConnectionContext * con, HTTPHeaders * headers, ResourceParameters * params, std::string requestString, std::string method):
+HTTPRequest::HTTPRequest(ConnectionContext * con, HTTPHeaders * headers, ResourceParameters * params, std::string requestString, std::string method, std::string tag):
 	_con(con),
 	_headers(headers),
 	_params(params),
 	_requestString(requestString),
-	_method(method) {
+	_method(method),
+	_tag(tag) {
 
 	HTTPHeader * contentLength = headers->get("Content-Length");
 	if (contentLength == NULL) {
@@ -72,6 +73,10 @@ std::string HTTPRequest::getRequestString() {
 
 std::string HTTPRequest::getMethod() {
 	return _method;
+}
+
+std::string HTTPRequest::getTag() {
+	return _tag;
 }
 
 bool HTTPRequest::requestComplete() {

@@ -16,13 +16,14 @@ namespace httpsserver {
 
 class HTTPRequest {
 public:
-	HTTPRequest(ConnectionContext * con, HTTPHeaders * headers, ResourceParameters * resource, std::string requestString, std::string method);
+	HTTPRequest(ConnectionContext * con, HTTPHeaders * headers, ResourceParameters * resource, std::string requestString, std::string method, std::string tag);
 	virtual ~HTTPRequest();
 
 	std::string getHeader(std::string name);
 	void setHeader(std::string name, std::string value);
 	std::string getRequestString();
 	std::string getMethod();
+	std::string getTag();
 
 	size_t readChars(char * buffer, size_t length);
 	size_t readBytes(byte * buffer, size_t length);
@@ -44,6 +45,7 @@ private:
 
 	std::string _requestString;
 	std::string _method;
+	std::string _tag;
 
 	bool _contentLengthSet;
 	size_t _remainingContent;
