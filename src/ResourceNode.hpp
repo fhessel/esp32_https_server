@@ -14,8 +14,8 @@ public:
 
 	const std::string _path;
 	const std::string _method;
-	const std::string _tag;
 	const HTTPSCallbackFunction * _callback;
+	const std::string _tag;
 
 	bool hasUrlParameter();
 	uint8_t getUrlParamCount();
