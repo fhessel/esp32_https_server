@@ -49,5 +49,18 @@ Release/
 .scala_dependencies
 .worksheet
 
+# Temporary files used while creating the certs
+extras/example.conf
+extras/example.crt
+extras/example.crt.DER
+extras/example.csr
+extras/example.key
+extras/example.key.DER
+extras/exampleca.conf
+extras/exampleca.crt
+extras/exampleca.key
+extras/exampleca.srl
+
+# Cert files in every example
 cert.h
 private_key.h

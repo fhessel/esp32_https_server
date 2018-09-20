@@ -56,8 +56,15 @@ openssl rsa -in example.key -outform DER -out example.key.DER
 openssl x509 -in example.crt -outform DER -out example.crt.DER
 
 # create header files
-xxd -i example.crt.DER > ./cert.h
-xxd -i example.key.DER > ./private_key.h
+echo "#ifndef CERT_H_" > ./cert.h
+echo "#define CERT_H_" >> ./cert.h
+xxd -i example.crt.DER >> ./cert.h
+echo "#endif" >> ./cert.h
+
+echo "#ifndef PRIVATE_KEY_H_" > ./private_key.h
+echo "#define PRIVATE_KEY_H_" >> ./private_key.h
+xxd -i example.key.DER >> ./private_key.h
+echo "#endif" >> ./private_key.h
 
 # Copy files to every example
 for D in ../examples/*; do
@@ -70,7 +77,7 @@ done
 echo ""
 echo "Certificates created!"
 echo "---------------------"
-echo "
+echo ""
 echo "  Private key:      private_key.h"
 echo "  Certificate data: cert.h"
 echo ""
