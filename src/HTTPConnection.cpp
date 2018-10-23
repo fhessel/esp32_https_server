@@ -1,4 +1,6 @@
 #include "HTTPConnection.hpp"
+#include "Websocket.hpp"
+#include <hwcrypto/sha.h>
 
 namespace httpsserver {
 
@@ -18,6 +20,7 @@ HTTPConnection::HTTPConnection(ResourceResolver * resResolver):
 	_isKeepAlive = false;
 	_lastTransmissionTS = millis();
 	_shutdownTS = 0;
+	_websocket = nullptr;
 }
 
 HTTPConnection::~HTTPConnection() {
@@ -121,6 +124,7 @@ void HTTPConnection::closeConnection() {
 	}
 
 	if (_httpHeaders != NULL) {
+		HTTPS_DLOG("[   ] Free headers");
 		delete _httpHeaders;
 		_httpHeaders = NULL;
 	}
@@ -327,6 +331,10 @@ size_t HTTPConnection::getCacheSize() {
 	return (_isKeepAlive ? HTTPS_KEEPALIVE_CACHESIZE : 0);
 }
 
+void HTTPConnection::setWebsocketHandler(WebsocketHandler *wsHandler) {
+	_wsHandler = wsHandler;
+}
+
 void HTTPConnection::loop() {
 	// First, update the buffer
 	// newByteCount will contain the number of new bytes that have to be processed
@@ -397,6 +405,7 @@ void HTTPConnection::loop() {
 									_parserLine.text.substr(0, idxColon),
 									_parserLine.text.substr(idxColon+2)
 							));
+							HTTPS_DLOG(("[   ] Header: " + _parserLine.text.substr(0, idxColon) + ":" + _parserLine.text.substr(idxColon+2)).c_str());
 						} else {
 							HTTPS_DLOG("Malformed header line detected. Client error.");
 							HTTPS_DLOG(_parserLine.text.c_str());
@@ -425,6 +434,36 @@ void HTTPConnection::loop() {
 					} else {
 						HTTPS_DLOGHEX("[   ] Keep-Alive disabled. fid=", _socket);
 						_isKeepAlive = false;
+					}
+
+					// do we have a websocket connection?
+					if(checkWebsocket()) {
+						// Create response
+						HTTPResponse res = HTTPResponse(this);
+						// Add default headers to the response
+						auto allDefaultHeaders = _defaultHeaders->getAll();
+						for(std::vector<HTTPHeader*>::iterator header = allDefaultHeaders->begin(); header != allDefaultHeaders->end(); ++header) {
+							res.setHeader((*header)->_name, (*header)->_value);
+						}
+						// Set the response status
+						res.setStatusCode(101);
+						res.setStatusText("Switching Protocols");
+						res.setHeader("Upgrade", "websocket");
+						res.setHeader("Connection", "Upgrade");
+						res.setHeader("Sec-WebSocket-Accept", websocketKeyResponseHash(_httpHeaders->getValue("Sec-WebSocket-Key")));
+						res.print("");
+
+						// Callback for the actual resource
+						HTTPSCallbackFunction * resourceCallback = resolvedResource.getMatchingNode()->_callback;
+						// persistent request for websocket. To be destroyed when connection closes.
+						HTTPRequest *req  = new HTTPRequest(this, _httpHeaders, resolvedResource.getParams(), _httpResource, _httpMethod, "");
+						// bind function call to the actual resource
+						std::function<void()> next = std::function<void()>(std::bind(resourceCallback, req, nullptr));
+						_websocket = new Websocket(this);  // make websocket with this connection 
+						next();  // call callback
+						delete req;
+						_connectionState = STATE_WEBSOCKET;
+						break;
 					}
 
 					// Create request context
@@ -507,12 +546,54 @@ void HTTPConnection::loop() {
 			closeConnection();
 			break;
 		case STATE_WEBSOCKET: // Do handling of the websocket
-
+			refreshTimeout();  // don't timeout websocket connection
+			if(pendingBufferSize() > 0) {
+				HTTPS_DLOG("[   ] websocket handler");
+				if(_websocket->read() < 0) {
+					_websocket->close();
+					delete _websocket;
+					_httpHeaders->clearAll();
+					_connectionState = STATE_CLOSING;
+				}
+			}
+			//readBuffer();
 			break;
 		default:;
 		}
 	}
 
 }
+
+
+bool HTTPConnection::checkWebsocket() {
+	// check criteria according to RFC6455
+//	HTTPS_DLOG(("[   ] Method:" + _httpMethod).c_str());
+//	HTTPS_DLOG(("[   ] Header Host:" + _httpHeaders->getValue("Host")).c_str());
+//	HTTPS_DLOG(("[   ] Header Upgrade:" + _httpHeaders->getValue("Upgrade")).c_str());
+//	HTTPS_DLOG(("[   ] Header Connection:" + _httpHeaders->getValue("Connection")).c_str());
+//	HTTPS_DLOG(("[   ] Header Sec-WebSocket-Key:" + _httpHeaders->getValue("Sec-WebSocket-Key")).c_str());
+//	HTTPS_DLOG(("[   ] Header Sec-WebSocket-Version:" + _httpHeaders->getValue("Sec-WebSocket-Version")).c_str());
+	if(_httpMethod == "GET" &&
+	   !_httpHeaders->getValue("Host").empty() &&
+	    _httpHeaders->getValue("Upgrade") == "websocket" &&
+	    _httpHeaders->getValue("Connection").find("Upgrade") != std::string::npos &&
+	   !_httpHeaders->getValue("Sec-WebSocket-Key").empty() &&
+	    _httpHeaders->getValue("Sec-WebSocket-Version") == "13") {
+
+		HTTPS_DLOG("[-->] Websocket detected");
+	    return true;
+	} else
+	   	return false;
+}
+
+std::string HTTPConnection::websocketKeyResponseHash(std::string key) {
+	std::string newKey = key + "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
+	uint8_t shaData[20];
+	esp_sha(SHA1, (uint8_t*)newKey.data(), newKey.length(), shaData);
+	//GeneralUtils::hexDump(shaData, 20);
+	std::string retStr;
+	base64Encode(std::string((char*)shaData, sizeof(shaData)), &retStr);
+	return retStr;
+} // WebsocketKeyResponseHash
 
 } /* namespace httpsserver */

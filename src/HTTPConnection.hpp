@@ -19,10 +19,14 @@
 #include "ResourceNode.hpp"
 #include "HTTPRequest.hpp"
 #include "HTTPResponse.hpp"
+#include "ConnectionContext.hpp"
 
 namespace httpsserver {
 
+class Websocket;
+
 class HTTPConnection : private ConnectionContext {
+	friend class Websocket;
 public:
 	HTTPConnection(ResourceResolver * resResolver);
 	virtual ~HTTPConnection();
@@ -34,10 +38,12 @@ public:
 	void loop();
 	bool isClosed();
 	bool isError();
+	void setWebsocketHandler(WebsocketHandler *wsHandler);
 
 protected:
 	friend class HTTPRequest;
 	friend class HTTPResponse;
+	friend class WebsocketInputStreambuf;
 
 	virtual size_t writeBuffer(byte* buffer, size_t length);
 	virtual size_t readBytesToBuffer(byte* buffer, size_t length);
@@ -108,7 +114,8 @@ private:
 	void signalRequestError();
 	size_t readBuffer(byte* buffer, size_t length);
 	size_t getCacheSize();
-
+	bool checkWebsocket();
+	std::string websocketKeyResponseHash(std::string key);
 
 	// The receive buffer
 	char _receiveBuffer[HTTPS_CONNECTION_DATA_CHUNK_SIZE];
@@ -143,6 +150,9 @@ private:
 	// Should we use keep alive
 	bool _isKeepAlive;
 
+	//Websocket connection
+	WebsocketHandler * _wsHandler;
+	Websocket * _websocket;
 
 };
 

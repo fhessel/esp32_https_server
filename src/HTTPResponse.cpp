@@ -30,6 +30,7 @@ HTTPResponse::~HTTPResponse() {
 	if (_responseCache != NULL) {
 		delete[] _responseCache;
 	}
+	_headers.clearAll();
 }
 
 void HTTPResponse::setStatusCode(uint16_t statusCode) {

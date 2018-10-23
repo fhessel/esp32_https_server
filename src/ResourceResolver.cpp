@@ -84,7 +84,7 @@ void ResourceResolver::resolveNode(const std::string &method, const std::string 
 				// Simple matching, the node does not contain any resource parameters
 				if (nodepath == resourceName) {
 					resolvedResource.setMatchingNode(*node);
-					HTTPS_DLOG("[   ]   It's a match!")
+					HTTPS_DLOG(("[   ]   It's a match! Path:" + nodepath).c_str())
 					break;
 				}
 			} else {

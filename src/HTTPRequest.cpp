@@ -22,7 +22,7 @@ HTTPRequest::HTTPRequest(ConnectionContext * con, HTTPHeaders * headers, Resourc
 }
 
 HTTPRequest::~HTTPRequest() {
-
+	_headers->clearAll();
 }
 
 
@@ -154,6 +154,11 @@ std::string HTTPRequest::decodeBasicAuthToken() {
 
 bool HTTPRequest::isSecure() {
 	return _con->isSecure();
+}
+
+
+void HTTPRequest::setWebsocketHandler(WebsocketHandler *wsHandler) {
+	_con->setWebsocketHandler(wsHandler);
 }
 
 } /* namespace httpsserver */

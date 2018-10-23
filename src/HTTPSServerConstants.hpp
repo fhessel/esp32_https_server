@@ -4,8 +4,9 @@
 #include "Arduino.h"
 
 // Debug Code. Undefine it to disable debugging output
-#define HTTPS_DLOG(X)      Serial.print("HTTPSServer->debug: ");Serial.println(X);
-#define HTTPS_DLOGHEX(X,Y) Serial.print("HTTPSServer->debug: ");Serial.print(X);Serial.print(" 0x");Serial.println(Y, HEX);
+#define HTTPS_DLOG(X)      Serial.print(millis());Serial.print(" HTTPSServer->debug: ");Serial.println(X);
+#define HTTPS_DLOGHEX(X,Y) Serial.print(millis());Serial.print(" HTTPSServer->debug: ");Serial.print(X);Serial.print(" 0x");Serial.println(Y, HEX);
+#define HTTPS_DLOGINT(X,Y) Serial.print(millis());Serial.print(" HTTPSServer->debug: ");Serial.print(X);Serial.println(Y);
 
 // The following lines define limits of the protocol. Exceeding these limits will lead to a 500 error
 

@@ -34,6 +34,8 @@ public:
 	std::string getBasicAuthUser();
 	std::string getBasicAuthPassword();
 	bool   isSecure();
+	void setWebsocketHandler(WebsocketHandler *wsHandler);
+	
 private:
 	std::string decodeBasicAuthToken();
 
