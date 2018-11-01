@@ -4,6 +4,8 @@
 #include <Arduino.h>
 
 #include <string>
+#include <mbedtls/base64.h>
+#include <hwcrypto/sha.h>
 #include <functional>
 
 // Required for sockets

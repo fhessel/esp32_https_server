@@ -1,9 +1,6 @@
 #include "HTTPConnection.hpp"
-#include "Websocket.hpp"
-#include <hwcrypto/sha.h>
 
 namespace httpsserver {
-
 
 HTTPConnection::HTTPConnection(ResourceResolver * resResolver):
 	_resResolver(resResolver) {
@@ -584,12 +581,29 @@ bool HTTPConnection::checkWebsocket() {
 
 std::string HTTPConnection::websocketKeyResponseHash(std::string key) {
 	std::string newKey = key + "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
-	uint8_t shaData[20];
+	uint8_t shaData[HTTPS_SHA1_LENGTH];
 	esp_sha(SHA1, (uint8_t*)newKey.data(), newKey.length(), shaData);
-	//GeneralUtils::hexDump(shaData, 20);
-	std::string retStr;
-	base64Encode(std::string((char*)shaData, sizeof(shaData)), &retStr);
-	return retStr;
+
+	// Get output size required for base64 representation
+	size_t b64BufferSize = 0;
+	mbedtls_base64_encode(nullptr, 0, &b64BufferSize, (const unsigned char*)shaData, HTTPS_SHA1_LENGTH);
+
+	// Do the real encoding
+	unsigned char bufferOut[b64BufferSize];
+	size_t bytesEncoded = 0;
+	int res = mbedtls_base64_encode(
+		bufferOut,
+		b64BufferSize,
+		&bytesEncoded,
+		(const unsigned char*)shaData,
+		HTTPS_SHA1_LENGTH
+	);
+	
+	// Check result and return the encoded string
+	if (res != 0) {
+		return std::string();
+	}
+	return std::string((char*)bufferOut, bytesEncoded);
 } // WebsocketKeyResponseHash
 
 } /* namespace httpsserver */

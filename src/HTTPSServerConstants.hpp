@@ -33,4 +33,7 @@
 // (time for the client to return notify close flag) - without it, truncation attacks might be possible
 #define HTTPS_SHUTDOWN_TIMEOUT                 5000
 
+// Length of a SHA1 hash
+#define HTTPS_SHA1_LENGTH                      20
+
 #endif /* SRC_HTTPSSERVERCONSTANTS_HPP_ */
