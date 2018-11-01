@@ -20,13 +20,11 @@
 #include "HTTPRequest.hpp"
 #include "HTTPResponse.hpp"
 #include "ConnectionContext.hpp"
+#include "Websocket.hpp"
 
 namespace httpsserver {
 
-class Websocket;
-
 class HTTPConnection : private ConnectionContext {
-	friend class Websocket;
 public:
 	HTTPConnection(ResourceResolver * resResolver);
 	virtual ~HTTPConnection();
@@ -38,7 +36,6 @@ public:
 	void loop();
 	bool isClosed();
 	bool isError();
-	void setWebsocketHandler(WebsocketHandler *wsHandler);
 
 protected:
 	friend class HTTPRequest;
@@ -151,7 +148,6 @@ private:
 	bool _isKeepAlive;
 
 	//Websocket connection
-	WebsocketHandler * _wsHandler;
 	Websocket * _websocket;
 
 };

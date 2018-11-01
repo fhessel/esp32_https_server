@@ -331,10 +331,6 @@ size_t HTTPConnection::getCacheSize() {
 	return (_isKeepAlive ? HTTPS_KEEPALIVE_CACHESIZE : 0);
 }
 
-void HTTPConnection::setWebsocketHandler(WebsocketHandler *wsHandler) {
-	_wsHandler = wsHandler;
-}
-
 void HTTPConnection::loop() {
 	// First, update the buffer
 	// newByteCount will contain the number of new bytes that have to be processed

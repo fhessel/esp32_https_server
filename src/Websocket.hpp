@@ -16,9 +16,7 @@
 #include <iostream>
 #include <streambuf>
 
-#include "HTTPConnection.hpp"
-#include "HTTPSConnection.hpp"
-// #include "ConnectionContext.hpp"
+#include "ConnectionContext.hpp"
 
 namespace httpsserver
 {
@@ -56,7 +54,7 @@ class WebsocketInputStreambuf : public std::streambuf
 {
   public:
 	WebsocketInputStreambuf(
-		HTTPConnection *socket,
+		ConnectionContext *con,
 		size_t dataLength,
 		uint8_t *_ = nullptr,
 		size_t bufferSize = 2048);
@@ -67,7 +65,7 @@ class WebsocketInputStreambuf : public std::streambuf
 
   private:
 	char *_buffer;
-	HTTPConnection *_con;
+	ConnectionContext *_con;
 	size_t _dataLength;
 	size_t _bufferSize;
 	size_t _sizeRead;
@@ -98,7 +96,7 @@ class Websocket
 	static const uint8_t SEND_TYPE_BINARY = 0x01;
 	static const uint8_t SEND_TYPE_TEXT = 0x02;
 
-	Websocket(HTTPConnection *con);
+	Websocket(ConnectionContext *con);
 	~Websocket();
 	int read();
 	void close(uint16_t status = CLOSE_NORMAL_CLOSURE, std::string message = "");
@@ -106,7 +104,7 @@ class Websocket
 	void send(uint8_t *data, uint16_t length, uint8_t sendType = SEND_TYPE_BINARY);
 
   private:
-	HTTPConnection *_con;
+	ConnectionContext *_con;
 	WebsocketHandler *_wsHandler;
 	bool _receivedClose; // True when we have received a close request.
 	bool _sentClose;	 // True when we have sent a close request.

@@ -26,7 +26,9 @@ public:
 	virtual size_t writeBuffer(byte* buffer, size_t length) = 0;
 
 	virtual bool isSecure() = 0;
-	virtual void setWebsocketHandler(WebsocketHandler *wsHandler) = 0;
+	virtual void setWebsocketHandler(WebsocketHandler *wsHandler);
+	
+	WebsocketHandler * _wsHandler;
 };
 
 } /* namespace httpsserver */

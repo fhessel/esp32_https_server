@@ -89,7 +89,7 @@ void WebsocketHandler::onError(std::string error) {
 } // onError
 
 
-Websocket::Websocket(HTTPConnection *con) {
+Websocket::Websocket(ConnectionContext *con) {
 	_con = con;
 	_receivedClose     = false;
 	_sentClose         = false;
@@ -102,7 +102,6 @@ Websocket::~Websocket() {
 
 int Websocket::read() {
 	Frame frame;
-	_con->updateBuffer();
 	int length = _con->readBuffer((uint8_t*)&frame, sizeof(frame));
 	HTTPS_DLOGHEX("[   ] read bytes:", length);
 	if(length == 0) 
@@ -276,11 +275,11 @@ void Websocket::send(uint8_t* data, uint16_t length, uint8_t sendType) {
  * @param [in] bufferSize The size of the buffer we wish to allocate to hold data.
  */
 WebsocketInputStreambuf::WebsocketInputStreambuf(
-	HTTPConnection   *socket,
+	ConnectionContext   *con,
 	size_t   dataLength,
 	uint8_t *pMask,
 	size_t   bufferSize) {
-	_con     = socket;    // The socket we will be reading from
+	_con     = con;    // The socket we will be reading from
 	_dataLength = dataLength; // The size of the record we wish to read.
 	_pMask      = pMask;
 	_bufferSize = bufferSize; // The size of the buffer used to hold data
