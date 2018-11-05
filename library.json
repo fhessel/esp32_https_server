@@ -1,0 +1,14 @@
+{
+  "name": "esp32_https_server",
+  "keywords": "communication, esp32, http, https, server, ssl, tls, webserver, websockets",
+  "description": "An Arduino library for an ESP32 HTTP/HTTPS web server implementation",
+  "repository":
+  {
+    "type": "git",
+    "url": "https://github.com/fhessel/esp32_https_server.git"
+  },
+  "license": "MIT",
+  "version": "0.2.0",
+  "frameworks": "arduino",
+  "platforms": ["espressif32"]
+}
