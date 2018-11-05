@@ -1,12 +1,4 @@
-/*
- * Websocket.cpp
- *
- *  Created on: 12.09.2018
- *      Author: springob
- */
-#include <sstream>
-#include "Websocket.hpp"
-#include "HTTPConnection.hpp"
+#include "WebsocketHandler.hpp"
 
 namespace httpsserver {
 
@@ -14,31 +6,31 @@ namespace httpsserver {
  * @brief Dump the content of the WebSocket frame for debugging.
  * @param [in] frame The frame to dump.
  */
-static void dumpFrame(Frame frame) {
+static void dumpFrame(WebsocketFrame frame) {
 	std::ostringstream oss;
 	oss << "Fin: " << (int)frame.fin << ", OpCode: " << (int)frame.opCode;
 	switch(frame.opCode) {
-		case OPCODE_BINARY: {
+		case WebsocketHandler::OPCODE_BINARY: {
 			oss << " BINARY";
 			break;
 		}
-		case OPCODE_CONTINUE: {
+		case WebsocketHandler::OPCODE_CONTINUE: {
 			oss << " CONTINUE";
 			break;
 		}
-		case OPCODE_CLOSE: {
+		case WebsocketHandler::OPCODE_CLOSE: {
 			oss << " CLOSE";
 			break;
 		}
-		case OPCODE_PING: {
+		case WebsocketHandler::OPCODE_PING: {
 			oss << " PING";
 			break;
 		}
-		case OPCODE_PONG: {
+		case WebsocketHandler::OPCODE_PONG: {
 			oss << " PONG";
 			break;
 		}
-		case OPCODE_TEXT: {
+		case WebsocketHandler::OPCODE_TEXT: {
 			oss << " TEXT";
 			break;
 		}
@@ -52,8 +44,14 @@ static void dumpFrame(Frame frame) {
 	HTTPS_DLOG(s.c_str());
 } // dumpFrame
 
+WebsocketHandler::WebsocketHandler() {
+	_con = nullptr;
+	_receivedClose = false;
+	_sentClose = false;
+}
 
 WebsocketHandler::~WebsocketHandler() {
+	
 } // ~WebSocketHandler()
 
 
@@ -75,7 +73,7 @@ void WebsocketHandler::onClose() {
 * ```
 * This will read the whole message into the string stream.
 */
-void WebsocketHandler::onMessage(WebsocketInputStreambuf* pWebsocketInputStreambuf, Websocket *pWebSocket) {
+void WebsocketHandler::onMessage(WebsocketInputStreambuf* pWebsocketInputStreambuf) { //, Websocket *pWebSocket) {
 	HTTPS_DLOG("[   ] WebsocketHandler onMessage()");
 } // onData
 
@@ -88,20 +86,18 @@ void WebsocketHandler::onError(std::string error) {
 	HTTPS_DLOG("[   ] WebsocketHandler onError()");
 } // onError
 
-
-Websocket::Websocket(ConnectionContext *con) {
+void WebsocketHandler::initialize(ConnectionContext * con) {
 	_con = con;
-	_receivedClose     = false;
-	_sentClose         = false;
-	_wsHandler 			= nullptr;	
 }
 
-Websocket::~Websocket() {
-	// TODO Auto-generated destructor stub
+void WebsocketHandler::loop() {
+	if(read() < 0) {
+		close();
+	}
 }
 
-int Websocket::read() {
-	Frame frame;
+int WebsocketHandler::read() {
+	WebsocketFrame frame;
 	int length = _con->readBuffer((uint8_t*)&frame, sizeof(frame));
 	HTTPS_DLOGHEX("[   ] read bytes:", length);
 	if(length == 0) 
@@ -140,19 +136,18 @@ int Websocket::read() {
 	switch(frame.opCode) {
 		case OPCODE_TEXT:
 		case OPCODE_BINARY: {
-			if (_con->_wsHandler != nullptr) {
-				WebsocketInputStreambuf streambuf(_con, payloadLen, frame.mask==1?mask:nullptr);
-				_con->_wsHandler->onMessage(&streambuf, this);
-				streambuf.discard();
-			}
+			HTTPS_DLOG("[   ] Creating Streambuf");
+			WebsocketInputStreambuf streambuf(_con, payloadLen, frame.mask==1?mask:nullptr);
+			HTTPS_DLOG("[   ] Calling onMessage");
+			onMessage(&streambuf);
+			HTTPS_DLOG("[   ] Discarding Streambuf");
+			streambuf.discard();
 			break;
 		}
 
 		case OPCODE_CLOSE: {  // If the WebSocket operation code is close then we are closing the connection.
 			_receivedClose = true;
-			if (_con->_wsHandler != nullptr) { // If we have a handler, invoke the onClose method upon it.
-				_con->_wsHandler->onClose();
-			}
+			onClose();
 			//close();                // Close the websocket.
 			return -1;
 			break;
@@ -183,12 +178,12 @@ int Websocket::read() {
  * @param [in] status The code passed in the close request.
  * @param [in] message A clarification message on the close request.
  */
-void Websocket::close(uint16_t status, std::string message) {
+void WebsocketHandler::close(uint16_t status, std::string message) {
 	HTTPS_DLOG("[   ] >> Websocket close()");
 
 	_sentClose = true;              // Flag that we have sent a close request.
 
-	Frame frame;                     // Build the web socket frame indicating a close request.
+	WebsocketFrame frame;           // Build the web socket frame indicating a close request.
 	frame.fin    = 1;
 	frame.rsv1   = 0;
 	frame.rsv2   = 0;
@@ -214,9 +209,9 @@ void Websocket::close(uint16_t status, std::string message) {
  * @param [in] data The data to send down the WebSocket.
  * @param [in] sendType The type of payload.  Either SEND_TYPE_TEXT or SEND_TYPE_BINARY.
  */
-void Websocket::send(std::string data, uint8_t sendType) {
+void WebsocketHandler::send(std::string data, uint8_t sendType) {
 	HTTPS_DLOGHEX(">> Websocket.send: Length: ", data.length());
-	Frame frame;
+	WebsocketFrame frame;
 	frame.fin    = 1;
 	frame.rsv1   = 0;
 	frame.rsv2   = 0;
@@ -244,9 +239,9 @@ void Websocket::send(std::string data, uint8_t sendType) {
  * @param [in] data The data to send down the WebSocket.
  * @param [in] sendType The type of payload.  Either SEND_TYPE_TEXT or SEND_TYPE_BINARY.
  */
-void Websocket::send(uint8_t* data, uint16_t length, uint8_t sendType) {
+void WebsocketHandler::send(uint8_t* data, uint16_t length, uint8_t sendType) {
 	HTTPS_DLOGHEX("[   ] >> Websocket.send: Length: ", length);
-	Frame frame;
+	WebsocketFrame frame;
 	frame.fin    = 1;
 	frame.rsv1   = 0;
 	frame.rsv2   = 0;
@@ -266,112 +261,11 @@ void Websocket::send(uint8_t* data, uint16_t length, uint8_t sendType) {
 	HTTPS_DLOG("[   ] << Websocket.send");
 }  // Websocket::send
 
-
-
 /**
- * @brief Create a Web Socket input record streambuf
- * @param [in] socket The socket we will be reading from.
- * @param [in] dataLength The size of a record.
- * @param [in] bufferSize The size of the buffer we wish to allocate to hold data.
+ * Returns true if the connection has been closed, either by client or server
  */
-WebsocketInputStreambuf::WebsocketInputStreambuf(
-	ConnectionContext   *con,
-	size_t   dataLength,
-	uint8_t *pMask,
-	size_t   bufferSize) {
-	_con     = con;    // The socket we will be reading from
-	_dataLength = dataLength; // The size of the record we wish to read.
-	_pMask      = pMask;
-	_bufferSize = bufferSize; // The size of the buffer used to hold data
-	_sizeRead   = 0;          // The size of data read from the socket
-	_buffer = new char[bufferSize]; // Create the buffer used to hold the data read from the socket.
+bool WebsocketHandler::closed() {
+	return _receivedClose || _sentClose;
+}
 
-	setg(_buffer, _buffer, _buffer); // Set the initial get buffer pointers to no data.
-} // WebSocketInputStreambuf
-
-/**
- * @brief Destructor
- */
-WebsocketInputStreambuf::~WebsocketInputStreambuf() {
-	delete[] _buffer;
-	discard();
-} // ~WebSocketInputRecordStreambuf
-
-/**
- * @brief Discard data for the record that has not yet been read.
- *
- * We are working on a logical fixed length record in a socket stream.  This means that we know in advance
- * how big the record should be.  If we have read some data from the stream and no longer wish to consume
- * any further, we have to discard the remaining bytes in the stream before we can get to process the
- * next record.  This function discards the remainder of the data.
- *
- * For example, if our record size is 1000 bytes and we have read 700 bytes and determine that we no
- * longer need to continue, we can't just stop.  There are still 300 bytes in the socket stream that
- * need to be consumed/discarded before we can move on to the next record.
- */
-void WebsocketInputStreambuf::discard() {
-	uint8_t byte;
-	HTTPS_DLOGINT("[   ] WebsocketInputStreambuf >> discard: Discarding bytes: ", _dataLength - _sizeRead);
-	while(_sizeRead < _dataLength) {
-		_con->readBuffer(&byte, 1);
-		_sizeRead++;
-	}
-	HTTPS_DLOG("[   ] WebsocketInputStreambuf << discard");
-} // WebsocketInputStreambuf::discard
-
-
-/**
- * @brief Get the size of the expected record.
- * @return The size of the expected record.
- */
-size_t WebsocketInputStreambuf::getRecordSize() {
-	return _dataLength;
-} // WebsocketInputStreambuf::getRecordSize
-
-/**
- * @brief Handle the request to read data from the stream but we need more data from the source.
- *
- */
-WebsocketInputStreambuf::int_type WebsocketInputStreambuf::underflow() {
-	HTTPS_DLOG("[   ] WebSocketInputStreambuf >> underflow");
-
-	// If we have already read as many bytes as our record definition says we should read
-	// then don't attempt to ready any further.
-	if (_sizeRead >= getRecordSize()) {
-		HTTPS_DLOG("[   ] WebSocketInputStreambuf << underflow: Already read maximum");
-		return EOF;
-	}
-
-	// We wish to refill the buffer.  We want to read data from the socket.  We want to read either
-	// the size of the buffer to fill it or the maximum number of bytes remaining to be read.
-	// We will choose which ever is smaller as the number of bytes to read into the buffer.
-	int remainingBytes = getRecordSize()-_sizeRead;
-	size_t sizeToRead;
-	if (remainingBytes < _bufferSize) {
-		sizeToRead = remainingBytes;
-	} else {
-		sizeToRead = _bufferSize;
-	}
-
-	HTTPS_DLOGINT("[   ] WebSocketInputRecordStreambuf - getting next buffer of data; size request: ", sizeToRead);
-	int bytesRead = _con->readBuffer((uint8_t*)_buffer, sizeToRead);
-	if (bytesRead == 0) {
-		HTTPS_DLOG("[   ] WebSocketInputRecordStreambuf << underflow: Read 0 bytes");
-		return EOF;
-	}
-
-	// If the WebSocket frame shows that we have a mask bit set then we have to unmask the data.
-	if (_pMask != nullptr) {
-		for (int i=0; i<bytesRead; i++) {
-			_buffer[i] = _buffer[i] ^ _pMask[(_sizeRead+i)%4];
-		}
-	}
-
-	_sizeRead += bytesRead;  // Increase the count of number of bytes actually read from the source.
-
-	setg(_buffer, _buffer, _buffer + bytesRead); // Change the buffer pointers to reflect the new data read.
-	HTTPS_DLOGINT("[   ] WebSocketInputRecordStreambuf << underflow - got more bytes: ", bytesRead);
-	return traits_type::to_int_type(*gptr());
-} // underflow
-
-} /* namespace httpsserver */
+}

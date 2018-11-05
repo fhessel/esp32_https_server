@@ -11,14 +11,14 @@ public:
 	ResolvedResource();
 	~ResolvedResource();
 
-	void setMatchingNode(ResourceNode * node);
-	ResourceNode * getMatchingNode();
+	void setMatchingNode(HTTPNode * node);
+	HTTPNode * getMatchingNode();
 	bool didMatch();
 	ResourceParameters * getParams();
 	void setParams(ResourceParameters * params);
 
 private:
-	ResourceNode * _matchingNode;
+	HTTPNode * _matchingNode;
 	ResourceParameters * _params;
 };
 

@@ -3,27 +3,18 @@
 
 #include <string>
 
+#include "HTTPNode.hpp"
 #include "HTTPSCallbackFunction.hpp"
 
 namespace httpsserver {
 
-class ResourceNode {
+class ResourceNode : public HTTPNode {
 public:
 	ResourceNode(const std::string path, const std::string method, const HTTPSCallbackFunction * callback, const std::string tag = "");
 	virtual ~ResourceNode();
 
-	const std::string _path;
 	const std::string _method;
 	const HTTPSCallbackFunction * _callback;
-	const std::string _tag;
-
-	bool hasUrlParameter();
-	uint8_t getUrlParamCount();
-	size_t getParamIdx(uint8_t);
-
-private:
-	uint8_t _urlParamCount;
-	size_t * _urlParamIdx;
 };
 
 } /* namespace httpsserver */

@@ -14,15 +14,20 @@
 #include "lwip/sockets.h"
 
 #include "HTTPSServerConstants.hpp"
+#include "ConnectionContext.hpp"
+
 #include "HTTPHeaders.hpp"
 #include "HTTPHeader.hpp"
+
 #include "ResourceResolver.hpp"
 #include "ResolvedResource.hpp"
+
 #include "ResourceNode.hpp"
 #include "HTTPRequest.hpp"
 #include "HTTPResponse.hpp"
-#include "ConnectionContext.hpp"
-#include "Websocket.hpp"
+
+#include "WebsocketHandler.hpp"
+#include "WebsocketNode.hpp"
 
 namespace httpsserver {
 
@@ -150,9 +155,13 @@ private:
 	bool _isKeepAlive;
 
 	//Websocket connection
-	Websocket * _websocket;
+	WebsocketHandler * _wsHandler;
 
 };
+
+void handleWebsocketHandshake(HTTPRequest * req, HTTPResponse * res);
+
+std::string websocketKeyResponseHash(std::string key);
 
 } /* namespace httpsserver */
 
