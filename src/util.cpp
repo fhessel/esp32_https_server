@@ -47,5 +47,4 @@ std::string intToString(int i) {
 	return std::string(c);
 }
 
-
 }

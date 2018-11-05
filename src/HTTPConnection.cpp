@@ -2,7 +2,6 @@
 
 namespace httpsserver {
 
-
 HTTPConnection::HTTPConnection(ResourceResolver * resResolver):
 	_resResolver(resResolver) {
 	_socket = -1;
@@ -18,6 +17,7 @@ HTTPConnection::HTTPConnection(ResourceResolver * resResolver):
 	_isKeepAlive = false;
 	_lastTransmissionTS = millis();
 	_shutdownTS = 0;
+	_wsHandler = nullptr;
 }
 
 HTTPConnection::~HTTPConnection() {
@@ -121,8 +121,14 @@ void HTTPConnection::closeConnection() {
 	}
 
 	if (_httpHeaders != NULL) {
+		HTTPS_DLOG("[   ] Free headers");
 		delete _httpHeaders;
 		_httpHeaders = NULL;
+	}
+
+	if (_wsHandler != nullptr) {
+		HTTPS_DLOG("[   ] Freeing WS Handler");
+		delete _wsHandler;
 	}
 }
 
@@ -397,6 +403,7 @@ void HTTPConnection::loop() {
 									_parserLine.text.substr(0, idxColon),
 									_parserLine.text.substr(idxColon+2)
 							));
+							HTTPS_DLOG(("[   ] Header: " + _parserLine.text.substr(0, idxColon) + ":" + _parserLine.text.substr(idxColon+2)).c_str());
 						} else {
 							HTTPS_DLOG("Malformed header line detected. Client error.");
 							HTTPS_DLOG(_parserLine.text.c_str());
@@ -415,15 +422,26 @@ void HTTPConnection::loop() {
 			{
 				HTTPS_DLOG("[   ] Resolving resource...");
 				ResolvedResource resolvedResource;
-				_resResolver->resolveNode(_httpMethod, _httpResource, resolvedResource);
+
+				// Check which kind of node we need (Websocket or regular)
+				bool websocketRequested = checkWebsocket();
+
+				_resResolver->resolveNode(_httpMethod, _httpResource, resolvedResource, websocketRequested ? WEBSOCKET : HANDLER_CALLBACK);
+
+				// Is there any match (may be the defaultNode, if it is configured)
 				if (resolvedResource.didMatch()) {
-					// Did the client request connection:keep-alive?
-					HTTPHeader * connectionHeader = _httpHeaders->get("Connection");
-					if (connectionHeader != NULL && std::string("keep-alive").compare(connectionHeader->_value)==0) {
-						HTTPS_DLOGHEX("[   ] Keep-Alive activated. fid=", _socket);
-						_isKeepAlive = true;
+					// Check for client's request to keep-alive if we have a handler function.
+					if (resolvedResource.getMatchingNode()->_nodeType == HANDLER_CALLBACK) {
+						// Did the client set connection:keep-alive?
+						HTTPHeader * connectionHeader = _httpHeaders->get("Connection");
+						if (connectionHeader != NULL && std::string("keep-alive").compare(connectionHeader->_value)==0) {
+							HTTPS_DLOGHEX("[   ] Keep-Alive activated. fid=", _socket);
+							_isKeepAlive = true;
+						} else {
+							HTTPS_DLOGHEX("[   ] Keep-Alive disabled. fid=", _socket);
+							_isKeepAlive = false;
+						}
 					} else {
-						HTTPS_DLOGHEX("[   ] Keep-Alive disabled. fid=", _socket);
 						_isKeepAlive = false;
 					}
 
@@ -437,8 +455,15 @@ void HTTPConnection::loop() {
 						res.setHeader((*header)->_name, (*header)->_value);
 					}
 
-					// Callback for the actual resource
-					HTTPSCallbackFunction * resourceCallback = resolvedResource.getMatchingNode()->_callback;
+					// Find the request handler callback
+					HTTPSCallbackFunction * resourceCallback;
+					if (websocketRequested) {
+						// For the websocket, we use the handshake callback defined below
+						resourceCallback = &handleWebsocketHandshake;
+					} else {
+						// For resource nodes, we use the callback defined by the node itself
+						resourceCallback = ((ResourceNode*)resolvedResource.getMatchingNode())->_callback;
+					}
 
  					// Get the current middleware chain
 					auto vecMw = _resResolver->getMiddleware();
@@ -463,37 +488,45 @@ void HTTPConnection::loop() {
 						req.discardRequestBody();
 					}
 
-					// Handling the request is done
-					HTTPS_DLOG("[   ] Handler function done, request complete");
-
-					// Now we need to check if we can use keep-alive to reuse the SSL connection
-					// However, if the client did not set content-size or defined connection: close,
-					// we have no chance to do so.
-					if (!_isKeepAlive) {
-						// No KeepAlive -> We are done. Transition to next state.
-						if (!isClosed()) {
-							_connectionState = STATE_BODY_FINISHED;
-						}
+					// Finally, after the handshake is done, we create the WebsocketHandler and change the internal state.
+					if(websocketRequested) {
+						_wsHandler = ((WebsocketNode*)resolvedResource.getMatchingNode())->newHandler();
+						_wsHandler->initialize(this);  // make websocket with this connection 
+						_connectionState = STATE_WEBSOCKET;
 					} else {
-						if (res.isResponseBuffered()) {
-							// If the response could be buffered:
-							res.setHeader("Connection", "keep-alive");
-							res.finalize();
-							if (_clientState != CSTATE_CLOSED) {
-								// Refresh the timeout for the new request
-								refreshTimeout();
-								// Reset headers for the new connection
-								_httpHeaders->clearAll();
-								// Go back to initial state
-								_connectionState = STATE_INITIAL;
+						// Handling the request is done
+						HTTPS_DLOG("[   ] Handler function done, request complete");
+
+						// Now we need to check if we can use keep-alive to reuse the SSL connection
+						// However, if the client did not set content-size or defined connection: close,
+						// we have no chance to do so.
+						if (!_isKeepAlive) {
+							// No KeepAlive -> We are done. Transition to next state.
+							if (!isClosed()) {
+								_connectionState = STATE_BODY_FINISHED;
 							}
-						}
-						// The response could not be buffered or the client has closed:
-						if (!isClosed() && _connectionState!=STATE_INITIAL) {
-							_connectionState = STATE_BODY_FINISHED;
+						} else {
+							if (res.isResponseBuffered()) {
+								// If the response could be buffered:
+								res.setHeader("Connection", "keep-alive");
+								res.finalize();
+								if (_clientState != CSTATE_CLOSED) {
+									// Refresh the timeout for the new request
+									refreshTimeout();
+									// Reset headers for the new connection
+									_httpHeaders->clearAll();
+									// Go back to initial state
+									_connectionState = STATE_INITIAL;
+								}
+							}
+							// The response could not be buffered or the client has closed:
+							if (!isClosed() && _connectionState!=STATE_INITIAL) {
+								_connectionState = STATE_BODY_FINISHED;
+							}
 						}
 					}
 				} else {
+					// No match (no default route configured, nothing does match)
 					HTTPS_DLOG("[ERR] Could not find a matching resource. Server error.");
 					serverError();
 				}
@@ -507,12 +540,87 @@ void HTTPConnection::loop() {
 			closeConnection();
 			break;
 		case STATE_WEBSOCKET: // Do handling of the websocket
-
+			refreshTimeout();  // don't timeout websocket connection
+			if(pendingBufferSize() > 0) {
+				HTTPS_DLOG("[   ] websocket handler");
+				_wsHandler->loop();
+			}
+			// If the handler has terminated the connection, clean up and close the socket too
+			if (_wsHandler->closed()) {
+				HTTPS_DLOG("[   ] WS Connection closed. Freeing WS Handler");
+				delete _wsHandler;
+				_wsHandler = nullptr;
+				_connectionState = STATE_CLOSING;
+			}
 			break;
 		default:;
 		}
 	}
 
 }
+
+
+bool HTTPConnection::checkWebsocket() {
+	// check criteria according to RFC6455
+//	HTTPS_DLOG(("[   ] Method:" + _httpMethod).c_str());
+//	HTTPS_DLOG(("[   ] Header Host:" + _httpHeaders->getValue("Host")).c_str());
+//	HTTPS_DLOG(("[   ] Header Upgrade:" + _httpHeaders->getValue("Upgrade")).c_str());
+//	HTTPS_DLOG(("[   ] Header Connection:" + _httpHeaders->getValue("Connection")).c_str());
+//	HTTPS_DLOG(("[   ] Header Sec-WebSocket-Key:" + _httpHeaders->getValue("Sec-WebSocket-Key")).c_str());
+//	HTTPS_DLOG(("[   ] Header Sec-WebSocket-Version:" + _httpHeaders->getValue("Sec-WebSocket-Version")).c_str());
+	if(_httpMethod == "GET" &&
+	   !_httpHeaders->getValue("Host").empty() &&
+	    _httpHeaders->getValue("Upgrade") == "websocket" &&
+	    _httpHeaders->getValue("Connection").find("Upgrade") != std::string::npos &&
+	   !_httpHeaders->getValue("Sec-WebSocket-Key").empty() &&
+	    _httpHeaders->getValue("Sec-WebSocket-Version") == "13") {
+
+		HTTPS_DLOG("[-->] Websocket detected");
+	    return true;
+	} else
+	   	return false;
+}
+
+/**
+ * Handler function for the websocket handshake. Will be used by HTTPConnection if a websocket is detected
+ */
+void handleWebsocketHandshake(HTTPRequest * req, HTTPResponse * res) {
+	res->setStatusCode(101);
+	res->setStatusText("Switching Protocols");
+	res->setHeader("Upgrade", "websocket");
+	res->setHeader("Connection", "Upgrade");
+	res->setHeader("Sec-WebSocket-Accept", websocketKeyResponseHash(req->getHeader("Sec-WebSocket-Key")));
+	res->print("");
+}
+
+/**
+ * Function used to compute the value of the Sec-WebSocket-Accept during Websocket handshake
+ */
+std::string websocketKeyResponseHash(std::string key) {
+	std::string newKey = key + "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
+	uint8_t shaData[HTTPS_SHA1_LENGTH];
+	esp_sha(SHA1, (uint8_t*)newKey.data(), newKey.length(), shaData);
+
+	// Get output size required for base64 representation
+	size_t b64BufferSize = 0;
+	mbedtls_base64_encode(nullptr, 0, &b64BufferSize, (const unsigned char*)shaData, HTTPS_SHA1_LENGTH);
+
+	// Do the real encoding
+	unsigned char bufferOut[b64BufferSize];
+	size_t bytesEncoded = 0;
+	int res = mbedtls_base64_encode(
+		bufferOut,
+		b64BufferSize,
+		&bytesEncoded,
+		(const unsigned char*)shaData,
+		HTTPS_SHA1_LENGTH
+	);
+	
+	// Check result and return the encoded string
+	if (res != 0) {
+		return std::string();
+	}
+	return std::string((char*)bufferOut, bytesEncoded);
+} // WebsocketKeyResponseHash
 
 } /* namespace httpsserver */

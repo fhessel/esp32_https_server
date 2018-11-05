@@ -8,6 +8,7 @@
 #include "HTTPSCallbackFunction.hpp"
 
 namespace httpsserver {
+	class HTTPRequest;
 	/**
 	 * A middleware function that can be registered at the server.
 	 *

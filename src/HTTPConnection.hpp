@@ -4,6 +4,8 @@
 #include <Arduino.h>
 
 #include <string>
+#include <mbedtls/base64.h>
+#include <hwcrypto/sha.h>
 #include <functional>
 
 // Required for sockets
@@ -12,13 +14,20 @@
 #include "lwip/sockets.h"
 
 #include "HTTPSServerConstants.hpp"
+#include "ConnectionContext.hpp"
+
 #include "HTTPHeaders.hpp"
 #include "HTTPHeader.hpp"
+
 #include "ResourceResolver.hpp"
 #include "ResolvedResource.hpp"
+
 #include "ResourceNode.hpp"
 #include "HTTPRequest.hpp"
 #include "HTTPResponse.hpp"
+
+#include "WebsocketHandler.hpp"
+#include "WebsocketNode.hpp"
 
 namespace httpsserver {
 
@@ -38,6 +47,7 @@ public:
 protected:
 	friend class HTTPRequest;
 	friend class HTTPResponse;
+	friend class WebsocketInputStreambuf;
 
 	virtual size_t writeBuffer(byte* buffer, size_t length);
 	virtual size_t readBytesToBuffer(byte* buffer, size_t length);
@@ -108,7 +118,8 @@ private:
 	void signalRequestError();
 	size_t readBuffer(byte* buffer, size_t length);
 	size_t getCacheSize();
-
+	bool checkWebsocket();
+	std::string websocketKeyResponseHash(std::string key);
 
 	// The receive buffer
 	char _receiveBuffer[HTTPS_CONNECTION_DATA_CHUNK_SIZE];
@@ -143,8 +154,14 @@ private:
 	// Should we use keep alive
 	bool _isKeepAlive;
 
+	//Websocket connection
+	WebsocketHandler * _wsHandler;
 
 };
+
+void handleWebsocketHandshake(HTTPRequest * req, HTTPResponse * res);
+
+std::string websocketKeyResponseHash(std::string key);
 
 } /* namespace httpsserver */
 

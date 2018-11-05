@@ -8,6 +8,8 @@
 #include <vector>
 #include <algorithm>
 
+#include "HTTPNode.hpp"
+#include "WebsocketNode.hpp"
 #include "ResourceNode.hpp"
 #include "ResolvedResource.hpp"
 #include "HTTPMiddlewareFunction.hpp"
@@ -19,10 +21,10 @@ public:
 	ResourceResolver();
 	~ResourceResolver();
 
-	void registerNode(ResourceNode *node);
-	void unregisterNode(ResourceNode *node);
-	void setDefaultNode(ResourceNode *node);
-	void resolveNode(const std::string &method, const std::string &url, ResolvedResource &resolvedResource);
+	void registerNode(HTTPNode *node);
+	void unregisterNode(HTTPNode *node);
+	void setDefaultNode(HTTPNode *node);
+	void resolveNode(const std::string &method, const std::string &url, ResolvedResource &resolvedResource, HTTPNodeType nodeType);
 
 	/** Add a middleware function to the end of the middleware function chain. See HTTPSMiddlewareFunction.hpp for details. */
 	void addMiddleware(const HTTPSMiddlewareFunction * mwFunction);
@@ -34,8 +36,8 @@ public:
 private:
 
 	// This vector holds all nodes (with callbacks) that are registered
-	std::vector<ResourceNode*> * _nodes;
-	ResourceNode * _defaultNode;
+	std::vector<HTTPNode*> * _nodes;
+	HTTPNode * _defaultNode;
 
 	// Middleware functions, if any are registered. Will be called in order of the vector.
 	std::vector<const HTTPSMiddlewareFunction*> _middleware;

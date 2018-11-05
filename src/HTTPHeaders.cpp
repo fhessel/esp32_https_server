@@ -21,6 +21,16 @@ HTTPHeader * HTTPHeaders::get(const std::string name) {
 	return NULL;
 }
 
+std::string HTTPHeaders::getValue(std::string name) {
+	for(std::vector<HTTPHeader*>::iterator header = _headers->begin(); header != _headers->end(); ++header) {
+		if ((*header)->_name.compare(name)==0) {
+			return ((*header)->_value);
+		}
+	}
+	return "";
+}
+
+
 void HTTPHeaders::set(HTTPHeader * header) {
 	for(int i = 0; i < _headers->size(); i++) {
 		if ((*_headers)[i]->_name.compare(header->_name)==0) {

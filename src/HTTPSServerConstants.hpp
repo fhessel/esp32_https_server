@@ -4,8 +4,9 @@
 #include "Arduino.h"
 
 // Debug Code. Undefine it to disable debugging output
-#define HTTPS_DLOG(X)      Serial.print("HTTPSServer->debug: ");Serial.println(X);
-#define HTTPS_DLOGHEX(X,Y) Serial.print("HTTPSServer->debug: ");Serial.print(X);Serial.print(" 0x");Serial.println(Y, HEX);
+#define HTTPS_DLOG(X)      Serial.print(millis());Serial.print(" HTTPSServer->debug: ");Serial.println(X);
+#define HTTPS_DLOGHEX(X,Y) Serial.print(millis());Serial.print(" HTTPSServer->debug: ");Serial.print(X);Serial.print(" 0x");Serial.println(Y, HEX);
+#define HTTPS_DLOGINT(X,Y) Serial.print(millis());Serial.print(" HTTPSServer->debug: ");Serial.print(X);Serial.println(Y);
 
 // The following lines define limits of the protocol. Exceeding these limits will lead to a 500 error
 
@@ -31,5 +32,8 @@
 // Timeout used to wait for shutdown of SSL connection (ms)
 // (time for the client to return notify close flag) - without it, truncation attacks might be possible
 #define HTTPS_SHUTDOWN_TIMEOUT                 5000
+
+// Length of a SHA1 hash
+#define HTTPS_SHA1_LENGTH                      20
 
 #endif /* SRC_HTTPSSERVERCONSTANTS_HPP_ */

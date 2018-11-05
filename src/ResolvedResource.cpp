@@ -18,11 +18,11 @@ bool ResolvedResource::didMatch() {
 	return _matchingNode != NULL;
 }
 
-ResourceNode * ResolvedResource::getMatchingNode() {
+HTTPNode * ResolvedResource::getMatchingNode() {
 	return _matchingNode;
 }
 
-void ResolvedResource::setMatchingNode(ResourceNode * node) {
+void ResolvedResource::setMatchingNode(HTTPNode * node) {
 	_matchingNode = node;
 }
 
