@@ -1,0 +1,1173 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<diagram program="umlet" version="14.3.0">
+  <help_text>// Uncomment the following line to change the fontsize and font:
+fontsize=10
+fontfamily=SansSerif
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////
+// Welcome to UMLet!
+//
+// Double-click on elements to add them to the diagram, or to copy them
+// Edit elements by modifying the text in this panel
+// Hold Ctrl to select multiple elements
+// Use Ctrl+mouse to select via lasso
+//
+// Use +/- or Ctrl+mouse wheel to zoom
+// Drag a whole relation at its central square icon
+//
+// Press Ctrl+C to copy the whole diagram to the system clipboard (then just paste it to, eg, Word)
+// Edit the files in the "palettes" directory to create your own element palettes
+//
+// Select "Custom Elements &gt; New..." to create new element types
+//////////////////////////////////////////////////////////////////////////////////////////////
+
+
+// This text will be stored with each diagram;  use it for notes.</help_text>
+  <zoom_level>10</zoom_level>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>620</x>
+      <y>470</y>
+      <w>340</w>
+      <h>150</h>
+    </coordinates>
+    <panel_attributes>ConnectionContext
+--
+
+--
+/+getCacheSize(): size_t/
+/+isSecure(): bool/
+/+pendingBufferSize(): size_t/
+/+signalRequestError(): void/
+/+signalClientClose(): void/
+/+readBuffer(buffer: byte*, length: size_t): size_t/
+/+setWebsocketHandler(wsHandler: WebsocketHandler*)/
+/+writeBuffer(buffer: byte*, length: size_t): size_t/</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>600</x>
+      <y>660</y>
+      <w>380</w>
+      <h>580</h>
+    </coordinates>
+    <panel_attributes>HTTPConnection
+--
++HTTPConnection(resResolver: ResourceResolver*)
++~HTTPConnection()
+
++closeConnection(): void
++initialize(serverSocketID: int, *defaultHeaders: HTTPHeaders*): void
++isSecure(): void
++isClosed(): bool
++isError(): bool
++loop(): void
++setWebsocketHandler(WebsocketHandler *wsHandler): void
+
+#canReadData(): bool
+#readBytesToBuffer(buffer: byte*, length: size_t): size_t
+#pendingByteCount(): size_t
+#writeBuffer(buffer: byte*, length: size_t): size_t
+
+-checkWebsocket(): bool
+-clientError(): void
+-getCacheSize(): size_t
+-isTimeoutExceeded(): bool
+-pendingBufferSize(): size_t
+-readBuffer(byte* buffer, size_t length): size_t
+-readLine(lengthLimit: int): void
+-refreshTimeout(): void
+-serverError(): void
+-signalClientClose(): void
+-signalRequestError(): void
+-updateBuffer(): int
+-websocketKeyResponseHash(std::string key): std::string
+--
+#_lastTransmissionTS: unsigned long
+#_shutdownTS: unsigned long
+
+-_addrLen: socklen_t
+-_bufferProcessed: int
+-_bufferUnusedIdx: int
+-_httpMethod: std::string
+-_httpResource: std::string
+-_isKeepAlive: bool
+-_parserLine: struct{text: std::string, finished: bool}
+-_sockAddr: sockaddr
+-_receiveBuffer: char[]
+-_socket: int
+-_wsHandler: WebsocketHandler*
+-_websocket: Websocket*
+bg=white</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>780</x>
+      <y>610</y>
+      <w>30</w>
+      <h>70</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;-</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;50.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1230</x>
+      <y>660</y>
+      <w>150</w>
+      <h>150</h>
+    </coordinates>
+    <panel_attributes>&lt;&lt;enum&gt;&gt;
+ConnectionState
+--
+STATE_UNDEFINED
+STATE_INITIAL
+STATE_REQUEST_FINISHED
+STATE_HEADERS_FINISHED
+STATE_BODY_FINISHED
+STATE_WEBSOCKET
+STATE_CLOSING
+STATE_CLOSED
+STATE_ERROR
+bg=white</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>970</x>
+      <y>690</y>
+      <w>280</w>
+      <h>40</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-
+r1=#_connectionState</panel_attributes>
+    <additional_attributes>260.0;20.0;10.0;20.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1090</x>
+      <y>730</y>
+      <w>110</w>
+      <h>80</h>
+    </coordinates>
+    <panel_attributes>&lt;&lt;enum&gt;&gt;
+ClientState
+--
+CSTATE_UNDEFINED
+CSTATE_ACTIVE
+CSTATE_CLOSED
+bg=white</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>970</x>
+      <y>760</y>
+      <w>140</w>
+      <h>40</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-
+r1=#_clientState</panel_attributes>
+    <additional_attributes>120.0;20.0;10.0;20.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>70</x>
+      <y>200</y>
+      <w>380</w>
+      <h>230</h>
+    </coordinates>
+    <panel_attributes>/ResourceResolver/
+--
++ResourceResolver()
++~ResourceResolver()
+
++addMiddleware(mwFunction: HTTPSMiddlewareFunction*)
++getMiddleware(): std::vector&lt;HTTPSMiddlewareFunction*&gt;
++registerNode(node: HTTPNode*): void
++removeMiddleware(mwFunction: HTTPSMiddlewareFunction*)
++resolveNode(&amp;method: std::string&amp;, url: std::string&amp;,
+     resolvedResource: ResolvedResource&amp;): void
++setDefaultNode(node: HTTPNode*): void
++unregisterNode(node: HTTPNode*): void
+--
+	std::vector&lt;HTTPNode*&gt; * _nodes;
+	HTTPNode * _defaultNode;
+
+-_middleware: std::vector&lt;const HTTPSMiddlewareFunction*&gt;
+bg=white</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>870</x>
+      <y>1320</y>
+      <w>380</w>
+      <h>190</h>
+    </coordinates>
+    <panel_attributes>HTTPSConnection
+--
++HTTPSConnection(resResolver: ResourceResolver*)
++~HTTPSConnection()
+
++initialize(serverSocketID: int, sslCtx: SSL_CTX*,
+     defaultHeaders: HTTPHeaders*): int
++closeConnection(): void
++isSecure(): bool
++readBytesToBuffer(buffer: byte*, length: size_t): size_t
++pendingByteCount(): size_t
++canReadData(): bool
++writeBuffer(buffer: byte*, length: size_t): size_t
+--
+-_ssl: SSL*
+bg=white</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>910</x>
+      <y>1230</y>
+      <w>40</w>
+      <h>110</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;-</panel_attributes>
+    <additional_attributes>20.0;10.0;20.0;30.0;10.0;40.0;10.0;60.0;20.0;70.0;20.0;90.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>70</x>
+      <y>660</y>
+      <w>380</w>
+      <h>270</h>
+    </coordinates>
+    <panel_attributes>*HTTPServer*
+--
++HTTPServer(port: uint16_t, maxConnections: uint8_t,
+     bindAddress: in_addr_t)
++~HTTPServer()
+
++isRunning(): bool
++loop(): void
++setDefaultHeader(name: std::string, value: std::string)
++start(): uint8_t
++stop(): void
+
+#createConnection(idx: int): int
+#setupSocket(): uint16_t
+#teardownSocket(): void
+--
+#_port: uint16_t
+#_maxConnections: uint8_t
+#_bindAddress: in_addr_t
+#_running: bool
+#_socket: int
+#_sock_addr: sockaddr_in
+
+bg=white</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>380</x>
+      <y>1320</y>
+      <w>380</w>
+      <h>190</h>
+    </coordinates>
+    <panel_attributes>*HTTPSServer*
+--
++HTTPSServer(cert: SSLCert*, portHTTPS: uint16_t, maxConnections: int
+     bindAddress: in_addr_t)
++~HTTPSServer()
+
+-createConnection(idx: int): int
+-setupCert(): uint8_t
+-setupSocket(): uint8_t
+-setupSSLCTX(): uint8_t
+-teardownSocket(): void
+--
+-_sslctx: SSL_CTX
+bg=white</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>440</x>
+      <y>770</y>
+      <w>180</w>
+      <h>40</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;&lt;&lt;&lt;-
+r1=#_connections*</panel_attributes>
+    <additional_attributes>160.0;20.0;10.0;20.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>750</x>
+      <y>1350</y>
+      <w>140</w>
+      <h>40</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;&lt;&lt;&lt;-
+r1=#_connections*</panel_attributes>
+    <additional_attributes>120.0;20.0;10.0;20.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1110</x>
+      <y>1090</y>
+      <w>270</w>
+      <h>150</h>
+    </coordinates>
+    <panel_attributes>HTTPHeaders
+--
++HTTPHeaders();
++~HTTPHeaders();
+
++clearAll() void
++get(name: std::string): HTTPHeader*
++getValue(name: std::string): std::string
++set(HTTPHeader * header): void
++getAll(): std::vector&lt;HTTPHeader*&gt;*
+--
+bg=white</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1240</x>
+      <y>1040</y>
+      <w>90</w>
+      <h>70</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;&lt;&lt;&lt;-
+ -_headers*</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;50.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1110</x>
+      <y>940</y>
+      <w>270</w>
+      <h>110</h>
+    </coordinates>
+    <panel_attributes>HTTPHeader
+--
++HTTPHeader(name: std::string, value: std::string)
++~HTTPHeader()
++print(): std::string
+--
++_name: std::string {const}
++_value: std::string {const}
+bg=white</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>970</x>
+      <y>1110</y>
+      <w>160</w>
+      <h>40</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-
+r1=-_defaultHeaders*</panel_attributes>
+    <additional_attributes>140.0;20.0;10.0;20.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>970</x>
+      <y>1150</y>
+      <w>160</w>
+      <h>40</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-
+r1=-_httpHeaders*</panel_attributes>
+    <additional_attributes>140.0;20.0;10.0;20.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>410</x>
+      <y>920</y>
+      <w>30</w>
+      <h>420</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;-</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;400.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>440</x>
+      <y>890</y>
+      <w>820</w>
+      <h>410</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-
+r1=#_defaultHeaders</panel_attributes>
+    <additional_attributes>710.0;350.0;710.0;390.0;60.0;390.0;60.0;10.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>440</x>
+      <y>400</y>
+      <w>190</w>
+      <h>340</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-
+-_resResolver*</panel_attributes>
+    <additional_attributes>10.0;10.0;90.0;10.0;90.0;320.0;170.0;320.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>410</x>
+      <y>420</y>
+      <w>30</w>
+      <h>260</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;-</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;240.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>480</x>
+      <y>20</y>
+      <w>280</w>
+      <h>170</h>
+    </coordinates>
+    <panel_attributes>ResourceNode
+--
++ResourceNode(path: std::string, method: std::string,
+     callback: HTTPSCallbackFunction, tag: std::string)
++~ResourceNode()
+
+--
++_method: std::string {const}
++_callback: HTTPSCallbackFunction* {const}
+
+bg=white</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>440</x>
+      <y>300</y>
+      <w>200</w>
+      <h>40</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-
+-_defaultNode*</panel_attributes>
+    <additional_attributes>180.0;20.0;10.0;20.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>440</x>
+      <y>330</y>
+      <w>200</w>
+      <h>40</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;&lt;&lt;-
+-_nodes*</panel_attributes>
+    <additional_attributes>180.0;20.0;10.0;20.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>20</x>
+      <y>1320</y>
+      <w>300</w>
+      <h>190</h>
+    </coordinates>
+    <panel_attributes>SSLCert
+--
++SSLCert(certData: unsigned char*, certLength: uint16_t,
+     pkData: unsigned char*, pkLength: uint16_t);
++~SSLCert();
+	
++uint16_t getCertLength() uint16_t
++getPKLength(): uint16_t 
++getCertData(): unsigned char*
++getPKData(): unsigned char*
+--
+-_certLength: uint16_t
+-_certData: unsigned char*
+-_pkLength: uint16_t
+-_pkData: unsigned char*
+bg=white</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>310</x>
+      <y>1350</y>
+      <w>90</w>
+      <h>40</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-
+r1=-_cert*</panel_attributes>
+    <additional_attributes>10.0;20.0;70.0;20.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1090</x>
+      <y>210</y>
+      <w>340</w>
+      <h>160</h>
+    </coordinates>
+    <panel_attributes>ResolvedResource
+--
++ResolvedResource()
++~ResolvedResource()
+
++didMatch(): bool
++getMatchingNode(): HTTPNode*
++getParams(): ResourceParameters*
++setMatchingNode(node: HTTPNode*): void
++setParams(params: ResourceParameters*): void
+--
+
+
+bg=white</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>950</x>
+      <y>290</y>
+      <w>160</w>
+      <h>40</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-
+-_matchingNode*</panel_attributes>
+    <additional_attributes>10.0;20.0;140.0;20.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1510</x>
+      <y>210</y>
+      <w>340</w>
+      <h>220</h>
+    </coordinates>
+    <panel_attributes>ResourceParameters
+--
++ResourceParameters()
++~ResourceParameters()
+
++getRequestParameter(name: &amp;std::string): std::string
++getRequestParameterInt(name: &amp;std::sting): uint16_t
++getUrlParameter(idx: uint8_t): std::string
++getUrlParameterInt(idx: uint8_t): uint16_t
++isRequestParameterSet(name: &amp;std::string): bool
++resetUrlParameters(): void
++setRequestParameter(name: std::string, value: std::string): void
++setUrlParameterCount(idx: uint8_t): void
++setUrlParameter(idx: uint8_t, value: std::string): void
+--
+-_urlParams: std::vector&lt;std::string&gt;
+-_reqParams: std::vector&lt; std::pair&lt;std::string,std::string&gt; &gt;
+bg=white</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1420</x>
+      <y>240</y>
+      <w>110</w>
+      <h>40</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-
+_params*</panel_attributes>
+    <additional_attributes>90.0;20.0;10.0;20.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1440</x>
+      <y>940</y>
+      <w>350</w>
+      <h>370</h>
+    </coordinates>
+    <panel_attributes>HTTPRequest
+--
++HTTPRequest(con: ConnectionContext*, headers: HTTPHeaders*,
+     resource: ResourceParameters*, requestString: std::string,
+     method: std::string, tag: std::string)
++~HTTPRequest()
+
++discardRequestBody(): void
++getBasicAuthUser(): std::string
++getBasicAuthPassword(): std::string
++getContentLength(): size_t
++getHeader(name: std::string): std::string
++getMethod(): std::string
++getParams(): RequestParameters*
++getRequestString(): std::string
++getTag(): std::string
++isSecure(): bool
++readBytes(buffer: byte*, length: size_t): size_t
++readChars(buffer: char*, length: size_t): size_t
++requestComplete(): bool
++setHeader(name: std::string, value: std::string): void
++setWebsocketHandler(wsHandler: WebsocketHandler*): void
+
+-decodeBasicAuthToken(): std::string
+--
+-_requestString: std::string
+-_method: std::string
+-_tag: std::string
+-_contentLengthSet: bool
+-_remainingContent: size_t
+bg=white</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>950</x>
+      <y>590</y>
+      <w>530</w>
+      <h>370</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-
+r1=-_con*</panel_attributes>
+    <additional_attributes>10.0;20.0;510.0;20.0;510.0;260.0;500.0;270.0;500.0;290.0;510.0;300.0;510.0;350.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1870</x>
+      <y>790</y>
+      <w>100</w>
+      <h>40</h>
+    </coordinates>
+    <panel_attributes>&lt;&lt;Arduino&gt;&gt;
+/Print/</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1840</x>
+      <y>940</y>
+      <w>350</w>
+      <h>370</h>
+    </coordinates>
+    <panel_attributes>HTTPResponse
+--
++HTTPResponse(con: ConnectionContext*)
++~HTTPResponse()
+
++error(): void
++finalize(): void
++getStatusCode(): uint16_t
++getStatusText(): std::string
++isHeaderWritten(): bool
++isResponseBuffered(): bool
++printStd(str: std::string&amp;)
++setHeader(name: std::string, value: std::string): void
++setStatusCode(statusCode: uint16_t): void
++setStatusText(statusText: std::string): void
++write(buffer: uint8_t*, size: size_t): size_t
++write(v: uint8_t)
+
+-drainBuffer(onOverflow: bool): void
+-printHeader(): void
+-printInternal(str: std::string&amp;, skipBuffer: bool): void
+-writeBytesInternal(data: void*, length: int, skipBuffer: bool): size_t
+--
+-_headersWritten: bool
+-_isError: bool
+-_responseCache: byte*
+-_responseCachePointer: size_t
+-_responseCacheSize: size_t
+-_statusCode: uint16_t
+-_statusText: std::string
+bg=white</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1900</x>
+      <y>820</y>
+      <w>40</w>
+      <h>140</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;-</panel_attributes>
+    <additional_attributes>20.0;10.0;20.0;30.0;10.0;40.0;10.0;60.0;20.0;70.0;20.0;120.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>950</x>
+      <y>560</y>
+      <w>940</w>
+      <h>400</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-
+r1=-_con*</panel_attributes>
+    <additional_attributes>10.0;20.0;540.0;20.0;540.0;290.0;530.0;300.0;530.0;320.0;550.0;340.0;920.0;340.0;920.0;380.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1350</x>
+      <y>1230</y>
+      <w>150</w>
+      <h>130</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-
+r1=-_headers*</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;110.0;130.0;110.0;130.0;80.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1280</x>
+      <y>1230</y>
+      <w>610</w>
+      <h>150</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-
+r1=-_headers*</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;130.0;590.0;130.0;590.0;80.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>2010</x>
+      <y>570</y>
+      <w>380</w>
+      <h>280</h>
+    </coordinates>
+    <panel_attributes>*/WebsocketHandler/*
+--
++onClose(): void
++onMessage(inputBuf: WebsocketInputStreambuf*,
+     pWebSocket: Websocket*): void
++onError(std::string error): void
+
++read(): int
++close(status: uint16_t, message: std::string): void
++send(data: std::string, sendType: uint8_t): void
++send(data: uint8_t*, length: uint16_t, sendType: uint8_t): void
+
++loop(): void
++initialize(con: ConnectionContext*): void
+
+-read(): int
+--
+
+-_receivedClose: bool
+-_sentClose: bool
+bg=white</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>2290</x>
+      <y>240</y>
+      <w>100</w>
+      <h>40</h>
+    </coordinates>
+    <panel_attributes>&lt;&lt;std&gt;&gt;
+/streambuf/</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>2330</x>
+      <y>270</y>
+      <w>30</w>
+      <h>70</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;-</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;50.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>970</x>
+      <y>840</y>
+      <w>1310</w>
+      <h>60</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-
+r1=-_websocketHandler*</panel_attributes>
+    <additional_attributes>1190.0;10.0;1190.0;30.0;10.0;30.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1590</x>
+      <y>420</y>
+      <w>90</w>
+      <h>540</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-
+r1=-_params*</panel_attributes>
+    <additional_attributes>20.0;10.0;20.0;40.0;10.0;50.0;10.0;100.0;20.0;110.0;20.0;430.0;10.0;440.0;10.0;490.0;20.0;500.0;20.0;520.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>950</x>
+      <y>460</y>
+      <w>1080</w>
+      <h>40</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-
+r1=-_con*</panel_attributes>
+    <additional_attributes>10.0;20.0;1060.0;20.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>820</x>
+      <y>10</y>
+      <w>350</w>
+      <h>180</h>
+    </coordinates>
+    <panel_attributes>template=H: WebsocketHandler
+WebsocketNode
+--
++WebsocketNode(path: std::string, tag: std::string)
++~WebsocketNode()
+
+--
+
+bg=white</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>620</x>
+      <y>270</y>
+      <w>340</w>
+      <h>160</h>
+    </coordinates>
+    <panel_attributes>/HTTPNode/
+--
++~HTTPNode()
++hasUrlParam(): bool
++getUrlParamCount(): uint8_t
++getParamIdx(uint8_t): size_t
+--
++_path: std::string {const}
++_tag: std::string {const}
+
+-_urlParamCount: uint8_t
+-_urlParamIdx: size_t
+bg=white</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>780</x>
+      <y>180</y>
+      <w>200</w>
+      <h>110</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;-</panel_attributes>
+    <additional_attributes>10.0;90.0;10.0;60.0;180.0;60.0;180.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>610</x>
+      <y>180</y>
+      <w>200</w>
+      <h>110</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;-</panel_attributes>
+    <additional_attributes>180.0;90.0;180.0;60.0;10.0;60.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>0</x>
+      <y>1300</y>
+      <w>1270</w>
+      <h>240</h>
+    </coordinates>
+    <panel_attributes>TLS Implementation
+bg=#ffffbb
+lt=.
+valign=bottom
+halign=left
+layer=0</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>0</x>
+      <y>640</y>
+      <w>1400</w>
+      <h>620</h>
+    </coordinates>
+    <panel_attributes>HTTP Protocol Handling
+bg=#bbbbff
+lt=.
+valign=bottom
+halign=left
+layer=0</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>0</x>
+      <y>0</y>
+      <w>1870</w>
+      <h>450</h>
+    </coordinates>
+    <panel_attributes>Resource Resolution (Mapping URLs to Handlers)
+bg=#ffbbbb
+lt=.
+valign=bottom
+halign=left
+layer=0</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1420</x>
+      <y>920</y>
+      <w>790</w>
+      <h>470</h>
+    </coordinates>
+    <panel_attributes>Handling simple HTTP requests (GET, POST, PUT, DELETE, ...)
+bg=#bbffff
+lt=.
+valign=bottom
+halign=left
+layer=0</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1990</x>
+      <y>300</y>
+      <w>420</w>
+      <h>600</h>
+    </coordinates>
+    <panel_attributes>Handling Websockets
+bg=#bbffff
+lt=.
+valign=bottom
+halign=left
+layer=-1</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>2010</x>
+      <y>320</y>
+      <w>380</w>
+      <h>190</h>
+    </coordinates>
+    <panel_attributes>WebsocketInputStreambuf
+--
++WebsocketInputStreambuf(con: ConnectionContext, dataLength: size_t,
+     pMask: uint8_t, bufferSize: size_t)
++~WebsocketInputStreambuf()
++underflow(): int_type
++discard(): void
++getRecordSize(): size_t
+
+--
+-_buffer: char*
+-_dataLength: size_t
+-_bufferSize: size_t
+-_sizeRead: size_t
+-_pMask: uint8_t*
+bg=white</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>950</x>
+      <y>490</y>
+      <w>1080</w>
+      <h>140</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-
+r1=-_con*</panel_attributes>
+    <additional_attributes>10.0;20.0;1020.0;20.0;1020.0;120.0;1060.0;120.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>2330</x>
+      <y>500</y>
+      <w>50</w>
+      <h>90</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;.
+uses</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;70.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>2330</x>
+      <y>840</y>
+      <w>100</w>
+      <h>120</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;-</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;80.0;80.0;80.0;80.0;100.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>2220</x>
+      <y>940</y>
+      <w>110</w>
+      <h>30</h>
+    </coordinates>
+    <panel_attributes>CustomWSHandler</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>2350</x>
+      <y>940</y>
+      <w>110</w>
+      <h>30</h>
+    </coordinates>
+    <panel_attributes>CustomWSHandler</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>2260</x>
+      <y>840</y>
+      <w>100</w>
+      <h>120</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;-</panel_attributes>
+    <additional_attributes>80.0;10.0;80.0;80.0;10.0;80.0;10.0;100.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLNote</id>
+    <coordinates>
+      <x>2220</x>
+      <y>980</y>
+      <w>240</w>
+      <h>110</h>
+    </coordinates>
+    <panel_attributes>Users of the library may define their own
+child classes of the WebsocketHandler.
+
+WSHandler's loop function is called during
+HTTPConnection::loop(), but it can also be
+called manually. Doing this within an ESP
+Task allows to process websockets in parallel
+to other connections without blocking.
+bg=yellow</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLNote</id>
+    <coordinates>
+      <x>70</x>
+      <y>940</y>
+      <w>270</w>
+      <h>90</h>
+    </coordinates>
+    <panel_attributes>HTTPServer is the main class that you will need
+to get a basic HTTP server without crypto running.
+
+The responsibility of this class (and all other classes
+of this part of the library) is to handle the HTTP
+protocol itself.
+
+bg=yellow
+layer=1</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLNote</id>
+    <coordinates>
+      <x>1280</x>
+      <y>1450</y>
+      <w>280</w>
+      <h>90</h>
+    </coordinates>
+    <panel_attributes>HTTPSServer and HTTPSConnection are extensions
+of the basic HTTPServer and HTTPConnection class.
+
+They handle the TLS handshake and all other stuff
+relation to encryption and integrity protection.
+bg=yellow
+layer=1</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLNote</id>
+    <coordinates>
+      <x>2220</x>
+      <y>1230</y>
+      <w>240</w>
+      <h>160</h>
+    </coordinates>
+    <panel_attributes>HTTPRequest and HTTPResponse deal with
+the input and output streams for a single
+HTTP request. They are passed to user-
+defined handler function.
+
+Data from the client (headers, request body,
+authentication information, ...) can be read
+from the HTTPRequest.
+
+Data that should be sent to the client (status
+code, header, response documents, ...) can
+be passed to the HTTPResponse.
+bg=yellow
+layer=1</panel_attributes>
+    <additional_attributes/>
+  </element>
+</diagram>

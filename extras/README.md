@@ -2,6 +2,11 @@
 
 This folder contains files that are not directly part of the library.
 
+## Documentation
+
+The [docs](docs/) folder contains documentation about the internal structure
+of the library.
+
 ## Legacy folder
 
 Before the repository has been converted to follow the Arduino library
