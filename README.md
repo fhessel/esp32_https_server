@@ -28,13 +28,14 @@ You then should be able to add the library to your project if you selected the E
 
 You will find several examples showing how you can use the library:
 
-- **Static-Page**: Short example showing how to serve some static resources with the server. You should start with this sketch and get familiar with it before having a look at the more complex examples.
-- **Parameters**: Shows how you can access request parameters (the part after the question mark in the URL) or parameters in dynamic URLs (like /led/1, /led/2, ...)
-- **Put-Post-Echo**: Implements a simple echo service for PUT and POST requests that returns the request body as response body. Also shows how to differentiate between multiple HTTP methods for the same URL.
-- **HTTPS-and-HTTP**: Shows how to serve resources via HTTP and HTTPS in parallel and how to check if the user is using a secure connection during request handling
-- **Middleware**: Shows how to use the middleware API for logging. Middleware functions are defined very similar to webservers like Express.
-- **Authentication**: Implements a chain of two middleware functions to handle authentication and authorization using HTTP Basic Auth.
-- **Async-Server**: Like the Static-Page example, but the server runs in a separate task on the ESP32, so you do not need to call the loop() function in your main sketch.
+- [Static-Page](examples/Static-Page/Static-Page.ino): Short example showing how to serve some static resources with the server. You should start with this sketch and get familiar with it before having a look at the more complex examples.
+- [Parameters](examples/Parameters/Parameters.ino): Shows how you can access request parameters (the part after the question mark in the URL) or parameters in dynamic URLs (like /led/1, /led/2, ...)
+- [Put-Post-Echo](examples/Put-Post-Echo/Put-Post-Echo.ino): Implements a simple echo service for PUT and POST requests that returns the request body as response body. Also shows how to differentiate between multiple HTTP methods for the same URL.
+- [HTTPS-and-HTTP](examples/HTTPS-and-HTTP/HTTPS-and-HTTP.ino): Shows how to serve resources via HTTP and HTTPS in parallel and how to check if the user is using a secure connection during request handling
+- [Middleware](examples/Middleware/Middleware.ino): Shows how to use the middleware API for logging. Middleware functions are defined very similar to webservers like Express.
+- [Authentication](examples/Authentication/Authentication.ino): Implements a chain of two middleware functions to handle authentication and authorization using HTTP Basic Auth.
+- [Async-Server](examples/Async-Server/Async-Server.ino): Like the Static-Page example, but the server runs in a separate task on the ESP32, so you do not need to call the loop() function in your main sketch.
+- [Websocket-Chat](examples/Websocket-Chat/Websocket-Chat.ino): Provides a browser-based chat built on top of websockets. **Note:** Websockets are still under development!
 
 If you encounter error messages that cert.h or private\_key.h are missing when running an example, make sure to run create\_cert.sh first (see Setup Instructions).
 
