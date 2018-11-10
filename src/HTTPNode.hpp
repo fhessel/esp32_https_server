@@ -49,6 +49,8 @@ public:
 	 * Adds a validation function that checks if the actual value of a parameter matches the expectation
 	 * @param paramIdx defines the ID of the parameter that should be checked (starts by 0)
 	 * @param validator the function (string -> bool) that checks if the parameter matches the expecatation
+	 * 
+	 * @see ValidatorFunctions.hpp if you need some predefined templates for functions
 	 */
 	void addURLParamValidator(uint8_t paramIdx, const HTTPValidationFunction * validator);
 

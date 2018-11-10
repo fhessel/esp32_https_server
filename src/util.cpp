@@ -2,31 +2,41 @@
 
 namespace httpsserver {
 
-int parseInt(std::string s) {
-	int i = 0; // value
-	int m = 1; // multiplier
+uint32_t parseUInt(std::string s, uint32_t max) {
+	uint32_t i = 0; // value
 
 	// Check sign
 	size_t x = 0;
-	if (s[0]=='-') {
-
-		x = 1;
-	} else if (s[0]=='+') {
+	if (s[0]=='+') {
 		x = 1;
 	}
+
+	// We device max by 10, so we can check if we would exceed it by the next *10 multiplication
+	max/=10;
 
 	// Convert by base 10
 	for(; x < s.size(); x++) {
 		char c = s[x];
-		if (c >= '0' && c<='9') {
-			i = i*10 + (c-'0');
+		if (i < max) {
+			if (c >= '0' && c<='9') {
+				i = i*10 + (c-'0');
+			} else {
+				break;
+			}
 		} else {
-			break;
+			return max;
 		}
 	}
 
-	// Combine both.
-	return m*i;
+	return i;
+}
+
+int32_t parseInt(std::string s) {
+	uint32_t max = 0x7fffffff;
+	if (s[0]=='-') {
+		return -1 * parseUInt(s.substr(1,max));
+	}
+	return parseUInt(s,max);
 }
 
 std::string intToString(int i) {

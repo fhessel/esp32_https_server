@@ -58,7 +58,10 @@ size_t HTTPRequest::readBytes(byte * buffer, size_t length) {
 		length = _remainingContent;
 	}
 
-	size_t bytesRead = _con->readBuffer(buffer, length);
+	size_t bytesRead = 0;
+	if (length > 0) {
+		_con->readBuffer(buffer, length);
+	}
 
 	if (_contentLengthSet) {
 		_remainingContent -= bytesRead;
