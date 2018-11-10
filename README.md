@@ -36,6 +36,7 @@ You will find several examples showing how you can use the library:
 - [Authentication](examples/Authentication/Authentication.ino): Implements a chain of two middleware functions to handle authentication and authorization using HTTP Basic Auth.
 - [Async-Server](examples/Async-Server/Async-Server.ino): Like the Static-Page example, but the server runs in a separate task on the ESP32, so you do not need to call the loop() function in your main sketch.
 - [Websocket-Chat](examples/Websocket-Chat/Websocket-Chat.ino): Provides a browser-based chat built on top of websockets. **Note:** Websockets are still under development!
+- [Parameter-Validation](examples/Parameter-Validation/Parameter-Validation.ino): Shows how you can integrate validator functions to do formal checks on parameters in your URL.
 
 If you encounter error messages that cert.h or private\_key.h are missing when running an example, make sure to run create\_cert.sh first (see Setup Instructions).
 
