@@ -3,6 +3,10 @@
 
 #include <Arduino.h>
 #include <string>
+#undef min
+#undef max
+#include <vector>
+#include "HTTPValidator.hpp"
 
 namespace httpsserver {
 
@@ -37,9 +41,21 @@ public:
 	uint8_t getUrlParamCount();
 	size_t getParamIdx(uint8_t);
 
+	std::vector<HTTPValidator*> * getValidators();
+
+	virtual std::string getMethod() = 0;
+
+	/**
+	 * Adds a validation function that checks if the actual value of a parameter matches the expectation
+	 * @param paramIdx defines the ID of the parameter that should be checked (starts by 0)
+	 * @param validator the function (string -> bool) that checks if the parameter matches the expecatation
+	 */
+	void addURLParamValidator(uint8_t paramIdx, const HTTPValidationFunction * validator);
+
 private:
 	uint8_t _urlParamCount;
 	size_t * _urlParamIdx;
+	std::vector<HTTPValidator*> * _validators;
 };
 
 } // namespace httpserver

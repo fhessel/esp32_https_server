@@ -446,7 +446,7 @@ void HTTPConnection::loop() {
 					}
 
 					// Create request context
-					HTTPRequest req  = HTTPRequest(this, _httpHeaders, resolvedResource.getParams(), _httpResource, _httpMethod, resolvedResource.getMatchingNode()->_tag);
+					HTTPRequest req  = HTTPRequest(this, _httpHeaders, resolvedResource.getMatchingNode(), resolvedResource.getParams(), _httpResource);
 					HTTPResponse res = HTTPResponse(this);
 
 					// Add default headers to the response
@@ -477,6 +477,10 @@ void HTTPConnection::loop() {
 						next = std::function<void()>(std::bind((*itMw), &req, &res, next));
 						itMw++;
 					}
+
+					// We insert the internal validation middleware at the start of the chain:
+					next = std::function<void()>(std::bind(&validationMiddleware, &req, &res, next));
+
  					// Call the whole chain
 					next();
 
@@ -579,6 +583,32 @@ bool HTTPConnection::checkWebsocket() {
 	    return true;
 	} else
 	   	return false;
+}
+
+/**
+ * Middleware function that handles the validation of parameters
+ */
+void validationMiddleware(HTTPRequest * req, HTTPResponse * res, std::function<void()> next) {
+	bool valid = true;
+	// Get the matched node
+	HTTPNode * node = req->getResolvedNode();
+	// Get the parameters
+	ResourceParameters * params = req->getParams();
+
+	// Iterate over the validators and run them
+	std::vector<HTTPValidator*> * validators = node->getValidators();
+	for(std::vector<HTTPValidator*>::iterator validator = validators->begin(); valid && validator != validators->end(); ++validator) {
+		std::string param = params->getUrlParameter((*validator)->_idx);
+    valid = ((*validator)->_validatorFunction)(param);
+	}
+
+	if (valid) {
+		next();
+	} else {
+		res->setStatusCode(400);
+		res->setStatusText("Bad Request");
+		res->print("400 Bad Request");
+	}
 }
 
 /**
