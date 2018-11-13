@@ -163,6 +163,8 @@ void handleWebsocketHandshake(HTTPRequest * req, HTTPResponse * res);
 
 std::string websocketKeyResponseHash(std::string key);
 
+void validationMiddleware(HTTPRequest * req, HTTPResponse * res, std::function<void()> next);
+
 } /* namespace httpsserver */
 
 #endif /* SRC_HTTPCONNECTION_HPP_ */

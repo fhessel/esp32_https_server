@@ -7,6 +7,9 @@ namespace httpsserver {
     _tag(std::move(tag)),
     _nodeType(nodeType) {
 
+    // Create vector for valdiators
+    _validators = new std::vector<HTTPValidator*>();
+
     // Count the parameters
     _urlParamCount = 0;
     size_t idx = 0;
@@ -32,6 +35,12 @@ namespace httpsserver {
     if (_urlParamIdx != NULL) {
       delete[] _urlParamIdx;
     }
+
+    // Delete validator references
+    for(std::vector<HTTPValidator*>::iterator validator = _validators->begin(); validator != _validators->end(); ++validator) {
+      delete *validator;
+    }
+    delete _validators;
   }
 
   bool HTTPNode::hasUrlParameter() {
@@ -48,5 +57,13 @@ namespace httpsserver {
 
   uint8_t HTTPNode::getUrlParamCount() {
     return _urlParamCount;
+  }
+
+  void HTTPNode::addURLParamValidator(uint8_t paramIdx, const HTTPValidationFunction * validator) {
+    _validators->push_back(new HTTPValidator(paramIdx, validator));
+  }
+
+	std::vector<HTTPValidator*> * HTTPNode::getValidators() {
+    return _validators;
   }
 }

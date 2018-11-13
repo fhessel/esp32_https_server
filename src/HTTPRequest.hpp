@@ -7,6 +7,7 @@
 #include <mbedtls/base64.h>
 
 #include "ConnectionContext.hpp"
+#include "HTTPNode.hpp"
 #include "HTTPHeader.hpp"
 #include "HTTPHeaders.hpp"
 #include "ResourceParameters.hpp"
@@ -16,11 +17,12 @@ namespace httpsserver {
 
 class HTTPRequest {
 public:
-	HTTPRequest(ConnectionContext * con, HTTPHeaders * headers, ResourceParameters * resource, std::string requestString, std::string method, std::string tag);
+	HTTPRequest(ConnectionContext * con, HTTPHeaders * headers, HTTPNode * resolvedNode, ResourceParameters * params, std::string requestString);
 	virtual ~HTTPRequest();
 
 	std::string getHeader(std::string name);
 	void setHeader(std::string name, std::string value);
+	HTTPNode * getResolvedNode();
 	std::string getRequestString();
 	std::string getMethod();
 	std::string getTag();
@@ -43,11 +45,11 @@ private:
 
 	HTTPHeaders * _headers;
 
+	HTTPNode * _resolvedNode;
+
 	ResourceParameters * _params;
 
 	std::string _requestString;
-	std::string _method;
-	std::string _tag;
 
 	bool _contentLengthSet;
 	size_t _remainingContent;

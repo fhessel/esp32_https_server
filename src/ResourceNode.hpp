@@ -15,6 +15,7 @@ public:
 
 	const std::string _method;
 	const HTTPSCallbackFunction * _callback;
+	std::string getMethod() { return _method; }
 };
 
 } /* namespace httpsserver */

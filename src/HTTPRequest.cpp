@@ -2,13 +2,17 @@
 
 namespace httpsserver {
 
-HTTPRequest::HTTPRequest(ConnectionContext * con, HTTPHeaders * headers, ResourceParameters * params, std::string requestString, std::string method, std::string tag):
+HTTPRequest::HTTPRequest(
+		ConnectionContext * con,
+		HTTPHeaders * headers,
+		HTTPNode * resolvedNode,
+		ResourceParameters * params,
+		std::string requestString):
 	_con(con),
 	_headers(headers),
+	_resolvedNode(resolvedNode),
 	_params(params),
-	_requestString(requestString),
-	_method(method),
-	_tag(tag) {
+	_requestString(requestString) {
 
 	HTTPHeader * contentLength = headers->get("Content-Length");
 	if (contentLength == NULL) {
@@ -43,6 +47,10 @@ void HTTPRequest::setHeader(std::string name, std::string value) {
 	_headers->set(new HTTPHeader(name, value));
 }
 
+HTTPNode * HTTPRequest::getResolvedNode() {
+	return _resolvedNode;
+}
+
 size_t HTTPRequest::readBytes(byte * buffer, size_t length) {
 
 	// Limit reading to content length
@@ -50,7 +58,10 @@ size_t HTTPRequest::readBytes(byte * buffer, size_t length) {
 		length = _remainingContent;
 	}
 
-	size_t bytesRead = _con->readBuffer(buffer, length);
+	size_t bytesRead = 0;
+	if (length > 0) {
+		_con->readBuffer(buffer, length);
+	}
 
 	if (_contentLengthSet) {
 		_remainingContent -= bytesRead;
@@ -72,11 +83,11 @@ std::string HTTPRequest::getRequestString() {
 }
 
 std::string HTTPRequest::getMethod() {
-	return _method;
+	return _resolvedNode->getMethod();
 }
 
 std::string HTTPRequest::getTag() {
-	return _tag;
+	return _resolvedNode->_tag;
 }
 
 bool HTTPRequest::requestComplete() {
