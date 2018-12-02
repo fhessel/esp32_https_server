@@ -60,7 +60,7 @@ size_t HTTPRequest::readBytes(byte * buffer, size_t length) {
 
 	size_t bytesRead = 0;
 	if (length > 0) {
-		_con->readBuffer(buffer, length);
+		bytesRead = _con->readBuffer(buffer, length);
 	}
 
 	if (_contentLengthSet) {
@@ -106,6 +106,9 @@ bool HTTPRequest::requestComplete() {
 void HTTPRequest::discardRequestBody() {
 	byte buf[16];
 	while(!requestComplete()) {
+		delay(500);
+		Serial.println("Discarding 16 bytes of request body...");
+		Serial.printf("Remaining content is %i bytes\n", _remainingContent);
 		readBytes(buf, 16);
 	}
 }
