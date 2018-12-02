@@ -106,9 +106,6 @@ bool HTTPRequest::requestComplete() {
 void HTTPRequest::discardRequestBody() {
 	byte buf[16];
 	while(!requestComplete()) {
-		delay(500);
-		Serial.println("Discarding 16 bytes of request body...");
-		Serial.printf("Remaining content is %i bytes\n", _remainingContent);
 		readBytes(buf, 16);
 	}
 }
