@@ -18,7 +18,7 @@ The library is self-contained and just needs the Arduino and ESP32 system librar
 
 ## Setup Instructions
 
-Clone or download the content of this git repository into your Arduino/libraries folder and restart you IDE.
+Clone or download the content of this git repository into your Arduino/libraries folder and restart your IDE.
 
 To run the examples, you need to execute the script extras/create_cert.sh first. This script will create a simple CA to sign certificates that are used with the examples. Some notes on the usage can be found in the extras/README.md file.
 
