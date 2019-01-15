@@ -20,7 +20,7 @@ The library is self-contained and just needs the Arduino and ESP32 system librar
 
 Clone or download the content of this git repository into your Arduino/libraries folder and restart your IDE.
 
-To run the examples, you need to execute the script extras/create_cert.sh first. This script will create a simple CA to sign certificates that are used with the examples. Some notes on the usage can be found in the extras/README.md file.
+To run the examples (except for the _Self-Signed-Certificates_ example), you need to execute the script extras/create_cert.sh first. This script will create a simple CA to sign certificates that are used with the examples. Some notes on the usage can be found in the extras/README.md file.
 
 You then should be able to add the library to your project if you selected the ESP32 as architecture.
 
@@ -37,6 +37,7 @@ You will find several examples showing how you can use the library:
 - [Async-Server](examples/Async-Server/Async-Server.ino): Like the Static-Page example, but the server runs in a separate task on the ESP32, so you do not need to call the loop() function in your main sketch.
 - [Websocket-Chat](examples/Websocket-Chat/Websocket-Chat.ino): Provides a browser-based chat built on top of websockets. **Note:** Websockets are still under development!
 - [Parameter-Validation](examples/Parameter-Validation/Parameter-Validation.ino): Shows how you can integrate validator functions to do formal checks on parameters in your URL.
+- [Self-Signed-Certificate](examples/Self-Signed/Self-Signed.ino): Shows how to generate a self-signed certificate on the fly on the ESP when the sketch starts. You do not need to run `create_cert.sh` to use this example.
 
 If you encounter error messages that cert.h or private\_key.h are missing when running an example, make sure to run create\_cert.sh first (see Setup Instructions).
 
@@ -145,3 +146,34 @@ By default, you need to pass control to the server explicitly. This is done by c
 If you want to have the server running in the background (and not calling `loop()` by yourself every few milliseconds), you can make use of the ESP32's task feature and put the whole server in a separate task.
 
 See the Async-Server example to see how this can be done.
+
+## Advanced Configuration
+
+This section covers some advanced configuration options that allow you e.g. to customize the build process, but which might require more advanced programming skills and a more sophisticated IDE that just the default Arduino IDE.
+
+### Saving Space by Reducing Functionality
+
+To save program space on the microcontroller, there are some parts of the library that can be disabled during compilation and will then not be a part of your program.
+
+The following flags are currently available:
+
+| Flag                      | Effect
+| ------------------------- | ---------------------------
+| HTTPS_DISABLE_SELFSIGNING | Removes the code for generating a self-signed certificate at runtime. You will need to provide certificate and private key data from another data source to use the `HTTPSServer`.
+
+Setting these flags requires a build environment that gives you some control of the compiler, as libraries are usually compiled separately, so just doing a `#define HTTPS_SOMETHING` in your sketch will not work.
+
+**Example: Configuration with Platform IO**
+
+To set these flags in Platform IO, you can modify your `platformio.ini`. To disable for example the self-signed-certificates part of the library, the file could look like this:
+
+```ini
+[env:esp32dev]
+platform = espressif32
+board = esp32dev
+framework = arduino
+build_flags =
+  -DHTTPS_DISABLE_SELFSIGNING
+```
+
+Note the `-D` in front of the actual flag name, that passes this flag as a definition to the preprocessor. Multiple flags can be added one per line.
