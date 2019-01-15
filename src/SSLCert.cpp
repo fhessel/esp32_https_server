@@ -151,7 +151,7 @@ static int gen_key(SSLCert &certCtx, SSLKeySize keySize) {
  *
  * Based on programs/x509/cert_write.c
  */
-static int cert_write(SSLCert &certCtx, std::string dn) {
+static int cert_write(SSLCert &certCtx, std::string dn, std::string validityFrom, std::string validityTo) {
 	int funcRes = 0;
 	int stepRes = 0;
 
@@ -210,7 +210,7 @@ static int cert_write(SSLCert &certCtx, std::string dn) {
 	}
 
   // Set the validity of the certificate. At the moment, it's fixed from 2019 to end of 2029.
-	stepRes = mbedtls_x509write_crt_set_validity( &crt, "20190101000000", "20300101000000");
+	stepRes = mbedtls_x509write_crt_set_validity( &crt, validityFrom.c_str(), validityTo.c_str());
 	if (stepRes != 0) {
 		funcRes = HTTPS_SERVER_ERROR_CERTGEN_VALIDITY;
 		goto error_after_cert;
@@ -284,8 +284,8 @@ error_after_entropy:
 	return funcRes;
 }
 
-int createSelfSignedCert(SSLCert &certCtx, SSLKeySize keySize, std::string dn) {
-	
+int createSelfSignedCert(SSLCert &certCtx, SSLKeySize keySize, std::string dn, std::string validFrom, std::string validUntil) {
+
 	// Add the private key
 	int keyRes = gen_key(certCtx, keySize);
 	if (keyRes != 0) {
@@ -294,7 +294,7 @@ int createSelfSignedCert(SSLCert &certCtx, SSLKeySize keySize, std::string dn) {
 	}
 
 	// Add the self-signed certificate
-	int certRes = cert_write(certCtx, dn);
+	int certRes = cert_write(certCtx, dn, validFrom, validUntil);
 	if (certRes != 0) {
 		// Cert writing failed, reset the pk and return failure code
 		certCtx.setPK(NULL, 0);

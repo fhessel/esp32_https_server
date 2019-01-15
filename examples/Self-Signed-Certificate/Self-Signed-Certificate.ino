@@ -56,7 +56,15 @@ void setup() {
   // - Distinguished name: The name of the host as used in certificates.
   //   If you want to run your own DNS, the part after CN (Common Name) should match the DNS
   //   entry pointing to your ESP32. You can try to insert an IP there, but that's not really good style.
-  int createCertResult = createSelfSignedCert(*cert, KEYSIZE_2048, "CN=myesp32.local,O=FancyCompany,C=DE");
+  // - Dates for certificate validity (optional, default is 2019-2029, both included)
+  //   Format is YYYYMMDDhhmmss
+  int createCertResult = createSelfSignedCert(
+    *cert,
+    KEYSIZE_2048,
+    "CN=myesp32.local,O=FancyCompany,C=DE",
+    "20190101000000",
+    "20300101000000"
+  );
 
   // Now check if creating that worked
   if (createCertResult != 0) {

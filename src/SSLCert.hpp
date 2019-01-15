@@ -77,10 +77,13 @@ enum SSLKeySize {
  * would be:
  *   CN=myesp.local,O=acme,C=US
  * 
+ * The strings validFrom and validUntil have to be formatted like this:
+ * "20190101000000", "20300101000000"
+ * 
  * This will take some time, so you should probably write the certificate data to non-volatile
  * storage when you are done.
  */
-int createSelfSignedCert(SSLCert &certCtx, SSLKeySize keySize, std::string dn);
+int createSelfSignedCert(SSLCert &certCtx, SSLKeySize keySize, std::string dn, std::string validFrom = "20190101000000", std::string validUntil = "20300101000000");
 
 #endif // !HTTPS_DISABLE_SELFSIGNING
 
