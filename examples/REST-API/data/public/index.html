@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>esp32_https_server - REST API example</title>
+  </head>
+  <script src="/jquery-3.3.1.min.js"></script>
+  <script language="javascript">
+    // Local copy of the event list
+    let events = [];
+    // Local copy of the uptime
+    let uptime = 0;
+
+    // This function synchronizes the uptime every 10s
+    function updateUptime() {
+      $.ajax({
+        // Target
+        url: '/api/uptime',
+        // Method
+        type: 'GET',
+        // Data we expect back
+        dataType: 'json',
+      }).done(res => {
+        // Update now and keep track for 10s
+        $('#uptime').text(res.uptime);
+        for(let i = 0; i < 10; i++) {
+          const t = res.uptime + i;
+          setTimeout(() => {
+            uptime = t;
+            $('#uptime').text(t);
+            updateTable();
+          }, i*1000);
+        }
+      }).always(() => {
+        // Synchronize again after 10s
+        setTimeout(updateUptime, 10000);
+      });
+    }
+
+    // This function will update the event list every 60s
+    function updateEventlist() {
+      $.ajax({
+        // Target
+        url: '/api/events',
+        // Method
+        type: 'GET',
+        // Data we expect back
+        dataType: 'json',
+      }).done(res => {
+        // Replace list in-place
+        while(events.length>0) events.pop();
+        res.forEach(e => events.push(e));
+        updateTable();
+      }).always(() => {
+        // Poll again after 60s
+        // The add and delete method keep the list synchronized.
+        setTimeout(updateUptime, 60000);
+      });
+    }
+
+    // Adds an event based on the form
+    function addEvent() {
+      $.post({
+        // Target
+        url: '/api/events',
+        // Data we expect back
+        dataType: 'json',
+        // We will send json, so set the content type
+        contentType: "application/json; charset=utf-8",
+        // The data we send. JSON.stringify creates json from this object
+        data: JSON.stringify({
+          gpio: Number.parseInt($('#evGPIO').val()),
+          state: $('#evState').is(':checked') ? 1 : 0,
+          time: Number.parseInt($('#evTime').val()),
+        })
+      }).done(addedEvent => {
+        events.push(addedEvent);
+        updateTable();
+      }).fail(() => {
+        alert('Adding the event failed.');
+      });
+    }
+
+    // Deletes an event
+    function deleteEvent(eventid) {
+      $.ajax({
+        // Target
+        url: '/api/events/'+eventid,
+        // Data we expect back
+        dataType: 'json',
+        // We want a delete request
+        type: 'DELETE',
+      }).done(addedEvent => {
+        // in-place filtering
+        let tmpEvents = [];
+        while(events.length > 0) {
+          let e = events.pop();
+          if (e.id !== eventid) tmpEvents.push(e);
+        }
+        tmpEvents.forEach(e => events.push(e));
+        updateTable();
+      }).fail(() => {
+        alert('Adding the event failed.');
+      });
+    }
+
+    // Re-renders the event table
+    function updateTable() {
+      sortedEvents = events
+        // Filter old events
+        .filter(ev => ev.time >= uptime)
+        // Sort by time
+        .sort((a,b) => a.time===b.time ? 0 : (a.time < b.time ? -1 : 1));
+      // Clear table
+      $('#tbody').html("");
+      // Rewrite table
+      sortedEvents.forEach(ev => $('#tbody').append(
+        '<tr><td>'+ev.time+'</td><td>GPIO'+ev.gpio+'</td><td>'+(ev.state===1?'HIGH':'LOW')+'</td>' +
+        '<td><button type=\"button\" onClick=\"deleteEvent('+ev.id+');\">Delete</button></td></tr>'
+      ));
+    }
+
+    // When the page is ready...
+    $(document).ready(() => {
+      // Initially update uptime:
+      updateUptime();
+
+      // Initially poll the events
+      updateEventlist();
+    });
+
+  </script>
+  <style>
+  * {
+    font-family: sans-serif;
+    font-size: 12px;
+  }
+
+  h1 {
+    font-size:16px;
+    font-weight: bold;
+  }
+
+  h2 {
+    font-size: 14px;
+    font-weight: bold;
+  }
+
+  td {
+    border: 1px solid gray;
+    border-collapse: collapse;
+    padding: 3px;
+    width: 180px;
+  }
+
+  th {
+    background: darkblue;
+    color: white;
+    border-collapse: collapse;
+    padding:3px;
+    font-weight: bold;
+    width: 180px;
+  }
+
+  input {
+    max-width:50px;
+  }
+  </style>
+  <body>
+    <h1>esp32_https_server - REST API example</h1>
+    <p><strong>Current system time:</strong> <span id="uptime">loading...</span></p>
+    
+    <h2>Current Events</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Time</th>
+          <th>GPIO</th>
+          <th>New State</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="tbody">
+      </tbody>
+    </table>
+    <h2>Add a New Event</h2>
+    <form onsubmit="addEvent(); return false;">
+      <table>
+        <thead>
+          <tr>
+            <th>Time</th>
+            <th>GPIO</th>
+            <th>State</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="tbody">
+          <tr>
+            <td><input id="evTime" /> sec</td>
+            <td>
+              <select id="evGPIO">
+                <option value="25">GPIO25</option>
+                <option value="26">GPIO26</option>
+                <option value="27">GPIO27</option>
+                <option value="32">GPIO32</option>
+                <option value="33">GPIO33</option>
+              </select>
+            </td>
+            <td>
+              <input type="checkbox" id="evState" /> HIGH
+            </td>
+            <td><button type="button" onclick="addEvent(); return false;">Add</button></td>
+          </tr>
+        </tbody>
+      </table>
+    </form>
+    <h2>About This Example</h2>
+    <p>This example shows you a web-page that can be used to control GPIOs 25, 26, 27, 32 and 33 to be turned on or off at a given time.</p>
+    <p>For simplicity, we use the system uptime here, which you can see at the top of the page.</p>
+    <p>The page uses the REST API provided at /api to commuicate with the ESP32.</p>
+    <p><strong>GET /api/uptime</strong> returns the current system uptime:</p>
+    <pre>{"uptime":42}</pre>
+    <p>This node is polled every 10 seconds to stay synchronized.</p>
+    <p><strong>GET /api/events</strong> returns the current list of events:</p>
+    <pre>[{"gpio":27,"state":1,"time":42,"id":0}, ...]</pre>
+    <p>This node is polled every 60 seconds to stay synchronized</p>
+    <p><strong>POST /api/events</strong> can be used to add new events. The response object will contain an additional id that can be used to refer to the event.</p>
+    <p><strong>DELETE /api/events/<em>id</em></strong> will delete the event with the specified id. If events are executed (time &lt; uptime), they are deleted as well.</p>
+    <p>The client side javascript synchronizes your view even if not explicit request is sent to the ESP32.</p>
+  </body>
+</html>

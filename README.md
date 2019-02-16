@@ -38,6 +38,7 @@ You will find several examples showing how you can use the library:
 - [Websocket-Chat](examples/Websocket-Chat/Websocket-Chat.ino): Provides a browser-based chat built on top of websockets. **Note:** Websockets are still under development!
 - [Parameter-Validation](examples/Parameter-Validation/Parameter-Validation.ino): Shows how you can integrate validator functions to do formal checks on parameters in your URL.
 - [Self-Signed-Certificate](examples/Self-Signed-Certificate/Self-Signed-Certificate.ino): Shows how to generate a self-signed certificate on the fly on the ESP when the sketch starts. You do not need to run `create_cert.sh` to use this example.
+- [REST-API](examples/REST-API/REST-API.ino): Uses [ArduinoJSON](https://arduinojson.org/) and [SPIFFS file upload](https://github.com/me-no-dev/arduino-esp32fs-plugin) to serve a small web interface that provides a REST API.
 
 If you encounter error messages that cert.h or private\_key.h are missing when running an example, make sure to run create\_cert.sh first (see Setup Instructions).
 
