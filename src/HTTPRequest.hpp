@@ -17,7 +17,7 @@ namespace httpsserver {
 
 class HTTPRequest {
 public:
-	HTTPRequest(ConnectionContext * con, HTTPHeaders * headers, HTTPNode * resolvedNode, ResourceParameters * params, std::string requestString);
+	HTTPRequest(ConnectionContext * con, HTTPHeaders * headers, HTTPNode * resolvedNode, std::string method, ResourceParameters * params, std::string requestString);
 	virtual ~HTTPRequest();
 
 	std::string getHeader(std::string name);
@@ -46,6 +46,8 @@ private:
 	HTTPHeaders * _headers;
 
 	HTTPNode * _resolvedNode;
+
+	std::string _method;
 
 	ResourceParameters * _params;
 

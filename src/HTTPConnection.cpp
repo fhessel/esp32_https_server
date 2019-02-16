@@ -446,7 +446,14 @@ void HTTPConnection::loop() {
 					}
 
 					// Create request context
-					HTTPRequest req  = HTTPRequest(this, _httpHeaders, resolvedResource.getMatchingNode(), resolvedResource.getParams(), _httpResource);
+					HTTPRequest req  = HTTPRequest(
+						this,
+						_httpHeaders,
+						resolvedResource.getMatchingNode(),
+						_httpMethod,
+						resolvedResource.getParams(),
+						_httpResource
+					);
 					HTTPResponse res = HTTPResponse(this);
 
 					// Add default headers to the response

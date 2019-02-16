@@ -6,11 +6,13 @@ HTTPRequest::HTTPRequest(
 		ConnectionContext * con,
 		HTTPHeaders * headers,
 		HTTPNode * resolvedNode,
+		std::string method,
 		ResourceParameters * params,
 		std::string requestString):
 	_con(con),
 	_headers(headers),
 	_resolvedNode(resolvedNode),
+	_method(method),
 	_params(params),
 	_requestString(requestString) {
 
@@ -83,7 +85,7 @@ std::string HTTPRequest::getRequestString() {
 }
 
 std::string HTTPRequest::getMethod() {
-	return _resolvedNode->getMethod();
+	return _method;
 }
 
 std::string HTTPRequest::getTag() {
