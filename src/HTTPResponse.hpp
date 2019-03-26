@@ -25,13 +25,13 @@ public:
 	virtual ~HTTPResponse();
 
 	void setStatusCode(uint16_t statusCode);
-	void setStatusText(std::string statusText);
+	void setStatusText(std::string const &statusText);
 	uint16_t getStatusCode();
 	std::string getStatusText();
-	void setHeader(std::string name, std::string value);
+	void setHeader(std::string const &name, std::string const &value);
 	bool isHeaderWritten();
 
-	void printStd(const std::string &str);
+	void printStd(std::string const &str);
 
 	// From Print:
 	size_t write(const uint8_t *buffer, size_t size);

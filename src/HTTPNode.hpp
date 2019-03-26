@@ -19,7 +19,7 @@ enum HTTPNodeType {
 
 class HTTPNode {
 public:
-	HTTPNode(const std::string path, const HTTPNodeType nodeType, const std::string tag = "");
+	HTTPNode(const std::string &path, const HTTPNodeType nodeType, const std::string &tag = "");
   virtual ~HTTPNode();
 
 	/**

@@ -21,16 +21,16 @@ public:
 	ResourceParameters();
 	virtual ~ResourceParameters();
 
-	bool isRequestParameterSet(std::string &name);
-	std::string getRequestParameter(std::string &name);
-	uint16_t getRequestParameterInt(std::string &name);
-	void setRequestParameter(std::string name, std::string value);
+	bool isRequestParameterSet(std::string const &name);
+	std::string getRequestParameter(std::string const &name);
+	uint16_t getRequestParameterInt(std::string const &name);
+	void setRequestParameter(std::string const &name, std::string const &value);
 
 	std::string getUrlParameter(uint8_t idx);
 	uint16_t getUrlParameterInt(uint8_t idx);
 	void resetUrlParameters();
 	void setUrlParameterCount(uint8_t idx);
-	void setUrlParameter(uint8_t idx, std::string val);
+	void setUrlParameter(uint8_t idx, std::string const &val);
 
 private:
 	std::vector<std::string> _urlParams;

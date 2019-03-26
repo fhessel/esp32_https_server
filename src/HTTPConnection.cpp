@@ -633,7 +633,7 @@ void handleWebsocketHandshake(HTTPRequest * req, HTTPResponse * res) {
 /**
  * Function used to compute the value of the Sec-WebSocket-Accept during Websocket handshake
  */
-std::string websocketKeyResponseHash(std::string key) {
+std::string websocketKeyResponseHash(std::string const &key) {
 	std::string newKey = key + "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
 	uint8_t shaData[HTTPS_SHA1_LENGTH];
 	esp_sha(SHA1, (uint8_t*)newKey.data(), newKey.length(), shaData);

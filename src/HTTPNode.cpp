@@ -2,9 +2,9 @@
 
 namespace httpsserver {
 
-  HTTPNode::HTTPNode(const std::string path, const HTTPNodeType nodeType, const std::string tag):
-    _path(std::move(path)),
-    _tag(std::move(tag)),
+  HTTPNode::HTTPNode(std::string const &path, const HTTPNodeType nodeType, std::string const &tag):
+    _path(path),
+    _tag(tag),
     _nodeType(nodeType) {
 
     // Create vector for valdiators

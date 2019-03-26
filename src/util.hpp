@@ -8,9 +8,9 @@
 
 namespace httpsserver {
 
-uint32_t parseUInt(std::string s, uint32_t max = 0xffffffff);
+uint32_t parseUInt(std::string const &s, uint32_t max = 0xffffffff);
 
-int32_t parseInt(std::string s);
+int32_t parseInt(std::string const &s);
 
 std::string intToString(int i);
 

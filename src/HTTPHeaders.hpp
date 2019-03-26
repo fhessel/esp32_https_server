@@ -17,8 +17,8 @@ public:
 	HTTPHeaders();
 	virtual ~HTTPHeaders();
 
-	HTTPHeader * get(std::string name);
-	std::string getValue(std::string name);
+	HTTPHeader * get(std::string const &name);
+	std::string getValue(std::string const &name);
 	void set(HTTPHeader * header);
 
 	std::vector<HTTPHeader *> * getAll();

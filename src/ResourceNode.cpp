@@ -2,9 +2,9 @@
 
 namespace httpsserver {
 
-ResourceNode::ResourceNode(const std::string path, const std::string method, const HTTPSCallbackFunction * callback, const std::string tag):
+ResourceNode::ResourceNode(const std::string &path, const std::string &method, const HTTPSCallbackFunction * callback, const std::string &tag):
 	HTTPNode(path, HANDLER_CALLBACK, tag),
-	_method(std::move(method)),
+	_method(method),
 	_callback(callback) {
 		
 }

@@ -2,7 +2,7 @@
 
 namespace httpsserver {
 
-WebsocketNode::WebsocketNode(const std::string path, const WebsocketHandlerCreator * creatorFunction, const std::string tag):
+WebsocketNode::WebsocketNode(const std::string &path, const WebsocketHandlerCreator * creatorFunction, const std::string &tag):
 	HTTPNode(path, WEBSOCKET, tag),
 	_creatorFunction(creatorFunction) {
 		

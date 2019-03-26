@@ -37,7 +37,7 @@ void HTTPResponse::setStatusCode(uint16_t statusCode) {
 	_statusCode = statusCode;
 }
 
-void HTTPResponse::setStatusText(std::string statusText) {
+void HTTPResponse::setStatusText(std::string const &statusText) {
 	_statusText = statusText;
 }
 
@@ -49,7 +49,7 @@ std::string HTTPResponse::getStatusText() {
 	return _statusText;
 }
 
-void HTTPResponse::setHeader(std::string name, std::string value) {
+void HTTPResponse::setHeader(std::string const &name, std::string const &value) {
 	_headers.set(new HTTPHeader(name, value));
 }
 

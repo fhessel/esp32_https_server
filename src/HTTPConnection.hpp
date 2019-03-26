@@ -119,7 +119,6 @@ private:
 	size_t readBuffer(byte* buffer, size_t length);
 	size_t getCacheSize();
 	bool checkWebsocket();
-	std::string websocketKeyResponseHash(std::string key);
 
 	// The receive buffer
 	char _receiveBuffer[HTTPS_CONNECTION_DATA_CHUNK_SIZE];
@@ -161,7 +160,7 @@ private:
 
 void handleWebsocketHandshake(HTTPRequest * req, HTTPResponse * res);
 
-std::string websocketKeyResponseHash(std::string key);
+std::string websocketKeyResponseHash(std::string const &key);
 
 void validationMiddleware(HTTPRequest * req, HTTPResponse * res, std::function<void()> next);
 
