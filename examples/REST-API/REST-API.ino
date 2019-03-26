@@ -76,6 +76,7 @@ char contentTypes[][2][32] = {
 #include <SSLCert.hpp>
 #include <HTTPRequest.hpp>
 #include <HTTPResponse.hpp>
+#include <util.hpp>
 
 // We use the following struct to store GPIO events:
 #define MAX_EVENTS 20
@@ -316,7 +317,7 @@ void handleSPIFFS(HTTPRequest * req, HTTPResponse * res) {
 		File file = SPIFFS.open(filename.c_str());
 
 		// Set length
-		res->setHeader("Content-Length", "" + file.size());
+		res->setHeader("Content-Length", httpsserver::intToString(file.size()));
 
 		// Content-Type is guessed using the definition of the contentTypes-table defined above
 		int cTypeIdx = 0;
