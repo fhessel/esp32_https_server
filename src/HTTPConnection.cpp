@@ -437,7 +437,12 @@ void HTTPConnection::loop() {
 						std::string connectionHeaderValue = "";
 						if (connectionHeader != NULL) {
 							connectionHeaderValue += connectionHeader->_value;
-							std::transform(connectionHeaderValue.begin(), connectionHeaderValue.end(), connectionHeaderValue.begin(), ::tolower);
+							std::transform(
+								connectionHeaderValue.begin(),
+								connectionHeaderValue.end(),
+								connectionHeaderValue.begin(),
+								[](unsigned char c){ return ::tolower(c); }
+							);
 						}
 						if (std::string("keep-alive").compare(connectionHeaderValue)==0) {
 							HTTPS_DLOGHEX("[   ] Keep-Alive activated. fid=", _socket);
