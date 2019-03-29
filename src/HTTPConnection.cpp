@@ -434,7 +434,12 @@ void HTTPConnection::loop() {
 					if (resolvedResource.getMatchingNode()->_nodeType == HANDLER_CALLBACK) {
 						// Did the client set connection:keep-alive?
 						HTTPHeader * connectionHeader = _httpHeaders->get("Connection");
-						if (connectionHeader != NULL && std::string("keep-alive").compare(connectionHeader->_value)==0) {
+						std::string connectionHeaderValue = "";
+						if (connectionHeader != NULL) {
+							connectionHeaderValue += connectionHeader->_value;
+							std::transform(connectionHeaderValue.begin(), connectionHeaderValue.end(), connectionHeaderValue.begin(), ::tolower);
+						}
+						if (std::string("keep-alive").compare(connectionHeaderValue)==0) {
 							HTTPS_DLOGHEX("[   ] Keep-Alive activated. fid=", _socket);
 							_isKeepAlive = true;
 						} else {
