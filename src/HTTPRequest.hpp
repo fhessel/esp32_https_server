@@ -20,8 +20,8 @@ public:
 	HTTPRequest(ConnectionContext * con, HTTPHeaders * headers, HTTPNode * resolvedNode, std::string method, ResourceParameters * params, std::string requestString);
 	virtual ~HTTPRequest();
 
-	std::string getHeader(std::string name);
-	void setHeader(std::string name, std::string value);
+	std::string getHeader(std::string const &name);
+	void setHeader(std::string const &name, std::string const &value);
 	HTTPNode * getResolvedNode();
 	std::string getRequestString();
 	std::string getMethod();

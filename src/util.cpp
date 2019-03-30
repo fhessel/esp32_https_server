@@ -2,7 +2,7 @@
 
 namespace httpsserver {
 
-uint32_t parseUInt(std::string s, uint32_t max) {
+uint32_t parseUInt(std::string const &s, uint32_t max) {
 	uint32_t i = 0; // value
 
 	// Check sign
@@ -31,7 +31,7 @@ uint32_t parseUInt(std::string s, uint32_t max) {
 	return i;
 }
 
-int32_t parseInt(std::string s) {
+int32_t parseInt(std::string const &s) {
 	uint32_t max = 0x7fffffff;
 	if (s[0]=='-') {
 		return -1 * parseUInt(s.substr(1,max));

@@ -36,7 +36,7 @@ ResourceParameters * HTTPRequest::getParams() {
 	return _params;
 }
 
-std::string HTTPRequest::getHeader(std::string name) {
+std::string HTTPRequest::getHeader(std::string const &name) {
 	HTTPHeader * h = _headers->get(name);
 	if (h != NULL) {
 		return h->_value;
@@ -45,7 +45,7 @@ std::string HTTPRequest::getHeader(std::string name) {
 	}
 }
 
-void HTTPRequest::setHeader(std::string name, std::string value) {
+void HTTPRequest::setHeader(std::string const &name, std::string const &value) {
 	_headers->set(new HTTPHeader(name, value));
 }
 

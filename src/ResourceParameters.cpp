@@ -10,7 +10,7 @@ ResourceParameters::~ResourceParameters() {
 
 }
 
-bool ResourceParameters::isRequestParameterSet(std::string &name) {
+bool ResourceParameters::isRequestParameterSet(std::string const &name) {
 	for(auto reqParam = _reqParams.begin(); reqParam != _reqParams.end(); ++reqParam) {
 		if ((*reqParam).first.compare(name)==0) {
 			return true;
@@ -19,7 +19,7 @@ bool ResourceParameters::isRequestParameterSet(std::string &name) {
 	return false;
 }
 
-std::string ResourceParameters::getRequestParameter(std::string &name) {
+std::string ResourceParameters::getRequestParameter(std::string const &name) {
 	for(auto reqParam = _reqParams.begin(); reqParam != _reqParams.end(); ++reqParam) {
 		if ((*reqParam).first.compare(name)==0) {
 			return (*reqParam).second;
@@ -28,14 +28,14 @@ std::string ResourceParameters::getRequestParameter(std::string &name) {
 	return "";
 }
 
-uint16_t ResourceParameters::getRequestParameterInt(std::string &name) {
+uint16_t ResourceParameters::getRequestParameterInt(std::string const &name) {
 	return parseInt(getRequestParameter(name));
 }
 
-void ResourceParameters::setRequestParameter(std::string name, std::string value) {
+void ResourceParameters::setRequestParameter(std::string const &name, std::string const &value) {
 	std::pair<std::string, std::string> param;
-	param.first = std::move(name);
-	param.second = std::move(value);
+	param.first = name;
+	param.second = value;
 	_reqParams.push_back(param);
 }
 
@@ -65,7 +65,7 @@ void ResourceParameters::resetUrlParameters() {
 	_urlParams.clear();
 }
 
-void ResourceParameters::setUrlParameter(uint8_t idx, std::string val) {
+void ResourceParameters::setUrlParameter(uint8_t idx, std::string const &val) {
 	if(idx>=_urlParams.capacity()) {
 		_urlParams.resize(idx + 1);
 	}
