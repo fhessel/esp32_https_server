@@ -42,17 +42,17 @@ int HTTPSConnection::initialize(int serverSocketID, SSL_CTX * sslCtx, HTTPHeader
           if (success) {
             return resSocket;
           } else {
-            HTTPS_DLOG("[ERR] SSL_accept failed. Aborting handshake.");
+            HTTPS_LOGE("SSL_accept failed. Aborting handshake. FID=%d", resSocket);
           }
         } else {
-          HTTPS_DLOG("[ERR] SSL_set_fd failed. Aborting handshake.");
+          HTTPS_LOGE("SSL_set_fd failed. Aborting handshake. FID=%d", resSocket);
         }
       } else {
-        HTTPS_DLOG("[ERR] SSL_new failed. Aborting handshake.");
+        HTTPS_LOGE("SSL_new failed. Aborting handshake. FID=%d", resSocket);
       }
 
     } else {
-      HTTPS_DLOG("[ERR] Could not accept() new connection");
+      HTTPS_LOGE("Could not accept() new connection. FID=%d", resSocket);
     }
 
     _connectionState = STATE_ERROR;
@@ -93,7 +93,7 @@ void HTTPSConnection::closeConnection() {
       // The timeout has been hit, we force SSL shutdown now by freeing the context
       SSL_free(_ssl);
       _ssl = NULL;
-      HTTPS_DLOG("[ERR] SSL_shutdown did not receive close notification from the client");
+      HTTPS_LOGW("SSL_shutdown did not receive close notification from the client");
       _connectionState = STATE_ERROR;
     }
   }

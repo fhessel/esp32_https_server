@@ -178,3 +178,42 @@ build_flags =
 ```
 
 Note the `-D` in front of the actual flag name, that passes this flag as a definition to the preprocessor. Multiple flags can be added one per line.
+
+### Configure Logging
+
+The server provides some internal logging, which is used on level `INFO` by default. This will look like this on your serial console:
+
+```
+[HTTPS:I] New connection. SocketFID=55
+[HTTPS:I] Request: GET / (FID=55)
+[HTTPS:I] Connection closed. Socket FID=55
+```
+
+Logging output can also be controlled by using compiler flags. This requires an advanced development environment like explained in *Saving Space by Reducing Functionality*.
+
+There are two parameters that can be configured:
+
+- `HTTPS_LOGLEVEL` defines the log level to use
+- `HTTPS_LOGTIMESTAMP` adds a timestamp (based on uptime) to each log entry
+
+| Value of `HTTPS_LOGLEVEL` | Error | Warning | Info | Debug |
+| ------------------------- | ----- | ------- | ---- | ----- |
+| 0                         |       |         |      |       |
+| 1                         |   ✓   |         |      |       |
+| 2                         |   ✓   |    ✓    |      |       |
+| 3                         |   ✓   |    ✓    |  ✓   |       |
+| 4                         |   ✓   |    ✓    |  ✓   |   ✓   |
+
+**Example: Configuration with Platform IO**
+
+To set these flags in Platform IO, you can modify your `platformio.ini`. The following entries set the minimum log level to warning and enable timestamps
+
+```ini
+[env:esp32dev]
+platform = espressif32
+board = esp32dev
+framework = arduino
+build_flags =
+  -DHTTPS_LOGLEVEL=2
+  -HTTPS_LOGTIMESTAMP
+```

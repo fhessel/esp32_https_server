@@ -37,7 +37,7 @@ int HTTPConnection::initialize(int serverSocketID, HTTPHeaders *defaultHeaders) 
 
     // Build up SSL Connection context if the socket has been created successfully
     if (_socket >= 0) {
-      HTTPS_DLOGHEX("[-->] New connection. Socket fid is: ", _socket);
+      HTTPS_LOGI("New connection. Socket FID=%d", _socket);
       _connectionState = STATE_INITIAL;
       _httpHeaders = new HTTPHeaders();
       refreshTimeout();
@@ -45,7 +45,7 @@ int HTTPConnection::initialize(int serverSocketID, HTTPHeaders *defaultHeaders) 
 
     }
      
-    HTTPS_DLOG("[ERR] Could not accept() new connection");
+    HTTPS_LOGE("Could not accept() new connection");
    
     _connectionState = STATE_ERROR;
     _clientState = CSTATE_ACTIVE;
@@ -110,7 +110,7 @@ void HTTPConnection::closeConnection() {
 
   // Tear down the socket
   if (_socket >= 0) {
-    HTTPS_DLOGHEX("[<--] Connection has been closed. fid = ", _socket);
+    HTTPS_LOGI("Connection closed. Socket FID=%d", _socket);
     close(_socket);
     _socket = -1;
     _addrLen = 0;
@@ -121,13 +121,13 @@ void HTTPConnection::closeConnection() {
   }
 
   if (_httpHeaders != NULL) {
-    HTTPS_DLOG("[   ] Free headers");
+    HTTPS_LOGD("Free headers");
     delete _httpHeaders;
     _httpHeaders = NULL;
   }
 
   if (_wsHandler != nullptr) {
-    HTTPS_DLOG("[   ] Freeing WS Handler");
+    HTTPS_LOGD("Free WS Handler");
     delete _wsHandler;
   }
 }
@@ -165,7 +165,7 @@ int HTTPConnection::updateBuffer() {
     if (_bufferUnusedIdx < HTTPS_CONNECTION_DATA_CHUNK_SIZE) {
       if (canReadData()) {
 
-        HTTPS_DLOGHEX("[   ] There is data on the connection socket. fid=", _socket)
+        HTTPS_LOGD("Data on Socket FID=%d", _socket);
 
         int readReturnCode;
 
@@ -188,13 +188,13 @@ int HTTPConnection::updateBuffer() {
         } else if (readReturnCode == 0) {
           // The connection has been closed by the client
           _clientState = CSTATE_CLOSED;
-          HTTPS_DLOGHEX("[ x ] Client closed connection, fid=", _socket);
+          HTTPS_LOGI("Client closed connection, FID=%d", _socket);
           // TODO: If we are in state websocket, we might need to do something here
           return 0;
         } else {
           // An error occured
           _connectionState = STATE_ERROR;
-          HTTPS_DLOGHEX("[ERR] An receive error occured, fid=", _socket);
+          HTTPS_LOGE("An receive error occured, FID=%d", _socket);
           closeConnection();
           return -1;
         }
@@ -261,7 +261,6 @@ size_t HTTPConnection::readBytesToBuffer(byte* buffer, size_t length) {
 void HTTPConnection::serverError() {
   _connectionState = STATE_ERROR;
 
-  Serial.println("Server error");
   char staticResponse[] = "HTTP/1.1 500 Internal Server Error\r\nServer: esp32https\r\nConnection:close\r\nContent-Type: text/html\r\nContent-Length:34\r\n\r\n<h1>500 Internal Server Error</h1>";
   writeBuffer((byte*)staticResponse, strlen(staticResponse));
   closeConnection();
@@ -271,7 +270,6 @@ void HTTPConnection::serverError() {
 void HTTPConnection::clientError() {
   _connectionState = STATE_ERROR;
 
-  Serial.println("Client error");
   char staticResponse[] = "HTTP/1.1 400 Bad Request\r\nServer: esp32https\r\nConnection:close\r\nContent-Type: text/html\r\nContent-Length:26\r\n\r\n<h1>400 Bad Request</h1>";
   writeBuffer((byte*)staticResponse, strlen(staticResponse));
   closeConnection();
@@ -290,7 +288,7 @@ void HTTPConnection::readLine(int lengthLimit) {
           return;
         } else {
           // Line has not been terminated by \r\n
-          HTTPS_DLOG("[ERR] Line that has not been terminated by \\r\\n (got only \\r). Client error.");
+          HTTPS_LOGW("Line without \\r\\n (got only \\r). FID=%d", _socket);
           clientError();
           return;
         }
@@ -302,7 +300,7 @@ void HTTPConnection::readLine(int lengthLimit) {
 
     // Check that the max request string size is not exceeded
     if (_parserLine.text.length() > lengthLimit) {
-      HTTPS_DLOG("[ERR] Line length exceeded. Server error.");
+      HTTPS_LOGW("Header length exceeded. FID=%d", _socket);
       serverError();
       return;
     }
@@ -339,7 +337,7 @@ void HTTPConnection::loop() {
   updateBuffer();
 
   if (_clientState == CSTATE_CLOSED) {
-    HTTPS_DLOGHEX("[   ] Client closed in state", _clientState)
+    HTTPS_LOGI("Client closed (FID=%d, cstate=%d)", _socket, _clientState);
   }
 
   if (_clientState == CSTATE_CLOSED && _bufferProcessed == _bufferUnusedIdx && _connectionState < STATE_HEADERS_FINISHED) {
@@ -347,7 +345,7 @@ void HTTPConnection::loop() {
   }
 
   if (!isClosed() && isTimeoutExceeded()) {
-    HTTPS_DLOGHEX("[zZz] Connection timeout exceeded, closing connection. fid=", _socket)
+    HTTPS_LOGI("Connection timeout. FID=%d", _socket);
     closeConnection();
   }
 
@@ -360,7 +358,7 @@ void HTTPConnection::loop() {
         // Find the method
         size_t spaceAfterMethodIdx = _parserLine.text.find(' ');
         if (spaceAfterMethodIdx == std::string::npos) {
-          HTTPS_DLOG("[ERR] Missing space after HTTP method. Client Error.")
+          HTTPS_LOGW("Missing space after method");
           clientError();
           break;
         }
@@ -369,7 +367,7 @@ void HTTPConnection::loop() {
         // Find the resource string:
         size_t spaceAfterResourceIdx = _parserLine.text.find(' ', spaceAfterMethodIdx + 1);
         if (spaceAfterResourceIdx == std::string::npos) {
-          HTTPS_DLOG("[ERR] Missing space after HTTP resource. Client Error.")
+          HTTPS_LOGW("Missing space after resource");
           clientError();
           break;
         }
@@ -377,7 +375,7 @@ void HTTPConnection::loop() {
 
         _parserLine.parsingFinished = false;
         _parserLine.text = "";
-        HTTPS_DLOG(("[   ] Request line finished: method="+_httpMethod+", resource="+_httpResource).c_str());
+        HTTPS_LOGI("Request: %s %s (FID=%d)", _httpMethod.c_str(), _httpResource.c_str(), _socket);
         _connectionState = STATE_REQUEST_FINISHED;
       }
 
@@ -389,7 +387,7 @@ void HTTPConnection::loop() {
         if (_parserLine.parsingFinished && _connectionState != STATE_ERROR) {
 
           if (_parserLine.text.empty()) {
-            HTTPS_DLOG("[   ] Headers finished");
+            HTTPS_LOGD("Headers finished, FID=%d", _socket);
             _connectionState = STATE_HEADERS_FINISHED;
 
             // Break, so that the rest of the body does not get flushed through
@@ -403,10 +401,9 @@ void HTTPConnection::loop() {
                   _parserLine.text.substr(0, idxColon),
                   _parserLine.text.substr(idxColon+2)
               ));
-              HTTPS_DLOG(("[   ] Header: " + _parserLine.text.substr(0, idxColon) + ":" + _parserLine.text.substr(idxColon+2)).c_str());
+              HTTPS_LOGD("Header: %s = %s (FID=%d)", _parserLine.text.substr(0, idxColon).c_str(), _parserLine.text.substr(idxColon+2).c_str(), _socket);
             } else {
-              HTTPS_DLOG("Malformed header line detected. Client error.");
-              HTTPS_DLOG(_parserLine.text.c_str());
+              HTTPS_LOGW("Malformed request header: %s", _parserLine.text.c_str());
               clientError();
               break;
             }
@@ -420,7 +417,7 @@ void HTTPConnection::loop() {
       break;
     case STATE_HEADERS_FINISHED: // Handle body
       {
-        HTTPS_DLOG("[   ] Resolving resource...");
+        HTTPS_LOGD("Resolving resource...");
         ResolvedResource resolvedResource;
 
         // Check which kind of node we need (Websocket or regular)
@@ -445,10 +442,10 @@ void HTTPConnection::loop() {
               );
             }
             if (std::string("keep-alive").compare(connectionHeaderValue)==0) {
-              HTTPS_DLOGHEX("[   ] Keep-Alive activated. fid=", _socket);
+              HTTPS_LOGD("Keep-Alive activated. FID=%d", _socket);
               _isKeepAlive = true;
             } else {
-              HTTPS_DLOGHEX("[   ] Keep-Alive disabled. fid=", _socket);
+              HTTPS_LOGD("Keep-Alive disabled. FID=%d", _socket);
               _isKeepAlive = false;
             }
           } else {
@@ -505,7 +502,7 @@ void HTTPConnection::loop() {
           // However, if it does not, we need to clear the request body now,
           // because otherwise it would be parsed in the next request.
           if (!req.requestComplete()) {
-            HTTPS_DLOG("[ERR] Callback function did not parse full request body");
+            HTTPS_LOGW("Callback function did not parse full request body");
             req.discardRequestBody();
           }
 
@@ -516,7 +513,7 @@ void HTTPConnection::loop() {
             _connectionState = STATE_WEBSOCKET;
           } else {
             // Handling the request is done
-            HTTPS_DLOG("[   ] Handler function done, request complete");
+            HTTPS_LOGD("Handler function done, request complete");
 
             // Now we need to check if we can use keep-alive to reuse the SSL connection
             // However, if the client did not set content-size or defined connection: close,
@@ -548,7 +545,7 @@ void HTTPConnection::loop() {
           }
         } else {
           // No match (no default route configured, nothing does match)
-          HTTPS_DLOG("[ERR] Could not find a matching resource. Server error.");
+          HTTPS_LOGW("Could not find a matching resource");
           serverError();
         }
 
@@ -563,12 +560,12 @@ void HTTPConnection::loop() {
     case STATE_WEBSOCKET: // Do handling of the websocket
       refreshTimeout();  // don't timeout websocket connection
       if(pendingBufferSize() > 0) {
-        HTTPS_DLOG("[   ] websocket handler");
+        HTTPS_LOGD("Calling WS handler, FID=%d", _socket);
         _wsHandler->loop();
       }
       // If the handler has terminated the connection, clean up and close the socket too
       if (_wsHandler->closed()) {
-        HTTPS_DLOG("[   ] WS Connection closed. Freeing WS Handler");
+        HTTPS_LOGI("WS closed, freeing Handler, FID=%d", _socket);
         delete _wsHandler;
         _wsHandler = nullptr;
         _connectionState = STATE_CLOSING;
@@ -589,7 +586,7 @@ bool HTTPConnection::checkWebsocket() {
      !_httpHeaders->getValue("Sec-WebSocket-Key").empty() &&
       _httpHeaders->getValue("Sec-WebSocket-Version") == "13") {
 
-    HTTPS_DLOG("[-->] Websocket detected");
+      HTTPS_LOGI("Upgrading to WS, FID=%d", _socket);
       return true;
   } else
       return false;

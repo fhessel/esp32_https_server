@@ -84,18 +84,16 @@ void ResourceResolver::resolveNode(const std::string &method, const std::string 
       ) {
         const std::string nodepath = ((*node)->_path);
         if (!((*node)->hasUrlParameter())) {
-          std::string logstring = "[   ] Testing simple match on " + nodepath;
-          HTTPS_DLOG(logstring.c_str())
+          HTTPS_LOGD("Testing simple match on %s", nodepath.c_str());
 
           // Simple matching, the node does not contain any resource parameters
           if (nodepath == resourceName) {
             resolvedResource.setMatchingNode(*node);
-            HTTPS_DLOG(("[   ]   It's a match! Path:" + nodepath).c_str())
+            HTTPS_LOGD("It's a match! Path: %s", nodepath.c_str());
             break;
           }
         } else {
-          std::string logstring = "[   ] Testing parameter match on " + nodepath;
-          HTTPS_DLOG(logstring.c_str())
+          HTTPS_LOGD("Testing parameter match on %s", nodepath.c_str());
 
           // Advanced matching, we need to align the /?/ parts.
           bool didMatch = true;
@@ -109,7 +107,7 @@ void ResourceResolver::resolveNode(const std::string &method, const std::string 
             if (nodepath.substr(nodeIdx, staticLength).compare(resourceName.substr(urlIdx, staticLength))!=0) {
               // static part did not match
               didMatch = false;
-              HTTPS_DLOGHEX("[   ]   No match on static part", pIdx)
+              HTTPS_LOGD("No match on static part %d", pIdx);
             } else {
               // static part did match, increase pointers
               nodeIdx += staticLength + 1; // +1 to take care of the '*' placeholder.
@@ -131,7 +129,7 @@ void ResourceResolver::resolveNode(const std::string &method, const std::string 
                 } else {
                   // We did not find the terminator
                   didMatch = false;
-                  HTTPS_DLOGHEX("[   ]   No match on dynamic part", pIdx)
+                  HTTPS_LOGD("No match on dynamic part %d", pIdx);
                 }
               }
             } // static part did match
@@ -142,13 +140,13 @@ void ResourceResolver::resolveNode(const std::string &method, const std::string 
             size_t staticLength = nodepath.length()-nodeIdx;
             if (nodepath.substr(nodeIdx, staticLength).compare(url.substr(urlIdx, staticLength))!=0) {
               didMatch = false;
-              HTTPS_DLOG("[   ]   No match, final static part did not match")
+              HTTPS_LOGD("No match, final static part did not match");
             } else {
               urlIdx += staticLength;
               // If there is some string remaining in the url that did not match
               if (urlIdx < resourceName.length()) {
                 didMatch = false;
-                HTTPS_DLOG("[   ]   No match, url is longer than final static part")
+                HTTPS_LOGD("No match, URL is longer than final static part");
               }
             }
           }
@@ -156,7 +154,7 @@ void ResourceResolver::resolveNode(const std::string &method, const std::string 
           // Every check worked, so the full url matches and the params are set
           if (didMatch) {
             resolvedResource.setMatchingNode(*node);
-            HTTPS_DLOG("[   ]   It's a match!")
+            HTTPS_LOGD("It's a match!");
             break;
           }
 

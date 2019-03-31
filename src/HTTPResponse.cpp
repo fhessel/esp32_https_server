@@ -3,7 +3,6 @@
 #include <Arduino.h>
 #include "lwip/sockets.h"
 
-
 namespace httpsserver {
 
 HTTPResponse::HTTPResponse(ConnectionContext * con):
@@ -18,10 +17,10 @@ HTTPResponse::HTTPResponse(ConnectionContext * con):
   _responseCacheSize = con->getCacheSize();
   _responseCachePointer = 0;
   if (_responseCacheSize > 0) {
-    HTTPS_DLOGHEX("[   ] Creating buffered response. Buffer size: ", _responseCacheSize);
+    HTTPS_LOGD("Creating buffered response, size: %d", _responseCacheSize);
     _responseCache = new byte[_responseCacheSize];
   } else {
-    HTTPS_DLOG("[   ] Creating non-buffered response.")
+    HTTPS_LOGD("Creating non-buffered response");
     _responseCache = NULL;
   }
 }
@@ -100,7 +99,7 @@ size_t  HTTPResponse::write(uint8_t b) {
  */
 void HTTPResponse::printHeader() {
   if (!_headerWritten) {
-    HTTPS_DLOG("[   ] Printing headers")
+    HTTPS_LOGD("Printing headers");
 
     // Status line, like: "HTTP/1.1 200 OK\r\n"
     std::string statusLine = "HTTP/1.1 " + intToString(_statusCode) + " " + _statusText + "\r\n";
@@ -166,7 +165,7 @@ void HTTPResponse::drainBuffer(bool onOverflow) {
   }
 
   if (_responseCache != NULL) {
-    HTTPS_DLOG("[   ] Draining response buffer")
+    HTTPS_LOGD("Draining response buffer");
     // Check for 0 as it may be an overflow reaction without any data that has been written earlier
     if(_responseCachePointer > 0) {
       // FIXME: Return value?

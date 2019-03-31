@@ -44,12 +44,12 @@ WebsocketInputStreambuf::~WebsocketInputStreambuf() {
  */
 void WebsocketInputStreambuf::discard() {
   uint8_t byte;
-  HTTPS_DLOGINT("[   ] WebsocketContext >> discard: Discarding bytes: ", _dataLength - _sizeRead);
+  HTTPS_LOGD(">> WebsocketContext.discard(): %d bytes", _dataLength - _sizeRead);
   while(_sizeRead < _dataLength) {
     _con->readBuffer(&byte, 1);
     _sizeRead++;
   }
-  HTTPS_DLOG("[   ] WebsocketContext << discard");
+  HTTPS_LOGD("<< WebsocketContext.discard()");
 } // WebsocketInputStreambuf::discard
 
 
@@ -66,12 +66,12 @@ size_t WebsocketInputStreambuf::getRecordSize() {
  *
  */
 WebsocketInputStreambuf::int_type WebsocketInputStreambuf::underflow() {
-  HTTPS_DLOG("[   ] WebSocketInputStreambuf >> underflow");
+  HTTPS_LOGD(">> WebSocketInputStreambuf.underflow()");
 
   // If we have already read as many bytes as our record definition says we should read
   // then don't attempt to ready any further.
   if (_sizeRead >= getRecordSize()) {
-    HTTPS_DLOG("[   ] WebSocketInputStreambuf << underflow: Already read maximum");
+    HTTPS_LOGD("<< WebSocketInputStreambuf.underflow(): Already read maximum");
     return EOF;
   }
 
@@ -86,10 +86,10 @@ WebsocketInputStreambuf::int_type WebsocketInputStreambuf::underflow() {
     sizeToRead = _bufferSize;
   }
 
-  HTTPS_DLOGINT("[   ] WebSocketInputRecordStreambuf - getting next buffer of data; size request: ", sizeToRead);
+  HTTPS_LOGD("WebSocketInputRecordStreambuf - getting next buffer of data; size request: %d", sizeToRead);
   int bytesRead = _con->readBuffer((uint8_t*)_buffer, sizeToRead);
   if (bytesRead == 0) {
-    HTTPS_DLOG("[   ] WebSocketInputRecordStreambuf << underflow: Read 0 bytes");
+    HTTPS_LOGD("<< WebSocketInputRecordStreambuf.underflow(): Read 0 bytes");
     return EOF;
   }
 
@@ -103,7 +103,7 @@ WebsocketInputStreambuf::int_type WebsocketInputStreambuf::underflow() {
   _sizeRead += bytesRead;  // Increase the count of number of bytes actually read from the source.
 
   setg(_buffer, _buffer, _buffer + bytesRead); // Change the buffer pointers to reflect the new data read.
-  HTTPS_DLOGINT("[   ] WebSocketInputRecordStreambuf << underflow - got more bytes: ", bytesRead);
+  HTTPS_LOGD("<< WebSocketInputRecordStreambuf.underflow(): got %d bytes", bytesRead);
   return traits_type::to_int_type(*gptr());
 } // underflow
 
