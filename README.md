@@ -215,5 +215,5 @@ board = esp32dev
 framework = arduino
 build_flags =
   -DHTTPS_LOGLEVEL=2
-  -HTTPS_LOGTIMESTAMP
+  -DHTTPS_LOGTIMESTAMP
 ```
