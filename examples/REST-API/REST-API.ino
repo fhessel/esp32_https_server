@@ -62,13 +62,13 @@
 // We need to specify some content-type mapping, so the resources get delivered with the
 // right content type and are displayed correctly in the browser
 char contentTypes[][2][32] = {
-	{".html", "text/html"},
-	{".css",  "text/css"},
-	{".js",   "application/javascript"},
-	{".json", "application/json"},
-	{".png",  "image/png"},
-	{".jpg",  "image/jpg"},
-	{"", ""}
+  {".html", "text/html"},
+  {".css",  "text/css"},
+  {".js",   "application/javascript"},
+  {".json", "application/json"},
+  {".png",  "image/png"},
+  {".jpg",  "image/jpg"},
+  {"", ""}
 };
 
 // Includes for the server
@@ -81,14 +81,14 @@ char contentTypes[][2][32] = {
 // We use the following struct to store GPIO events:
 #define MAX_EVENTS 20
 struct {
-	// is this event used (events that have been run will be set to false)
-	bool active;
-	// when should it be run?
-	unsigned long time;
-	// which GPIO should be changed?
-	int gpio;
-	// and to which state?
-	int state;
+  // is this event used (events that have been run will be set to false)
+  bool active;
+  // when should it be run?
+  unsigned long time;
+  // which GPIO should be changed?
+  int gpio;
+  // and to which state?
+  int state;
 } events[MAX_EVENTS];
 
 // The HTTPS Server comes in a separate namespace. For easier use, include it here.
@@ -102,47 +102,47 @@ void setup() {
   // For logging
   Serial.begin(115200);
 
-	// Set the pins that we will use as output pins
-	pinMode(25, OUTPUT);
-	pinMode(26, OUTPUT);
-	pinMode(27, OUTPUT);
-	pinMode(32, OUTPUT);
-	pinMode(33, OUTPUT);
+  // Set the pins that we will use as output pins
+  pinMode(25, OUTPUT);
+  pinMode(26, OUTPUT);
+  pinMode(27, OUTPUT);
+  pinMode(32, OUTPUT);
+  pinMode(33, OUTPUT);
 
-	// Try to mount SPIFFS without formatting on failure
-	if (!SPIFFS.begin(false)) {
-		// If SPIFFS does not work, we wait for serial connection...
-		while(!Serial);
-		delay(1000);
+  // Try to mount SPIFFS without formatting on failure
+  if (!SPIFFS.begin(false)) {
+    // If SPIFFS does not work, we wait for serial connection...
+    while(!Serial);
+    delay(1000);
 
-		// Ask to format SPIFFS using serial interface
-		Serial.print("Mounting SPIFFS failed. Try formatting? (y/n): ");
-		while(!Serial.available());
-		Serial.println();
+    // Ask to format SPIFFS using serial interface
+    Serial.print("Mounting SPIFFS failed. Try formatting? (y/n): ");
+    while(!Serial.available());
+    Serial.println();
 
-		// If the user did not accept to try formatting SPIFFS or formatting failed:
-		if (Serial.read() != 'y' || !SPIFFS.begin(true)) {
-			Serial.println("SPIFFS not available. Stop.");
-			while(true);
-		}
-		Serial.println("SPIFFS has been formated.");
-	}
-	Serial.println("SPIFFS has been mounted.");
+    // If the user did not accept to try formatting SPIFFS or formatting failed:
+    if (Serial.read() != 'y' || !SPIFFS.begin(true)) {
+      Serial.println("SPIFFS not available. Stop.");
+      while(true);
+    }
+    Serial.println("SPIFFS has been formated.");
+  }
+  Serial.println("SPIFFS has been mounted.");
 
-	// Now that SPIFFS is ready, we can create or load the certificate
-	SSLCert *cert = getCertificate();
-	if (cert == NULL) {
-		Serial.println("Could not load certificate. Stop.");
-		while(true);
-	}
+  // Now that SPIFFS is ready, we can create or load the certificate
+  SSLCert *cert = getCertificate();
+  if (cert == NULL) {
+    Serial.println("Could not load certificate. Stop.");
+    while(true);
+  }
 
-	// Initialize event structure:
-	for(int i = 0; i < MAX_EVENTS; i++) {
+  // Initialize event structure:
+  for(int i = 0; i < MAX_EVENTS; i++) {
     events[i].active = false;
     events[i].gpio = 0;
     events[i].state = LOW;
     events[i].time = 0;
-	}
+  }
 
   // Connect to WiFi
   Serial.println("Setting up WiFi");
@@ -154,55 +154,55 @@ void setup() {
   Serial.print("Connected. IP=");
   Serial.println(WiFi.localIP());
 
-	// Create the server with the certificate we loaded before
-	secureServer = new HTTPSServer(cert);
+  // Create the server with the certificate we loaded before
+  secureServer = new HTTPSServer(cert);
 
-	// We register the SPIFFS handler as the default node, so every request that does
-	// not hit any other node will be redirected to the file system.
+  // We register the SPIFFS handler as the default node, so every request that does
+  // not hit any other node will be redirected to the file system.
   ResourceNode * spiffsNode = new ResourceNode("", "", &handleSPIFFS);
   secureServer->setDefaultNode(spiffsNode);
 
-	// Add a handler that serves the current system uptime at GET /api/uptime
-	ResourceNode * uptimeNode = new ResourceNode("/api/uptime", "GET", &handleGetUptime);
+  // Add a handler that serves the current system uptime at GET /api/uptime
+  ResourceNode * uptimeNode = new ResourceNode("/api/uptime", "GET", &handleGetUptime);
   secureServer->registerNode(uptimeNode);
 
-	// Add the handler nodes that deal with modifying the events:
-	ResourceNode * getEventsNode = new ResourceNode("/api/events", "GET", &handleGetEvents);
-	secureServer->registerNode(getEventsNode);
-	ResourceNode * postEventNode = new ResourceNode("/api/events", "POST", &handlePostEvent);
-	secureServer->registerNode(postEventNode);
-	ResourceNode * deleteEventNode = new ResourceNode("/api/events/*", "DELETE", &handleDeleteEvent);
-	secureServer->registerNode(deleteEventNode);
+  // Add the handler nodes that deal with modifying the events:
+  ResourceNode * getEventsNode = new ResourceNode("/api/events", "GET", &handleGetEvents);
+  secureServer->registerNode(getEventsNode);
+  ResourceNode * postEventNode = new ResourceNode("/api/events", "POST", &handlePostEvent);
+  secureServer->registerNode(postEventNode);
+  ResourceNode * deleteEventNode = new ResourceNode("/api/events/*", "DELETE", &handleDeleteEvent);
+  secureServer->registerNode(deleteEventNode);
 
   Serial.println("Starting server...");
   secureServer->start();
   if (secureServer->isRunning()) {
-	  Serial.println("Server ready.");
+    Serial.println("Server ready.");
   }
 }
 
 void loop() {
-	// This call will let the server do its work
-	secureServer->loop();
+  // This call will let the server do its work
+  secureServer->loop();
 
-	// Here we handle the events
-	unsigned long now = millis() / 1000;
-	for (int i = 0; i < MAX_EVENTS; i++) {
-		// Only handle active events:
-		if (events[i].active) {
-			// Only if the counter has recently been exceeded
-			if (events[i].time < now) {
-				// Apply the state change
-				digitalWrite(events[i].gpio, events[i].state);
+  // Here we handle the events
+  unsigned long now = millis() / 1000;
+  for (int i = 0; i < MAX_EVENTS; i++) {
+    // Only handle active events:
+    if (events[i].active) {
+      // Only if the counter has recently been exceeded
+      if (events[i].time < now) {
+      // Apply the state change
+      digitalWrite(events[i].gpio, events[i].state);
 
-				// Deactivate the event so it doesn't fire again
-				events[i].active = false;
-			}
-		}
-	}
+      // Deactivate the event so it doesn't fire again
+      events[i].active = false;
+      }
+    }
+  }
 
-	// Other code would go here...
-	delay(1);
+  // Other code would go here...
+  delay(1);
 }
 
 /**
@@ -210,84 +210,84 @@ void loop() {
  * create a self-signed certificate and write it to SPIFFS for next boot
  */
 SSLCert * getCertificate() {
-	// Try to open key and cert file to see if they exist
-	File keyFile = SPIFFS.open("/key.der");
-	File certFile = SPIFFS.open("/cert.der");
+  // Try to open key and cert file to see if they exist
+  File keyFile = SPIFFS.open("/key.der");
+  File certFile = SPIFFS.open("/cert.der");
 
-	// If now, create them 
-	if (!keyFile || !certFile || keyFile.size()==0 || certFile.size()==0) {
-		Serial.println("No certificate found in SPIFFS, generating a new one for you.");
-		Serial.println("If you face a Guru Meditation, give the script another try (or two...).");
-		Serial.println("This may take up to a minute, so please stand by :)");
+  // If now, create them 
+  if (!keyFile || !certFile || keyFile.size()==0 || certFile.size()==0) {
+    Serial.println("No certificate found in SPIFFS, generating a new one for you.");
+    Serial.println("If you face a Guru Meditation, give the script another try (or two...).");
+    Serial.println("This may take up to a minute, so please stand by :)");
 
-		SSLCert * newCert = new SSLCert();
-		// The part after the CN= is the domain that this certificate will match, in this
-		// case, it's esp32.local.
-		// However, as the certificate is self-signed, your browser won't trust the server
-		// anyway.
-		int res = createSelfSignedCert(*newCert, KEYSIZE_1024, "CN=esp32.local,O=acme,C=DE");
-		if (res == 0) {
-			// We now have a certificate. We store it on the SPIFFS to restore it on next boot.
+    SSLCert * newCert = new SSLCert();
+    // The part after the CN= is the domain that this certificate will match, in this
+    // case, it's esp32.local.
+    // However, as the certificate is self-signed, your browser won't trust the server
+    // anyway.
+    int res = createSelfSignedCert(*newCert, KEYSIZE_1024, "CN=esp32.local,O=acme,C=DE");
+    if (res == 0) {
+      // We now have a certificate. We store it on the SPIFFS to restore it on next boot.
 
-			bool failure = false;
-			// Private key
-			keyFile = SPIFFS.open("/key.der", FILE_WRITE);
-			if (!keyFile || !keyFile.write(newCert->getPKData(), newCert->getPKLength())) {
-				Serial.println("Could not write /key.der");
-				failure = true;
-			}
-			if (keyFile) keyFile.close();
+      bool failure = false;
+      // Private key
+      keyFile = SPIFFS.open("/key.der", FILE_WRITE);
+      if (!keyFile || !keyFile.write(newCert->getPKData(), newCert->getPKLength())) {
+        Serial.println("Could not write /key.der");
+        failure = true;
+      }
+      if (keyFile) keyFile.close();
 
-			// Certificate
-			certFile = SPIFFS.open("/cert.der", FILE_WRITE);
-			if (!certFile || !certFile.write(newCert->getCertData(), newCert->getCertLength())) {
-				Serial.println("Could not write /cert.der");
-				failure = true;
-			}
-			if (certFile) certFile.close();
+      // Certificate
+      certFile = SPIFFS.open("/cert.der", FILE_WRITE);
+      if (!certFile || !certFile.write(newCert->getCertData(), newCert->getCertLength())) {
+        Serial.println("Could not write /cert.der");
+        failure = true;
+      }
+      if (certFile) certFile.close();
 
-			if (failure) {
-				Serial.println("Certificate could not be stored permanently, generating new certificate on reboot...");
-			}
+      if (failure) {
+        Serial.println("Certificate could not be stored permanently, generating new certificate on reboot...");
+      }
 
-			return newCert;
+      return newCert;
 
-		} else {
-			// Certificate generation failed. Inform the user.
-			Serial.println("An error occured during certificate generation.");
-			Serial.print("Error code is 0x");
-			Serial.println(res, HEX);
-			Serial.println("You may have a look at SSLCert.h to find the reason for this error.");
-			return NULL;
-		}
+    } else {
+      // Certificate generation failed. Inform the user.
+      Serial.println("An error occured during certificate generation.");
+      Serial.print("Error code is 0x");
+      Serial.println(res, HEX);
+      Serial.println("You may have a look at SSLCert.h to find the reason for this error.");
+      return NULL;
+    }
 
 	} else {
-		Serial.println("Reading certificate from SPIFFS.");
+    Serial.println("Reading certificate from SPIFFS.");
 
-		// The files exist, so we can create a certificate based on them
-		size_t keySize = keyFile.size();
-		size_t certSize = certFile.size();
+    // The files exist, so we can create a certificate based on them
+    size_t keySize = keyFile.size();
+    size_t certSize = certFile.size();
 
-		uint8_t * keyBuffer = new uint8_t[keySize];
-		if (keyBuffer == NULL) {
-			Serial.println("Not enough memory to load privat key");
-			return NULL;
-		}
-		uint8_t * certBuffer = new uint8_t[certSize];
-		if (certBuffer == NULL) {
-			delete[] keyBuffer;
-			Serial.println("Not enough memory to load certificate");
-			return NULL;
-		}
-		keyFile.read(keyBuffer, keySize);
-		certFile.read(certBuffer, certSize);
+    uint8_t * keyBuffer = new uint8_t[keySize];
+    if (keyBuffer == NULL) {
+      Serial.println("Not enough memory to load privat key");
+      return NULL;
+    }
+    uint8_t * certBuffer = new uint8_t[certSize];
+    if (certBuffer == NULL) {
+      delete[] keyBuffer;
+      Serial.println("Not enough memory to load certificate");
+      return NULL;
+    }
+    keyFile.read(keyBuffer, keySize);
+    certFile.read(certBuffer, certSize);
 
-		// Close the files
-		keyFile.close();
-		certFile.close();
-		Serial.printf("Read %u bytes of certificate and %u bytes of key from SPIFFS\n", certSize, keySize);
-		return new SSLCert(certBuffer, certSize, keyBuffer, keySize);
-	}
+    // Close the files
+    keyFile.close();
+    certFile.close();
+    Serial.printf("Read %u bytes of certificate and %u bytes of key from SPIFFS\n", certSize, keySize);
+    return new SSLCert(certBuffer, certSize, keyBuffer, keySize);
+  }
 }
 
 /**
@@ -297,55 +297,55 @@ SSLCert * getCertificate() {
  */
 void handleSPIFFS(HTTPRequest * req, HTTPResponse * res) {
 	
-	// We only handle GET here
-	if (req->getMethod() == "GET") {
-		// Redirect / to /index.html
-		std::string reqFile = req->getRequestString()=="/" ? "/index.html" : req->getRequestString();
+  // We only handle GET here
+  if (req->getMethod() == "GET") {
+    // Redirect / to /index.html
+    std::string reqFile = req->getRequestString()=="/" ? "/index.html" : req->getRequestString();
 
-		// Try to open the file
-		std::string filename = std::string(DIR_PUBLIC) + reqFile;
+    // Try to open the file
+    std::string filename = std::string(DIR_PUBLIC) + reqFile;
 
-		// Check if the file exists
-		if (!SPIFFS.exists(filename.c_str())) {
-			// Send "405 Method not allowed" as response
-			res->setStatusCode(404);
-			res->setStatusText("Not found");
-			res->println("404 Not Found");
-			return;
-		}
+    // Check if the file exists
+    if (!SPIFFS.exists(filename.c_str())) {
+      // Send "405 Method not allowed" as response
+      res->setStatusCode(404);
+      res->setStatusText("Not found");
+      res->println("404 Not Found");
+      return;
+    }
 
-		File file = SPIFFS.open(filename.c_str());
+    File file = SPIFFS.open(filename.c_str());
 
-		// Set length
-		res->setHeader("Content-Length", httpsserver::intToString(file.size()));
+    // Set length
+    res->setHeader("Content-Length", httpsserver::intToString(file.size()));
 
-		// Content-Type is guessed using the definition of the contentTypes-table defined above
-		int cTypeIdx = 0;
-		do {
-			if(reqFile.rfind(contentTypes[cTypeIdx][0])!=std::string::npos) {
-				res->setHeader("Content-Type", contentTypes[cTypeIdx][1]);
-				break;
-			}
-			cTypeIdx+=1;
-		} while(strlen(contentTypes[cTypeIdx][0])>0);
+    // Content-Type is guessed using the definition of the contentTypes-table defined above
+    int cTypeIdx = 0;
+    do {
+      if(reqFile.rfind(contentTypes[cTypeIdx][0])!=std::string::npos) {
+        res->setHeader("Content-Type", contentTypes[cTypeIdx][1]);
+        break;
+      }
+      cTypeIdx+=1;
+    } while(strlen(contentTypes[cTypeIdx][0])>0);
 
-		// Read the file and write it to the response
-		uint8_t buffer[256];
-		size_t length = 0;
-		do {
-			length = file.read(buffer, 256);
-			res->write(buffer, length);
-		} while (length > 0);
+    // Read the file and write it to the response
+    uint8_t buffer[256];
+    size_t length = 0;
+    do {
+      length = file.read(buffer, 256);
+      res->write(buffer, length);
+    } while (length > 0);
 
-		file.close();
-	} else {
-		// If there's any body, discard it
-		req->discardRequestBody();
-		// Send "405 Method not allowed" as response
-		res->setStatusCode(405);
-		res->setStatusText("Method not allowed");
-		res->println("405 Method not allowed");
-	}
+    file.close();
+  } else {
+    // If there's any body, discard it
+    req->discardRequestBody();
+    // Send "405 Method not allowed" as response
+    res->setStatusCode(405);
+    res->setStatusText("Method not allowed");
+    res->println("405 Method not allowed");
+  }
 }
 
 /**
@@ -353,169 +353,169 @@ void handleSPIFFS(HTTPRequest * req, HTTPResponse * res) {
  * {"uptime": 42}
  */
 void handleGetUptime(HTTPRequest * req, HTTPResponse * res) {
-	// Create a buffer of size 1 (pretty simple, we have just one key here)
-	StaticJsonBuffer<JSON_OBJECT_SIZE(1)> jsonBuffer;
-	// Create an object at the root
-	JsonObject& obj = jsonBuffer.createObject();
-	// Set the uptime key to the uptime in seconds
-	obj["uptime"] = millis()/1000;
-	// Set the content type of the response
-	res->setHeader("Content-Type", "application/json");
-	// As HTTPResponse implements the Print interface, this works fine. Just remember
-	// to use *, as we only have a pointer to the HTTPResponse here:
-	obj.printTo(*res);
+  // Create a buffer of size 1 (pretty simple, we have just one key here)
+  StaticJsonBuffer<JSON_OBJECT_SIZE(1)> jsonBuffer;
+  // Create an object at the root
+  JsonObject& obj = jsonBuffer.createObject();
+  // Set the uptime key to the uptime in seconds
+  obj["uptime"] = millis()/1000;
+  // Set the content type of the response
+  res->setHeader("Content-Type", "application/json");
+  // As HTTPResponse implements the Print interface, this works fine. Just remember
+  // to use *, as we only have a pointer to the HTTPResponse here:
+  obj.printTo(*res);
 }
 
 /**
  * This handler will return a JSON array of currently active events for GET /api/events
  */
 void handleGetEvents(HTTPRequest * req, HTTPResponse * res) {
-	// We need to calculate the capacity of the json buffer
-	int activeEvents = 0;
-	for(int i = 0; i < MAX_EVENTS; i++) {
-		if (events[i].active) activeEvents++;
-	}
+  // We need to calculate the capacity of the json buffer
+  int activeEvents = 0;
+  for(int i = 0; i < MAX_EVENTS; i++) {
+    if (events[i].active) activeEvents++;
+  }
 
-	// For each active event, we need 1 array element with 4 objects
-	const size_t capacity = JSON_ARRAY_SIZE(activeEvents) + activeEvents * JSON_OBJECT_SIZE(4);
+  // For each active event, we need 1 array element with 4 objects
+  const size_t capacity = JSON_ARRAY_SIZE(activeEvents) + activeEvents * JSON_OBJECT_SIZE(4);
 
-	// DynamicJsonBuffer is created on the heap instead of the stack
-	DynamicJsonBuffer jsonBuffer(capacity);
-	JsonArray& arr = jsonBuffer.createArray();
-	for(int i = 0; i < MAX_EVENTS; i++) {
-		if (events[i].active) {
-			JsonObject& eventObj = arr.createNestedObject();
-			eventObj["gpio"] = events[i].gpio;
-			eventObj["state"] = events[i].state;
-			eventObj["time"] = events[i].time;
-			// Add the index to allow delete and post to identify the element
-			eventObj["id"] = i;
-		}
-	}
+  // DynamicJsonBuffer is created on the heap instead of the stack
+  DynamicJsonBuffer jsonBuffer(capacity);
+  JsonArray& arr = jsonBuffer.createArray();
+  for(int i = 0; i < MAX_EVENTS; i++) {
+    if (events[i].active) {
+      JsonObject& eventObj = arr.createNestedObject();
+      eventObj["gpio"] = events[i].gpio;
+      eventObj["state"] = events[i].state;
+      eventObj["time"] = events[i].time;
+      // Add the index to allow delete and post to identify the element
+      eventObj["id"] = i;
+    }
+  }
 
-	// Print to response
-	res->setHeader("Content-Type", "application/json");
-	arr.printTo(*res);
+  // Print to response
+  res->setHeader("Content-Type", "application/json");
+  arr.printTo(*res);
 }
 
 void handlePostEvent(HTTPRequest * req, HTTPResponse * res) {
-	// We expect an object with 4 elements and add some buffer
-	const size_t capacity = JSON_OBJECT_SIZE(4) + 180;
-	DynamicJsonBuffer jsonBuffer(capacity);
+  // We expect an object with 4 elements and add some buffer
+  const size_t capacity = JSON_OBJECT_SIZE(4) + 180;
+  DynamicJsonBuffer jsonBuffer(capacity);
 
-	// Create buffer to read request
-	char * buffer = new char[capacity + 1];
-	memset(buffer, 0, capacity+1);
+  // Create buffer to read request
+  char * buffer = new char[capacity + 1];
+  memset(buffer, 0, capacity+1);
 
-	// Try to read request into buffer
-	size_t idx = 0;
-	// while "not everything read" or "buffer is full"
-	while (!req->requestComplete() && idx < capacity) {
-		idx += req->readChars(buffer + idx, capacity-idx);
-	}
+  // Try to read request into buffer
+  size_t idx = 0;
+  // while "not everything read" or "buffer is full"
+  while (!req->requestComplete() && idx < capacity) {
+    idx += req->readChars(buffer + idx, capacity-idx);
+  }
 
-	// If the request is still not read completely, we cannot process it.
-	if (!req->requestComplete()) {
-		res->setStatusCode(413);
-		res->setStatusText("Request entity too large");
-		res->println("413 Request entity too large");
-		// Clean up
-		delete[] buffer;
-		return;
-	}
+  // If the request is still not read completely, we cannot process it.
+  if (!req->requestComplete()) {
+    res->setStatusCode(413);
+    res->setStatusText("Request entity too large");
+    res->println("413 Request entity too large");
+    // Clean up
+    delete[] buffer;
+    return;
+  }
 
-	// Parse the object
-	JsonObject& reqObj = jsonBuffer.parseObject(buffer);
+  // Parse the object
+  JsonObject& reqObj = jsonBuffer.parseObject(buffer);
 
-	// Check input data types
-	bool dataValid = true;
-	if (!reqObj.is<long>("time") || !reqObj.is<int>("gpio") || !reqObj.is<int>("state")) {
-		dataValid = false;
-	}
+  // Check input data types
+  bool dataValid = true;
+  if (!reqObj.is<long>("time") || !reqObj.is<int>("gpio") || !reqObj.is<int>("state")) {
+    dataValid = false;
+  }
 	
-	// Check actual values
-	unsigned long eTime = 0;
-	int eGpio = 0;
-	int eState = LOW;
-	if (dataValid) {
-		eTime = reqObj["time"];
-		if (eTime < millis()/1000) dataValid = false;
+  // Check actual values
+  unsigned long eTime = 0;
+  int eGpio = 0;
+  int eState = LOW;
+  if (dataValid) {
+    eTime = reqObj["time"];
+    if (eTime < millis()/1000) dataValid = false;
 
-		eGpio = reqObj["gpio"];
-		if (!(eGpio == 25 || eGpio == 26 || eGpio == 27 || eGpio == 32 || eGpio == 33)) dataValid = false;
+    eGpio = reqObj["gpio"];
+    if (!(eGpio == 25 || eGpio == 26 || eGpio == 27 || eGpio == 32 || eGpio == 33)) dataValid = false;
 
-		eState = reqObj["state"];
-		if (eState != HIGH && eState != LOW) dataValid = false;
-	}
+    eState = reqObj["state"];
+    if (eState != HIGH && eState != LOW) dataValid = false;
+  }
 
-	// Clean up, we don't need the buffer any longer
-	delete[] buffer;
+  // Clean up, we don't need the buffer any longer
+  delete[] buffer;
 
-	// If something failed: 400
-	if (!dataValid) {
-		res->setStatusCode(400);
-		res->setStatusText("Bad Request");
-		res->println("400 Bad Request");
-		return;
-	}
+  // If something failed: 400
+  if (!dataValid) {
+    res->setStatusCode(400);
+    res->setStatusText("Bad Request");
+    res->println("400 Bad Request");
+    return;
+  }
 
-	// Try to find an inactive event in the list to write the data to
-	int eventID = -1;
-	for(int i = 0; i < MAX_EVENTS && eventID==-1; i++) {
-		if (!events[i].active) {
-			eventID = i;
-			events[i].gpio = eGpio;
-			events[i].time = eTime;
-			events[i].state = eState;
-			events[i].active = true;
-		}
-	}
+  // Try to find an inactive event in the list to write the data to
+  int eventID = -1;
+  for(int i = 0; i < MAX_EVENTS && eventID==-1; i++) {
+    if (!events[i].active) {
+      eventID = i;
+      events[i].gpio = eGpio;
+      events[i].time = eTime;
+      events[i].state = eState;
+      events[i].active = true;
+    }
+  }
 
-	// Check if we could store the event
-	if (eventID>-1) {
-		// Create a buffer for the response
-		StaticJsonBuffer<JSON_OBJECT_SIZE(4)> resBuffer;
+  // Check if we could store the event
+  if (eventID>-1) {
+    // Create a buffer for the response
+    StaticJsonBuffer<JSON_OBJECT_SIZE(4)> resBuffer;
 
-		// Create an object at the root
-		JsonObject& resObj = resBuffer.createObject();
+    // Create an object at the root
+    JsonObject& resObj = resBuffer.createObject();
 
-		// Set the uptime key to the uptime in seconds
-		resObj["gpio"] = events[eventID].gpio;
-		resObj["state"] = events[eventID].state;
-		resObj["time"] = events[eventID].time;
-		resObj["id"] = eventID;
-			
-		// Write the response
-		res->setHeader("Content-Type", "application/json");
-		resObj.printTo(*res);
+    // Set the uptime key to the uptime in seconds
+    resObj["gpio"] = events[eventID].gpio;
+    resObj["state"] = events[eventID].state;
+    resObj["time"] = events[eventID].time;
+    resObj["id"] = eventID;
 
-	} else {
-		// We could not store the event, no free slot.
-		res->setStatusCode(507);
-		res->setStatusText("Insufficient storage");
-		res->println("507 Insufficient storage");
+    // Write the response
+    res->setHeader("Content-Type", "application/json");
+    resObj.printTo(*res);
 
-	}
+  } else {
+    // We could not store the event, no free slot.
+    res->setStatusCode(507);
+    res->setStatusText("Insufficient storage");
+    res->println("507 Insufficient storage");
+
+  }
 }
 
 /**
  * This handler will delete an event (meaning: deactive the event)
  */
 void handleDeleteEvent(HTTPRequest * req, HTTPResponse * res) {
-	// Access the parameter from the URL. See Parameters example for more details on this
-	ResourceParameters * params = req->getParams();
-	uint16_t eid = params->getUrlParameterInt(0);
+  // Access the parameter from the URL. See Parameters example for more details on this
+  ResourceParameters * params = req->getParams();
+  uint16_t eid = params->getUrlParameterInt(0);
 
-	if (eid < MAX_EVENTS) {
-		// Set the inactive flag
-		events[eid].active = false;
-		// And return a successful response without body
-		res->setStatusCode(204);
-		res->setStatusText("No Content");
-	} else {
-		// Send error message
-		res->setStatusCode(400);
-		res->setStatusText("Bad Request");
-		res->println("400 Bad Request");
-	}
+  if (eid < MAX_EVENTS) {
+    // Set the inactive flag
+    events[eid].active = false;
+    // And return a successful response without body
+    res->setStatusCode(204);
+    res->setStatusText("No Content");
+  } else {
+    // Send error message
+    res->setStatusCode(400);
+    res->setStatusText("Bad Request");
+    res->println("400 Bad Request");
+  }
 }
