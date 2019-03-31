@@ -11,53 +11,53 @@
 namespace httpsserver {
 
 enum HTTPNodeType {
-	/** Node with a handler callback function (class ResourceNode) */
-	HANDLER_CALLBACK,
-	/** Node with a websocket handler (class WebsocketNode) */
-	WEBSOCKET
+  /** Node with a handler callback function (class ResourceNode) */
+  HANDLER_CALLBACK,
+  /** Node with a websocket handler (class WebsocketNode) */
+  WEBSOCKET
 };
 
 class HTTPNode {
 public:
-	HTTPNode(const std::string &path, const HTTPNodeType nodeType, const std::string &tag = "");
+  HTTPNode(const std::string &path, const HTTPNodeType nodeType, const std::string &tag = "");
   virtual ~HTTPNode();
 
-	/**
-	 * The path under which this node will be available. Should start with a slash. Example:
-	 * "/myResource"
-	 */
-	const std::string _path;
+  /**
+   * The path under which this node will be available. Should start with a slash. Example:
+   * "/myResource"
+   */
+  const std::string _path;
 
-	/**
-	 * Stores a tag that can be used in middleware and handler functions to identify this
-	 * specific node, tag the node with a required permission, ...
-	 */
-	const std::string _tag;
+  /**
+   * Stores a tag that can be used in middleware and handler functions to identify this
+   * specific node, tag the node with a required permission, ...
+   */
+  const std::string _tag;
 
-	/** Stores the type of the node (as we have not runtime type information by default) */
-	const HTTPNodeType _nodeType;
+  /** Stores the type of the node (as we have not runtime type information by default) */
+  const HTTPNodeType _nodeType;
 
-	bool hasUrlParameter();
-	uint8_t getUrlParamCount();
-	size_t getParamIdx(uint8_t);
+  bool hasUrlParameter();
+  uint8_t getUrlParamCount();
+  size_t getParamIdx(uint8_t);
 
-	std::vector<HTTPValidator*> * getValidators();
+  std::vector<HTTPValidator*> * getValidators();
 
-	virtual std::string getMethod() = 0;
+  virtual std::string getMethod() = 0;
 
-	/**
-	 * Adds a validation function that checks if the actual value of a parameter matches the expectation
-	 * @param paramIdx defines the ID of the parameter that should be checked (starts by 0)
-	 * @param validator the function (string -> bool) that checks if the parameter matches the expecatation
-	 * 
-	 * @see ValidatorFunctions.hpp if you need some predefined templates for functions
-	 */
-	void addURLParamValidator(uint8_t paramIdx, const HTTPValidationFunction * validator);
+  /**
+   * Adds a validation function that checks if the actual value of a parameter matches the expectation
+   * @param paramIdx defines the ID of the parameter that should be checked (starts by 0)
+   * @param validator the function (string -> bool) that checks if the parameter matches the expecatation
+   * 
+   * @see ValidatorFunctions.hpp if you need some predefined templates for functions
+   */
+  void addURLParamValidator(uint8_t paramIdx, const HTTPValidationFunction * validator);
 
 private:
-	uint8_t _urlParamCount;
-	size_t * _urlParamIdx;
-	std::vector<HTTPValidator*> * _validators;
+  uint8_t _urlParamCount;
+  size_t * _urlParamIdx;
+  std::vector<HTTPValidator*> * _validators;
 };
 
 } // namespace httpserver

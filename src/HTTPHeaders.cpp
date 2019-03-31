@@ -3,57 +3,57 @@
 namespace httpsserver {
 
 HTTPHeaders::HTTPHeaders() {
-	_headers = new std::vector<HTTPHeader *>();
+  _headers = new std::vector<HTTPHeader *>();
 
 }
 
 HTTPHeaders::~HTTPHeaders() {
-	clearAll();
-	delete _headers;
+  clearAll();
+  delete _headers;
 }
 
 HTTPHeader * HTTPHeaders::get(std::string const &name) {
-	for(std::vector<HTTPHeader*>::iterator header = _headers->begin(); header != _headers->end(); ++header) {
-		if ((*header)->_name.compare(name)==0) {
-			return (*header);
-		}
-	}
-	return NULL;
+  for(std::vector<HTTPHeader*>::iterator header = _headers->begin(); header != _headers->end(); ++header) {
+    if ((*header)->_name.compare(name)==0) {
+      return (*header);
+    }
+  }
+  return NULL;
 }
 
 std::string HTTPHeaders::getValue(std::string const &name) {
-	for(std::vector<HTTPHeader*>::iterator header = _headers->begin(); header != _headers->end(); ++header) {
-		if ((*header)->_name.compare(name)==0) {
-			return ((*header)->_value);
-		}
-	}
-	return "";
+  for(std::vector<HTTPHeader*>::iterator header = _headers->begin(); header != _headers->end(); ++header) {
+    if ((*header)->_name.compare(name)==0) {
+      return ((*header)->_value);
+    }
+  }
+  return "";
 }
 
 
 void HTTPHeaders::set(HTTPHeader * header) {
-	for(int i = 0; i < _headers->size(); i++) {
-		if ((*_headers)[i]->_name.compare(header->_name)==0) {
-			delete (*_headers)[i];
-			(*_headers)[i] = header;
-			return;
-		}
-	}
-	_headers->push_back(header);
+  for(int i = 0; i < _headers->size(); i++) {
+    if ((*_headers)[i]->_name.compare(header->_name)==0) {
+      delete (*_headers)[i];
+      (*_headers)[i] = header;
+      return;
+    }
+  }
+  _headers->push_back(header);
 }
 
 std::vector<HTTPHeader *> * HTTPHeaders::getAll() {
-	return _headers;
+  return _headers;
 }
 
 /**
  * Deletes all headers
  */
 void HTTPHeaders::clearAll() {
-	for(std::vector<HTTPHeader*>::iterator header = _headers->begin(); header != _headers->end(); ++header) {
-		delete (*header);
-	}
-	_headers->clear();
+  for(std::vector<HTTPHeader*>::iterator header = _headers->begin(); header != _headers->end(); ++header) {
+    delete (*header);
+  }
+  _headers->clear();
 }
 
 } /* namespace httpsserver */

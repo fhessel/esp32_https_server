@@ -10,23 +10,23 @@ namespace httpsserver {
 WebsocketInputStreambuf::WebsocketInputStreambuf(
   ConnectionContext   *con,
   size_t dataLength,
-	uint8_t *pMask,
+  uint8_t *pMask,
   size_t bufferSize
 ) {
-	_con     = con;    // The socket we will be reading from
-	_dataLength = dataLength; // The size of the record we wish to read.
-	_pMask      = pMask;
-	_bufferSize = bufferSize; // The size of the buffer used to hold data
-	_sizeRead   = 0;          // The size of data read from the socket
-	_buffer = new char[bufferSize]; // Create the buffer used to hold the data read from the socket.
+  _con     = con;    // The socket we will be reading from
+  _dataLength = dataLength; // The size of the record we wish to read.
+  _pMask      = pMask;
+  _bufferSize = bufferSize; // The size of the buffer used to hold data
+  _sizeRead   = 0;          // The size of data read from the socket
+  _buffer = new char[bufferSize]; // Create the buffer used to hold the data read from the socket.
 
-	setg(_buffer, _buffer, _buffer); // Set the initial get buffer pointers to no data.
+  setg(_buffer, _buffer, _buffer); // Set the initial get buffer pointers to no data.
 }
 
 WebsocketInputStreambuf::~WebsocketInputStreambuf() {
   //FIXME: Call order incorrect? discard() uses _buffer
-	delete[] _buffer;
-	discard();
+  delete[] _buffer;
+  discard();
 }
 
 
@@ -43,13 +43,13 @@ WebsocketInputStreambuf::~WebsocketInputStreambuf() {
  * need to be consumed/discarded before we can move on to the next record.
  */
 void WebsocketInputStreambuf::discard() {
-	uint8_t byte;
-	HTTPS_DLOGINT("[   ] WebsocketContext >> discard: Discarding bytes: ", _dataLength - _sizeRead);
-	while(_sizeRead < _dataLength) {
-		_con->readBuffer(&byte, 1);
-		_sizeRead++;
-	}
-	HTTPS_DLOG("[   ] WebsocketContext << discard");
+  uint8_t byte;
+  HTTPS_DLOGINT("[   ] WebsocketContext >> discard: Discarding bytes: ", _dataLength - _sizeRead);
+  while(_sizeRead < _dataLength) {
+    _con->readBuffer(&byte, 1);
+    _sizeRead++;
+  }
+  HTTPS_DLOG("[   ] WebsocketContext << discard");
 } // WebsocketInputStreambuf::discard
 
 
@@ -58,7 +58,7 @@ void WebsocketInputStreambuf::discard() {
  * @return The size of the expected record.
  */
 size_t WebsocketInputStreambuf::getRecordSize() {
-	return _dataLength;
+  return _dataLength;
 } // WebsocketInputStreambuf::getRecordSize
 
 /**
@@ -66,45 +66,45 @@ size_t WebsocketInputStreambuf::getRecordSize() {
  *
  */
 WebsocketInputStreambuf::int_type WebsocketInputStreambuf::underflow() {
-	HTTPS_DLOG("[   ] WebSocketInputStreambuf >> underflow");
+  HTTPS_DLOG("[   ] WebSocketInputStreambuf >> underflow");
 
-	// If we have already read as many bytes as our record definition says we should read
-	// then don't attempt to ready any further.
-	if (_sizeRead >= getRecordSize()) {
-		HTTPS_DLOG("[   ] WebSocketInputStreambuf << underflow: Already read maximum");
-		return EOF;
-	}
+  // If we have already read as many bytes as our record definition says we should read
+  // then don't attempt to ready any further.
+  if (_sizeRead >= getRecordSize()) {
+    HTTPS_DLOG("[   ] WebSocketInputStreambuf << underflow: Already read maximum");
+    return EOF;
+  }
 
-	// We wish to refill the buffer.  We want to read data from the socket.  We want to read either
-	// the size of the buffer to fill it or the maximum number of bytes remaining to be read.
-	// We will choose which ever is smaller as the number of bytes to read into the buffer.
-	int remainingBytes = getRecordSize()-_sizeRead;
-	size_t sizeToRead;
-	if (remainingBytes < _bufferSize) {
-		sizeToRead = remainingBytes;
-	} else {
-		sizeToRead = _bufferSize;
-	}
+  // We wish to refill the buffer.  We want to read data from the socket.  We want to read either
+  // the size of the buffer to fill it or the maximum number of bytes remaining to be read.
+  // We will choose which ever is smaller as the number of bytes to read into the buffer.
+  int remainingBytes = getRecordSize()-_sizeRead;
+  size_t sizeToRead;
+  if (remainingBytes < _bufferSize) {
+    sizeToRead = remainingBytes;
+  } else {
+    sizeToRead = _bufferSize;
+  }
 
-	HTTPS_DLOGINT("[   ] WebSocketInputRecordStreambuf - getting next buffer of data; size request: ", sizeToRead);
-	int bytesRead = _con->readBuffer((uint8_t*)_buffer, sizeToRead);
-	if (bytesRead == 0) {
-		HTTPS_DLOG("[   ] WebSocketInputRecordStreambuf << underflow: Read 0 bytes");
-		return EOF;
-	}
+  HTTPS_DLOGINT("[   ] WebSocketInputRecordStreambuf - getting next buffer of data; size request: ", sizeToRead);
+  int bytesRead = _con->readBuffer((uint8_t*)_buffer, sizeToRead);
+  if (bytesRead == 0) {
+    HTTPS_DLOG("[   ] WebSocketInputRecordStreambuf << underflow: Read 0 bytes");
+    return EOF;
+  }
 
-	// If the WebSocket frame shows that we have a mask bit set then we have to unmask the data.
-	if (_pMask != nullptr) {
-		for (int i=0; i<bytesRead; i++) {
-			_buffer[i] = _buffer[i] ^ _pMask[(_sizeRead+i)%4];
-		}
-	}
+  // If the WebSocket frame shows that we have a mask bit set then we have to unmask the data.
+  if (_pMask != nullptr) {
+    for (int i=0; i<bytesRead; i++) {
+      _buffer[i] = _buffer[i] ^ _pMask[(_sizeRead+i)%4];
+    }
+  }
 
-	_sizeRead += bytesRead;  // Increase the count of number of bytes actually read from the source.
+  _sizeRead += bytesRead;  // Increase the count of number of bytes actually read from the source.
 
-	setg(_buffer, _buffer, _buffer + bytesRead); // Change the buffer pointers to reflect the new data read.
-	HTTPS_DLOGINT("[   ] WebSocketInputRecordStreambuf << underflow - got more bytes: ", bytesRead);
-	return traits_type::to_int_type(*gptr());
+  setg(_buffer, _buffer, _buffer + bytesRead); // Change the buffer pointers to reflect the new data read.
+  HTTPS_DLOGINT("[   ] WebSocketInputRecordStreambuf << underflow - got more bytes: ", bytesRead);
+  return traits_type::to_int_type(*gptr());
 } // underflow
 
 }

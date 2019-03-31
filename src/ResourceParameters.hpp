@@ -18,23 +18,23 @@ struct requestparam_t {std::string name; std::string value;};
 
 class ResourceParameters {
 public:
-	ResourceParameters();
-	virtual ~ResourceParameters();
+  ResourceParameters();
+  virtual ~ResourceParameters();
 
-	bool isRequestParameterSet(std::string const &name);
-	std::string getRequestParameter(std::string const &name);
-	uint16_t getRequestParameterInt(std::string const &name);
-	void setRequestParameter(std::string const &name, std::string const &value);
+  bool isRequestParameterSet(std::string const &name);
+  std::string getRequestParameter(std::string const &name);
+  uint16_t getRequestParameterInt(std::string const &name);
+  void setRequestParameter(std::string const &name, std::string const &value);
 
-	std::string getUrlParameter(uint8_t idx);
-	uint16_t getUrlParameterInt(uint8_t idx);
-	void resetUrlParameters();
-	void setUrlParameterCount(uint8_t idx);
-	void setUrlParameter(uint8_t idx, std::string const &val);
+  std::string getUrlParameter(uint8_t idx);
+  uint16_t getUrlParameterInt(uint8_t idx);
+  void resetUrlParameters();
+  void setUrlParameterCount(uint8_t idx);
+  void setUrlParameter(uint8_t idx, std::string const &val);
 
 private:
-	std::vector<std::string> _urlParams;
-	std::vector<std::pair<std::string, std::string>> _reqParams;
+  std::vector<std::string> _urlParams;
+  std::vector<std::pair<std::string, std::string>> _reqParams;
 };
 
 } /* namespace httpsserver */

@@ -8,11 +8,11 @@ namespace httpsserver {
 
 class HTTPHeader {
 public:
-	HTTPHeader(const std::string &name, const std::string &value);
-	virtual ~HTTPHeader();
-	const std::string _name;
-	const std::string _value;
-	std::string print();
+  HTTPHeader(const std::string &name, const std::string &value);
+  virtual ~HTTPHeader();
+  const std::string _name;
+  const std::string _value;
+  std::string print();
 };
 
 } /* namespace httpsserver */

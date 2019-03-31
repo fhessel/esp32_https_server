@@ -28,25 +28,25 @@ namespace httpsserver {
 
 class HTTPSConnection : public HTTPConnection {
 public:
-	HTTPSConnection(ResourceResolver * resResolver);
-	virtual ~HTTPSConnection();
+  HTTPSConnection(ResourceResolver * resResolver);
+  virtual ~HTTPSConnection();
 
-	virtual int initialize(int serverSocketID, SSL_CTX * sslCtx, HTTPHeaders *defaultHeaders);
-	virtual void closeConnection();
-	virtual bool isSecure();
+  virtual int initialize(int serverSocketID, SSL_CTX * sslCtx, HTTPHeaders *defaultHeaders);
+  virtual void closeConnection();
+  virtual bool isSecure();
 
 protected:
-	friend class HTTPRequest;
-	friend class HTTPResponse;
+  friend class HTTPRequest;
+  friend class HTTPResponse;
 
-	virtual size_t readBytesToBuffer(byte* buffer, size_t length);
-	virtual size_t pendingByteCount();
-	virtual bool canReadData();
-	virtual size_t writeBuffer(byte* buffer, size_t length);
+  virtual size_t readBytesToBuffer(byte* buffer, size_t length);
+  virtual size_t pendingByteCount();
+  virtual bool canReadData();
+  virtual size_t writeBuffer(byte* buffer, size_t length);
 
 private:
-	// SSL context for this connection
-	SSL * _ssl;
+  // SSL context for this connection
+  SSL * _ssl;
 
 };
 

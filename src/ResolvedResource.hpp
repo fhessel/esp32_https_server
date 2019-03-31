@@ -8,18 +8,18 @@ namespace httpsserver {
 
 class ResolvedResource {
 public:
-	ResolvedResource();
-	~ResolvedResource();
+  ResolvedResource();
+  ~ResolvedResource();
 
-	void setMatchingNode(HTTPNode * node);
-	HTTPNode * getMatchingNode();
-	bool didMatch();
-	ResourceParameters * getParams();
-	void setParams(ResourceParameters * params);
+  void setMatchingNode(HTTPNode * node);
+  HTTPNode * getMatchingNode();
+  bool didMatch();
+  ResourceParameters * getParams();
+  void setParams(ResourceParameters * params);
 
 private:
-	HTTPNode * _matchingNode;
-	ResourceParameters * _params;
+  HTTPNode * _matchingNode;
+  ResourceParameters * _params;
 };
 
 } /* namespace httpsserver */

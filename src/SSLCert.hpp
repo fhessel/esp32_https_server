@@ -34,39 +34,39 @@ namespace httpsserver {
 
 class SSLCert {
 public:
-	SSLCert(
-		unsigned char * certData = NULL,
-		uint16_t certLength = 0,
-		unsigned char * pkData = NULL,
-		uint16_t pkLength = 0
-	);
-	virtual ~SSLCert();
+  SSLCert(
+    unsigned char * certData = NULL,
+    uint16_t certLength = 0,
+    unsigned char * pkData = NULL,
+    uint16_t pkLength = 0
+  );
+  virtual ~SSLCert();
 
-	uint16_t getCertLength();
-	uint16_t getPKLength();
-	unsigned char * getCertData();
-	unsigned char * getPKData();
+  uint16_t getCertLength();
+  uint16_t getPKLength();
+  unsigned char * getCertData();
+  unsigned char * getPKData();
 
-	void setPK(unsigned char * _pkData, uint16_t length);
-	void setCert(unsigned char * _certData, uint16_t length);
+  void setPK(unsigned char * _pkData, uint16_t length);
+  void setCert(unsigned char * _certData, uint16_t length);
 
-	/** Clears the key buffers and delets them. */
-	void clear();
+  /** Clears the key buffers and delets them. */
+  void clear();
 
 private:
-	uint16_t _certLength;
-	unsigned char * _certData;
-	uint16_t _pkLength;
-	unsigned char * _pkData;
+  uint16_t _certLength;
+  unsigned char * _certData;
+  uint16_t _pkLength;
+  unsigned char * _pkData;
 
 };
 
 #ifndef HTTPS_DISABLE_SELFSIGNING
 
 enum SSLKeySize {
-	KEYSIZE_1024 = 1024,
-	KEYSIZE_2048 = 2048,
-	KEYSIZE_4096 = 4096
+  KEYSIZE_1024 = 1024,
+  KEYSIZE_2048 = 2048,
+  KEYSIZE_4096 = 4096
 };
 
 /**

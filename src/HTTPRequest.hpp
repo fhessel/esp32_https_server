@@ -17,44 +17,44 @@ namespace httpsserver {
 
 class HTTPRequest {
 public:
-	HTTPRequest(ConnectionContext * con, HTTPHeaders * headers, HTTPNode * resolvedNode, std::string method, ResourceParameters * params, std::string requestString);
-	virtual ~HTTPRequest();
+  HTTPRequest(ConnectionContext * con, HTTPHeaders * headers, HTTPNode * resolvedNode, std::string method, ResourceParameters * params, std::string requestString);
+  virtual ~HTTPRequest();
 
-	std::string getHeader(std::string const &name);
-	void setHeader(std::string const &name, std::string const &value);
-	HTTPNode * getResolvedNode();
-	std::string getRequestString();
-	std::string getMethod();
-	std::string getTag();
+  std::string getHeader(std::string const &name);
+  void setHeader(std::string const &name, std::string const &value);
+  HTTPNode * getResolvedNode();
+  std::string getRequestString();
+  std::string getMethod();
+  std::string getTag();
 
-	size_t readChars(char * buffer, size_t length);
-	size_t readBytes(byte * buffer, size_t length);
-	size_t getContentLength();
-	bool   requestComplete();
-	void   discardRequestBody();
-	ResourceParameters * getParams();
-	std::string getBasicAuthUser();
-	std::string getBasicAuthPassword();
-	bool   isSecure();
-	void setWebsocketHandler(WebsocketHandler *wsHandler);
-	
+  size_t readChars(char * buffer, size_t length);
+  size_t readBytes(byte * buffer, size_t length);
+  size_t getContentLength();
+  bool   requestComplete();
+  void   discardRequestBody();
+  ResourceParameters * getParams();
+  std::string getBasicAuthUser();
+  std::string getBasicAuthPassword();
+  bool   isSecure();
+  void setWebsocketHandler(WebsocketHandler *wsHandler);
+
 private:
-	std::string decodeBasicAuthToken();
+  std::string decodeBasicAuthToken();
 
-	ConnectionContext * _con;
+  ConnectionContext * _con;
 
-	HTTPHeaders * _headers;
+  HTTPHeaders * _headers;
 
-	HTTPNode * _resolvedNode;
+  HTTPNode * _resolvedNode;
 
-	std::string _method;
+  std::string _method;
 
-	ResourceParameters * _params;
+  ResourceParameters * _params;
 
-	std::string _requestString;
+  std::string _requestString;
 
-	bool _contentLengthSet;
-	size_t _remainingContent;
+  bool _contentLengthSet;
+  size_t _remainingContent;
 };
 
 } /* namespace httpsserver */

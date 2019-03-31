@@ -3,8 +3,8 @@
 namespace httpsserver {
 
 HTTPValidator::HTTPValidator(const uint8_t idx, const HTTPValidationFunction * validatorFunction):
-	_idx(idx),
-	_validatorFunction(validatorFunction)	{
+  _idx(idx),
+  _validatorFunction(validatorFunction) {
 
 }
 
