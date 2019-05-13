@@ -233,11 +233,7 @@ void handleRoot(HTTPRequest * req, HTTPResponse * res) {
     "                    txtName.disabled = true;\n"
     "                    this.name = txtName.value;\n"
     "                    btnConnect.innerHTML = \"Connecting...\";\n"
-    "                    this.ws = new WebSocket(\"wss://"
-  );
-  res->print(WiFi.localIP());
-  res->print(
-    "/chat\");\n"
+    "                    this.ws = new WebSocket(\"wss://\" + document.location.host + \"/chat\");\n"
     "                    this.ws.onopen = e => {\n"
     "                        this.connecting = false;\n"
     "                        this.connected = true;\n"
