@@ -307,7 +307,7 @@ void handleSPIFFS(HTTPRequest * req, HTTPResponse * res) {
 
     // Check if the file exists
     if (!SPIFFS.exists(filename.c_str())) {
-      // Send "405 Method not allowed" as response
+      // Send "404 Not Found" as response, as the file doesn't seem to exist
       res->setStatusCode(404);
       res->setStatusText("Not found");
       res->println("404 Not Found");
