@@ -16,6 +16,9 @@ namespace httpsserver {
 
 struct requestparam_t {std::string name; std::string value;};
 
+/**
+ * \brief Class used to handle access to the URL parameters
+ */
 class ResourceParameters {
 public:
   ResourceParameters();

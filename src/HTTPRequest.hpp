@@ -15,6 +15,9 @@
 
 namespace httpsserver {
 
+/**
+ * \brief Represents the request stream for an HTTP request
+ */
 class HTTPRequest {
 public:
   HTTPRequest(ConnectionContext * con, HTTPHeaders * headers, HTTPNode * resolvedNode, std::string method, ResourceParameters * params, std::string requestString);

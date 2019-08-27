@@ -11,6 +11,9 @@ namespace httpsserver {
 
 class WebsocketHandler;
 
+/**
+ * \brief Internal class to handle the state of a connection
+ */
 class ConnectionContext {
 public:
   ConnectionContext();

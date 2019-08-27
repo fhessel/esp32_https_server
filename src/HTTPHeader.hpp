@@ -6,6 +6,9 @@
 
 namespace httpsserver {
 
+/**
+ * \brief Represents a single name/value pair of an HTTP header
+ */
 class HTTPHeader {
 public:
   HTTPHeader(const std::string &name, const std::string &value);

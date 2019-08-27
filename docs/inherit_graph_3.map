@@ -1,0 +1,5 @@
+<map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
+<area shape="rect" id="node1" href="$classhttpsserver_1_1HTTPNode.html" title="Base class for a URL/route&#45;handler in the server. " alt="" coords="5,31,167,57"/>
+<area shape="rect" id="node2" href="$classhttpsserver_1_1ResourceNode.html" title="This HTTPNode represents a route that maps to a regular HTTP request for a resource (static or dynami..." alt="" coords="219,5,402,32"/>
+<area shape="rect" id="node3" href="$classhttpsserver_1_1WebsocketNode.html" title="httpsserver::WebsocketNode" alt="" coords="215,56,407,83"/>
+</map>

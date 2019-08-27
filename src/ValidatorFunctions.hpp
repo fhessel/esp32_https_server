@@ -19,12 +19,16 @@
 
 namespace httpsserver {
 
-  /** Checks that a string is not empty. */
+  /**
+   * \brief **Built-in validator function**: Checks that a string is not empty.
+   */
   bool validateNotEmpty(std::string s);
 
   /**
+   * \brief **Built-in validator function**: Checks that a value is a positive int
+   * 
    * Checks that the value is a positive integer (combine it with newValidateUnsignedIntegerMax if
-   * you have constraints regarding the size of that number
+   * you have constraints regarding the size of that number)
    */
   bool validateUnsignedInteger(std::string s);
 
