@@ -1,0 +1,5 @@
+<map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
+<area shape="rect" id="node1" href="$classhttpsserver_1_1ConnectionContext.html" title="Internal class to handle the state of a connection. " alt="" coords="5,5,212,32"/>
+<area shape="rect" id="node2" href="$classhttpsserver_1_1HTTPConnection.html" title="Represents a single open connection for the plain HTTPServer, without TLS. " alt="" coords="260,5,456,32"/>
+<area shape="rect" id="node3" href="$classhttpsserver_1_1HTTPSConnection.html" title="Connection class for an open TLS&#45;enabled connection to an HTTPSServer. " alt="" coords="504,5,709,32"/>
+</map>

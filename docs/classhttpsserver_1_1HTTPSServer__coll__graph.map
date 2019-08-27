@@ -1,0 +1,8 @@
+<map id="httpsserver::HTTPSServer" name="httpsserver::HTTPSServer">
+<area shape="rect" id="node2" href="$classhttpsserver_1_1HTTPServer.html" title="Main implementation for the plain HTTP server. Use HTTPSServer for TLS support. " alt="" coords="237,260,405,287"/>
+<area shape="rect" id="node3" href="$classhttpsserver_1_1ResourceResolver.html" title="This class is used internally to resolve a string URL to the corresponding HTTPNode. " alt="" coords="5,171,208,197"/>
+<area shape="rect" id="node4" href="$classhttpsserver_1_1HTTPHeaders.html" title="Groups and manages a set of HTTPHeader instances. " alt="" coords="232,171,411,197"/>
+<area shape="rect" id="node5" href="$classhttpsserver_1_1HTTPConnection.html" title="Represents a single open connection for the plain HTTPServer, without TLS. " alt="" coords="435,171,631,197"/>
+<area shape="rect" id="node6" href="$classhttpsserver_1_1ConnectionContext.html" title="Internal class to handle the state of a connection. " alt="" coords="430,95,637,121"/>
+<area shape="rect" id="node7" href="$classhttpsserver_1_1WebsocketHandler.html" title="httpsserver::WebsocketHandler" alt="" coords="430,5,637,32"/>
+</map>

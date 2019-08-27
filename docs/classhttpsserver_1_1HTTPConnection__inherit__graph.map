@@ -1,0 +1,4 @@
+<map id="httpsserver::HTTPConnection" name="httpsserver::HTTPConnection">
+<area shape="rect" id="node3" href="$classhttpsserver_1_1HTTPSConnection.html" title="Connection class for an open TLS&#45;enabled connection to an HTTPSServer. " alt="" coords="6,155,211,181"/>
+<area shape="rect" id="node2" href="$classhttpsserver_1_1ConnectionContext.html" title="Internal class to handle the state of a connection. " alt="" coords="5,5,212,32"/>
+</map>

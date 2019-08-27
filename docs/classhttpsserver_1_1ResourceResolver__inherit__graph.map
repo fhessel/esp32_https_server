@@ -1,0 +1,4 @@
+<map id="httpsserver::ResourceResolver" name="httpsserver::ResourceResolver">
+<area shape="rect" id="node2" href="$classhttpsserver_1_1HTTPServer.html" title="Main implementation for the plain HTTP server. Use HTTPSServer for TLS support. " alt="" coords="23,80,191,107"/>
+<area shape="rect" id="node3" href="$classhttpsserver_1_1HTTPSServer.html" title="Main implementation of the HTTP Server with TLS support. Use HTTPServer for plain HTTP..." alt="" coords="18,155,195,181"/>
+</map>

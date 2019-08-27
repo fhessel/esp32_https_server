@@ -1,0 +1,21 @@
+var NAVTREEINDEX1 =
+{
+"namespacemembers_enum.html":[0,1,3],
+"namespacemembers_eval.html":[0,1,4],
+"namespacemembers_func.html":[0,1,1],
+"namespacemembers_type.html":[0,1,2],
+"namespaces.html":[0,0],
+"pages.html":[],
+"structhttpsserver_1_1WebsocketFrame.html":[1,0,0,17],
+"structhttpsserver_1_1WebsocketFrame.html#a61d1bbb49a5f8ac31e4f3efc3eaccd81":[1,0,0,17,4],
+"structhttpsserver_1_1WebsocketFrame.html#a62b8e7f4b3db863b8f2bb5ff00b54127":[1,0,0,17,0],
+"structhttpsserver_1_1WebsocketFrame.html#a67e3eade4fb72069fcbb4d6873626bd2":[1,0,0,17,6],
+"structhttpsserver_1_1WebsocketFrame.html#a8735010eee4f03884e6cabf73ddbecbd":[1,0,0,17,3],
+"structhttpsserver_1_1WebsocketFrame.html#a8d77f3e1a7b2c14f3f840502eacd8f0e":[1,0,0,17,5],
+"structhttpsserver_1_1WebsocketFrame.html#ad8cbbbc43626d2fef5b23d321f6f29c2":[1,0,0,17,1],
+"structhttpsserver_1_1WebsocketFrame.html#ade6f36bfd981f63e9a48dc8843d69276":[1,0,0,17,2],
+"structhttpsserver_1_1requestparam__t.html":[1,0,0,11],
+"structhttpsserver_1_1requestparam__t.html#a8bfe1fb074edc67b0441c57e44e25d90":[1,0,0,11,1],
+"structhttpsserver_1_1requestparam__t.html#aadc9c5087795fe0a79370fe550d16bf2":[1,0,0,11,0],
+"util_8hpp_source.html":[2,0,0,19]
+};
