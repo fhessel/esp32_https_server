@@ -42,6 +42,8 @@ You will find several examples showing how you can use the library:
 
 If you encounter error messages that cert.h or private\_key.h are missing when running an example, make sure to run create\_cert.sh first (see Setup Instructions).
 
+You might also want to check out the (work-in-progress) [Documentation](https://fhessel.github.io/esp32_https_server/).
+
 ## Get Started
 
 The following includes are required to be able to setup the server.
