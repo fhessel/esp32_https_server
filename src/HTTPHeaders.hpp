@@ -12,6 +12,9 @@
 
 namespace httpsserver {
 
+/**
+ * \brief Groups and manages a set of HTTPHeader instances
+ */
 class HTTPHeaders {
 public:
   HTTPHeaders();

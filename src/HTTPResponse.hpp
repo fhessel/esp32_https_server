@@ -19,6 +19,9 @@
 
 namespace httpsserver {
 
+/**
+ * \brief Represents the response stream of an HTTP request
+ */
 class HTTPResponse : public Print {
 public:
   HTTPResponse(ConnectionContext * con);

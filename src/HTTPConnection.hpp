@@ -31,6 +31,9 @@
 
 namespace httpsserver {
 
+/**
+ * \brief Represents a single open connection for the plain HTTPServer, without TLS
+ */
 class HTTPConnection : private ConnectionContext {
 public:
   HTTPConnection(ResourceResolver * resResolver);

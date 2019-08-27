@@ -26,6 +26,9 @@
 
 namespace httpsserver {
 
+/**
+ * \brief Connection class for an open TLS-enabled connection to an HTTPSServer
+ */
 class HTTPSConnection : public HTTPConnection {
 public:
   HTTPSConnection(ResourceResolver * resResolver);

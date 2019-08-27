@@ -17,6 +17,12 @@ enum HTTPNodeType {
   WEBSOCKET
 };
 
+/**
+ * \brief Base class for a URL/route-handler in the server.
+ * 
+ * Use ResourceNode for requests that access dynamic or static resources or HttpNode for routes that
+ * create Websockets.
+ */
 class HTTPNode {
 public:
   HTTPNode(const std::string &path, const HTTPNodeType nodeType, const std::string &tag = "");

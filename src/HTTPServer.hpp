@@ -24,6 +24,9 @@
 
 namespace httpsserver {
 
+/**
+ * \brief Main implementation for the plain HTTP server. Use HTTPSServer for TLS support
+ */
 class HTTPServer : public ResourceResolver {
 public:
   HTTPServer(const uint16_t portHTTPS = 80, const uint8_t maxConnections = 8, const in_addr_t bindAddress = 0);

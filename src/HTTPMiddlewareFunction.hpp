@@ -10,7 +10,7 @@
 namespace httpsserver {
   class HTTPRequest;
   /**
-   * A middleware function that can be registered at the server.
+   * \brief A middleware function that can be registered at the server.
    *
    * It will be called before an incoming request is passed to any HTTPSCallbackFunction and may perform
    * operations like redirects or authentication.

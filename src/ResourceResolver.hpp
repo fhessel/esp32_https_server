@@ -16,6 +16,9 @@
 
 namespace httpsserver {
 
+/**
+ * \brief This class is used internally to resolve a string URL to the corresponding HTTPNode
+ */
 class ResourceResolver {
 public:
   ResourceResolver();

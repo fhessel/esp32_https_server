@@ -6,6 +6,9 @@
 
 namespace httpsserver {
 
+/**
+ * \brief This class represents a resolved resource, meaning the result of mapping a string URL to an HTTPNode
+ */
 class ResolvedResource {
 public:
   ResolvedResource();
