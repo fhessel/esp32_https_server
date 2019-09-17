@@ -129,6 +129,7 @@ void HTTPConnection::closeConnection() {
   if (_wsHandler != nullptr) {
     HTTPS_LOGD("Free WS Handler");
     delete _wsHandler;
+    _wsHandler = NULL;
   }
 }
 
