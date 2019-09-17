@@ -58,3 +58,34 @@ std::string intToString(int i) {
 }
 
 }
+
+std::string urlDecode(std::string input) {
+  std::size_t idxReplaced = 0;
+  std::size_t idxFound = input.find('%');
+  while (idxFound != std::string::npos) {
+    if (idxFound <= input.length() + 3) {
+      char hex[2] = { input[idxFound+1], input[idxFound+2] };
+      byte val = 0;
+      for(int n = 0; n < sizeof(hex); n++) {
+        val <<= 4;
+        if ('0' <= hex[n] && hex[n] <= '9') {
+          val += hex[n]-'0';
+        }
+        else if ('A' <= hex[n] && hex[n] <= 'F') {
+          val += hex[n]-'A'+10;
+        }
+        else if ('a' <= hex[n] && hex[n] <= 'f') {
+          val += hex[n]-'a'+10;
+        }
+        else {
+          goto skipChar;
+        }
+      }
+      input.replace(idxFound, 3, 1, (char)val);
+    }
+    skipChar:
+    idxReplaced = idxFound + 1;
+    idxFound = input.find('%', idxReplaced);
+  }
+  return input;
+}

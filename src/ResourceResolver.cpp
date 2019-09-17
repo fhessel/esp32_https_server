@@ -58,8 +58,7 @@ void ResourceResolver::resolveNode(const std::string &method, const std::string 
       std::string name  = param.substr(0, nvSplitIdx);
       std::string value = "";
       if (nvSplitIdx != std::string::npos) {
-        // TODO: There may be url encoding in here.
-        value = param.substr(nvSplitIdx+1);
+        value = urlDecode(param.substr(nvSplitIdx+1));
       }
 
       // Now we finally have name and value.
@@ -116,7 +115,7 @@ void ResourceResolver::resolveNode(const std::string &method, const std::string 
               // Second step: Grab the parameter value
               if (nodeIdx == nodepath.length()) {
                 // Easy case: parse until end of string
-                params->setUrlParameter(pIdx, resourceName.substr(urlIdx));
+                params->setUrlParameter(pIdx, urlDecode(resourceName.substr(urlIdx)));
               } else {
                 // parse until first char after the placeholder
                 char terminatorChar = nodepath[nodeIdx];
@@ -124,7 +123,7 @@ void ResourceResolver::resolveNode(const std::string &method, const std::string 
                 if (terminatorPosition != std::string::npos) {
                   // We actually found the terminator
                   size_t dynamicLength = terminatorPosition-urlIdx;
-                  params->setUrlParameter(pIdx, resourceName.substr(urlIdx, dynamicLength));
+                  params->setUrlParameter(pIdx, urlDecode(resourceName.substr(urlIdx, dynamicLength)));
                   urlIdx = urlIdx + dynamicLength;
                 } else {
                   // We did not find the terminator

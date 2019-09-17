@@ -27,4 +27,9 @@ std::string intToString(int i);
 
 }
 
+/**
+ * \brief **Utility function**: Removes URL encoding from the string (e.g. %20 -> space)
+ */
+std::string urlDecode(std::string input);
+
 #endif /* SRC_UTIL_HPP_ */
