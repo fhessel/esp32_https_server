@@ -44,7 +44,7 @@ std::string intToString(int i) {
     return "0";
   }
   // We need this much digits
-  int digits = ceil(log10(i));
+  int digits = ceil(log10(i+1));
   char c[digits+1];
   c[digits] = '\0';
 
