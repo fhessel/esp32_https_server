@@ -69,6 +69,7 @@ void HTTPServer::stop() {
           // and wait for the client
           if (_connections[i]->isClosed()) {
             delete _connections[i];
+            _connections[i] = NULL;
           } else {
             hasOpenConnections = true;
           }
