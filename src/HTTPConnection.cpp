@@ -259,20 +259,19 @@ size_t HTTPConnection::readBytesToBuffer(byte* buffer, size_t length) {
   return recv(_socket, buffer, length, MSG_WAITALL | MSG_DONTWAIT);
 }
 
-void HTTPConnection::serverError() {
+void HTTPConnection::raiseError(uint16_t code, std::string reason) {
   _connectionState = STATE_ERROR;
+  std::string sCode = intToString(code);
 
-  char staticResponse[] = "HTTP/1.1 500 Internal Server Error\r\nServer: esp32https\r\nConnection:close\r\nContent-Type: text/html\r\nContent-Length:34\r\n\r\n<h1>500 Internal Server Error</h1>";
-  writeBuffer((byte*)staticResponse, strlen(staticResponse));
-  closeConnection();
-}
-
-
-void HTTPConnection::clientError() {
-  _connectionState = STATE_ERROR;
-
-  char staticResponse[] = "HTTP/1.1 400 Bad Request\r\nServer: esp32https\r\nConnection:close\r\nContent-Type: text/html\r\nContent-Length:26\r\n\r\n<h1>400 Bad Request</h1>";
-  writeBuffer((byte*)staticResponse, strlen(staticResponse));
+  char headers[] = "\r\nConnection: close\r\nContent-Type: text/plain;charset=utf8\r\n\r\n";
+  writeBuffer((byte*)"HTTP/1.1 ", 9);
+  writeBuffer((byte*)sCode.c_str(), sCode.length());
+  writeBuffer((byte*)" ", 1);
+  writeBuffer((byte*)(reason.c_str()), reason.length());
+  writeBuffer((byte*)headers, strlen(headers));
+  writeBuffer((byte*)sCode.c_str(), sCode.length());
+  writeBuffer((byte*)" ", 1);
+  writeBuffer((byte*)(reason.c_str()), reason.length());
   closeConnection();
 }
 
@@ -290,7 +289,7 @@ void HTTPConnection::readLine(int lengthLimit) {
         } else {
           // Line has not been terminated by \r\n
           HTTPS_LOGW("Line without \\r\\n (got only \\r). FID=%d", _socket);
-          clientError();
+          raiseError(400, "Bad Request");
           return;
         }
       }
@@ -302,7 +301,7 @@ void HTTPConnection::readLine(int lengthLimit) {
     // Check that the max request string size is not exceeded
     if (_parserLine.text.length() > lengthLimit) {
       HTTPS_LOGW("Header length exceeded. FID=%d", _socket);
-      serverError();
+      raiseError(431, "Request Header Fields Too Large");
       return;
     }
   }
@@ -320,7 +319,7 @@ void HTTPConnection::signalClientClose() {
  */
 void HTTPConnection::signalRequestError() {
   // TODO: Check that no response has been transmitted yet
-  serverError();
+  raiseError(400, "Bad Request");
 }
 
 /**
@@ -360,7 +359,7 @@ void HTTPConnection::loop() {
         size_t spaceAfterMethodIdx = _parserLine.text.find(' ');
         if (spaceAfterMethodIdx == std::string::npos) {
           HTTPS_LOGW("Missing space after method");
-          clientError();
+          raiseError(400, "Bad Request");
           break;
         }
         _httpMethod = _parserLine.text.substr(0, spaceAfterMethodIdx);
@@ -369,7 +368,7 @@ void HTTPConnection::loop() {
         size_t spaceAfterResourceIdx = _parserLine.text.find(' ', spaceAfterMethodIdx + 1);
         if (spaceAfterResourceIdx == std::string::npos) {
           HTTPS_LOGW("Missing space after resource");
-          clientError();
+          raiseError(400, "Bad Request");
           break;
         }
         _httpResource = _parserLine.text.substr(spaceAfterMethodIdx + 1, spaceAfterResourceIdx - _httpMethod.length() - 1);
@@ -405,7 +404,7 @@ void HTTPConnection::loop() {
               HTTPS_LOGD("Header: %s = %s (FID=%d)", _parserLine.text.substr(0, idxColon).c_str(), _parserLine.text.substr(idxColon+2).c_str(), _socket);
             } else {
               HTTPS_LOGW("Malformed request header: %s", _parserLine.text.c_str());
-              clientError();
+              raiseError(400, "Bad Request");
               break;
             }
           }
@@ -547,7 +546,7 @@ void HTTPConnection::loop() {
         } else {
           // No match (no default route configured, nothing does match)
           HTTPS_LOGW("Could not find a matching resource");
-          serverError();
+          raiseError(404, "Not Found");
         }
 
       }

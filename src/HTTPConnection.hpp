@@ -107,8 +107,7 @@ protected:
   } _clientState;
 
 private:
-  void serverError();
-  void clientError();
+  void raiseError(uint16_t code, std::string reason);
   void readLine(int lengthLimit);
 
   bool isTimeoutExceeded();
