@@ -39,13 +39,18 @@ public:
   HTTPConnection(ResourceResolver * resResolver);
   virtual ~HTTPConnection();
 
-  virtual int initialize(int serverSocketID, HTTPHeaders *defaultHeaders);
+  virtual void initialize(int serverSocketID, HTTPHeaders *defaultHeaders);
+  virtual int initialAccept();
+  virtual int fullyAccept();
   virtual void closeConnection();
   virtual bool isSecure();
 
   bool loop();
   bool isClosed();
   bool isError();
+  bool isIdle();
+  long int remainingMsUntilTimeout();
+  int getSocket();
 
 protected:
   friend class HTTPRequest;
@@ -56,6 +61,9 @@ protected:
   virtual size_t readBytesToBuffer(byte* buffer, size_t length);
   virtual bool canReadData();
   virtual size_t pendingByteCount();
+
+  // Connection socket (LWIP)
+  int _socket;
 
   // Timestamp of the last transmission action
   unsigned long _lastTransmissionTS;
@@ -82,6 +90,8 @@ protected:
 
     // The connection has not been established yet
     STATE_UNDEFINED,
+    // The connection fully established (i.e. TLS)
+    STATE_ACCEPTED,
     // The connection has just been created
     STATE_INITIAL,
     // The request line has been parsed
@@ -107,8 +117,7 @@ protected:
   } _clientState;
 
 private:
-  void serverError();
-  void clientError();
+  void raiseError(uint16_t code, std::string reason);
   void readLine(int lengthLimit);
 
   bool isTimeoutExceeded();
@@ -134,8 +143,8 @@ private:
   // Socket address, length etc for the connection
   struct sockaddr _sockAddr;
   socklen_t _addrLen;
-  int _socket;
-
+  int _serverSocket;
+  
   // Resource resolver used to resolve resources
   ResourceResolver * _resResolver;
 
@@ -158,7 +167,6 @@ private:
 
   //Websocket connection
   WebsocketHandler * _wsHandler;
-
 };
 
 void handleWebsocketHandshake(HTTPRequest * req, HTTPResponse * res);

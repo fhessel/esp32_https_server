@@ -13,6 +13,10 @@
 #include "lwip/sockets.h"
 #include "lwip/inet.h"
 
+// FreeRTOS 
+#include "freertos/FreeRTOS.h"
+#include "freertos/semphr.h"
+
 // Internal includes
 #include "HTTPSServerConstants.hpp"
 #include "HTTPHeaders.hpp"
@@ -21,6 +25,7 @@
 #include "ResourceResolver.hpp"
 #include "ResolvedResource.hpp"
 #include "HTTPConnection.hpp"
+#include "HTTPWorker.hpp"
 
 namespace httpsserver {
 
@@ -36,11 +41,24 @@ public:
   void stop();
   bool isRunning();
 
-  void loop();
+  // Return value is remaining miliseconds if function returned early
+  int loop(int timeoutMs = 0);
 
   void setDefaultHeader(std::string name, std::string value);
 
+  // Enable separate FreeRTOS tasks handling for connections. 
+  // Must be called before start()
+  void enableWorkers(
+    uint8_t numWorkers = 2, 
+    size_t taskStackSize = HTTPS_CONN_TASK_STACK_SIZE, 
+    int taskPriority = HTTPS_CONN_TASK_PRIORITY
+  );
+
+  HTTPHeaders * getDefaultHeaders();
+  int serverSocket();
+
 protected:
+  friend class HTTPWorker;
   // Static configuration. Port, keys, etc. ====================
   // Certificate that should be used (includes private key)
   const uint16_t _port;
@@ -57,6 +75,18 @@ protected:
   boolean _running;
   // The server socket
   int _socket;
+  
+  // Keep state if we have pendig connections
+  HTTPConnection * _pendingConnection = NULL;
+  bool _pendingData = false;
+  bool _lookForIdleConnection = false;
+  
+  // HTTPWorker(s) and syncronization
+  uint8_t _numWorkers = 0;
+  SemaphoreHandle_t _selectMutex = NULL;
+  SemaphoreHandle_t * _connectionMutex = NULL;
+  QueueHandle_t _workQueue = NULL;
+  HTTPWorker ** _workers;
 
   // The server socket address, that our service is bound to
   sockaddr_in _sock_addr;
@@ -67,8 +97,14 @@ protected:
   virtual uint8_t setupSocket();
   virtual void teardownSocket();
 
+  // Internal functions
+  void manageConnections(int maxTimeoutMs);
+  bool doQueuedWork(TickType_t waitDelay);
+
   // Helper functions
-  virtual int createConnection(int idx);
+  virtual HTTPConnection * createConnection();
+  //int createConnection(int idx);
+
 };
 
 }

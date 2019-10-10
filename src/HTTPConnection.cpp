@@ -26,23 +26,28 @@ HTTPConnection::~HTTPConnection() {
 }
 
 /**
- * Initializes the connection from a server socket.
+ * Initializes the connection
+ */
+void HTTPConnection::initialize(int serverSocketID, HTTPHeaders *defaultHeaders) {
+  _defaultHeaders = defaultHeaders;
+  _serverSocket = serverSocketID;
+}
+
+/**
+ * Accepts the connection from a server socket.
  *
  * The call WILL BLOCK if accept(serverSocketID) blocks. So use select() to check for that in advance.
  */
-int HTTPConnection::initialize(int serverSocketID, HTTPHeaders *defaultHeaders) {
+int HTTPConnection::initialAccept() {
   if (_connectionState == STATE_UNDEFINED) {
-    _defaultHeaders = defaultHeaders;
-    _socket = accept(serverSocketID, (struct sockaddr * )&_sockAddr, &_addrLen);
+    _socket = accept(_serverSocket, (struct sockaddr * )&_sockAddr, &_addrLen);
 
-    // Build up SSL Connection context if the socket has been created successfully
     if (_socket >= 0) {
       HTTPS_LOGI("New connection. Socket FID=%d", _socket);
-      _connectionState = STATE_INITIAL;
+      _connectionState = STATE_ACCEPTED;
       _httpHeaders = new HTTPHeaders();
       refreshTimeout();
       return _socket;
-
     }
      
     HTTPS_LOGE("Could not accept() new connection");
@@ -58,6 +63,23 @@ int HTTPConnection::initialize(int serverSocketID, HTTPHeaders *defaultHeaders) 
   return -1;
 }
 
+int HTTPConnection::fullyAccept() {
+  if (_connectionState == STATE_UNDEFINED) {
+    initialAccept();
+  }
+  if (_connectionState == STATE_ACCEPTED) {
+    _connectionState = STATE_INITIAL;
+    return _socket;
+  }
+  return -1;
+}
+
+/**
+ *  Get connection socket
+ */
+int HTTPConnection::getSocket() {
+  return _socket;
+}
 
 /**
  * True if the connection is timed out.
@@ -66,6 +88,17 @@ int HTTPConnection::initialize(int serverSocketID, HTTPHeaders *defaultHeaders) 
  */
 bool HTTPConnection::isTimeoutExceeded() {
   return _lastTransmissionTS + HTTPS_CONNECTION_TIMEOUT < millis();
+}
+
+/**
+ * Return remaining milliseconds until timeout
+ * 
+ * (Should return 0 or negative value if connection is timed-out or closed)
+ */
+long int HTTPConnection::remainingMsUntilTimeout() {
+  if (isClosed()) return -1;
+  unsigned long remain = _lastTransmissionTS + HTTPS_CONNECTION_TIMEOUT - millis();
+  return (long int)remain;
 }
 
 /**
@@ -87,6 +120,14 @@ bool HTTPConnection::isClosed() {
  */
 bool HTTPConnection::isError() {
   return (_connectionState == STATE_ERROR);
+}
+
+bool HTTPConnection::isIdle() {
+  if (_connectionState == STATE_INITIAL) {
+   uint32_t delta = millis() - _lastTransmissionTS;
+   return (int32_t)delta > HTTPS_CONNECTION_IDLE_TIMEOUT;
+  }
+  return false;
 }
 
 bool HTTPConnection::isSecure() {
@@ -129,6 +170,7 @@ void HTTPConnection::closeConnection() {
   if (_wsHandler != nullptr) {
     HTTPS_LOGD("Free WS Handler");
     delete _wsHandler;
+    _wsHandler = NULL;
   }
 }
 
@@ -258,20 +300,19 @@ size_t HTTPConnection::readBytesToBuffer(byte* buffer, size_t length) {
   return recv(_socket, buffer, length, MSG_WAITALL | MSG_DONTWAIT);
 }
 
-void HTTPConnection::serverError() {
+void HTTPConnection::raiseError(uint16_t code, std::string reason) {
   _connectionState = STATE_ERROR;
+  std::string sCode = intToString(code);
 
-  char staticResponse[] = "HTTP/1.1 500 Internal Server Error\r\nServer: esp32https\r\nConnection:close\r\nContent-Type: text/html\r\nContent-Length:34\r\n\r\n<h1>500 Internal Server Error</h1>";
-  writeBuffer((byte*)staticResponse, strlen(staticResponse));
-  closeConnection();
-}
-
-
-void HTTPConnection::clientError() {
-  _connectionState = STATE_ERROR;
-
-  char staticResponse[] = "HTTP/1.1 400 Bad Request\r\nServer: esp32https\r\nConnection:close\r\nContent-Type: text/html\r\nContent-Length:26\r\n\r\n<h1>400 Bad Request</h1>";
-  writeBuffer((byte*)staticResponse, strlen(staticResponse));
+  char headers[] = "\r\nConnection: close\r\nContent-Type: text/plain;charset=utf8\r\n\r\n";
+  writeBuffer((byte*)"HTTP/1.1 ", 9);
+  writeBuffer((byte*)sCode.c_str(), sCode.length());
+  writeBuffer((byte*)" ", 1);
+  writeBuffer((byte*)(reason.c_str()), reason.length());
+  writeBuffer((byte*)headers, strlen(headers));
+  writeBuffer((byte*)sCode.c_str(), sCode.length());
+  writeBuffer((byte*)" ", 1);
+  writeBuffer((byte*)(reason.c_str()), reason.length());
   closeConnection();
 }
 
@@ -289,7 +330,7 @@ void HTTPConnection::readLine(int lengthLimit) {
         } else {
           // Line has not been terminated by \r\n
           HTTPS_LOGW("Line without \\r\\n (got only \\r). FID=%d", _socket);
-          clientError();
+          raiseError(400, "Bad Request");
           return;
         }
       }
@@ -301,7 +342,7 @@ void HTTPConnection::readLine(int lengthLimit) {
     // Check that the max request string size is not exceeded
     if (_parserLine.text.length() > lengthLimit) {
       HTTPS_LOGW("Header length exceeded. FID=%d", _socket);
-      serverError();
+      raiseError(431, "Request Header Fields Too Large");
       return;
     }
   }
@@ -319,7 +360,7 @@ void HTTPConnection::signalClientClose() {
  */
 void HTTPConnection::signalRequestError() {
   // TODO: Check that no response has been transmitted yet
-  serverError();
+  raiseError(400, "Bad Request");
 }
 
 /**
@@ -365,7 +406,7 @@ bool HTTPConnection::loop() {
         size_t spaceAfterMethodIdx = _parserLine.text.find(' ');
         if (spaceAfterMethodIdx == std::string::npos) {
           HTTPS_LOGW("Missing space after method");
-          clientError();
+          raiseError(400, "Bad Request");
           break;
         }
         _httpMethod = _parserLine.text.substr(0, spaceAfterMethodIdx);
@@ -374,14 +415,14 @@ bool HTTPConnection::loop() {
         size_t spaceAfterResourceIdx = _parserLine.text.find(' ', spaceAfterMethodIdx + 1);
         if (spaceAfterResourceIdx == std::string::npos) {
           HTTPS_LOGW("Missing space after resource");
-          clientError();
+          raiseError(400, "Bad Request");
           break;
         }
         _httpResource = _parserLine.text.substr(spaceAfterMethodIdx + 1, spaceAfterResourceIdx - _httpMethod.length() - 1);
 
         _parserLine.parsingFinished = false;
         _parserLine.text = "";
-        HTTPS_LOGI("Request: %s %s (FID=%d)", _httpMethod.c_str(), _httpResource.c_str(), _socket);
+        HTTPS_LOGI("Request: %s %s (FID=%d, T=%p)", _httpMethod.c_str(), _httpResource.c_str(), _socket, xTaskGetCurrentTaskHandle());
         _connectionState = STATE_REQUEST_FINISHED;
       }
 
@@ -411,7 +452,7 @@ bool HTTPConnection::loop() {
               HTTPS_LOGD("Header: %s = %s (FID=%d)", _parserLine.text.substr(0, idxColon).c_str(), _parserLine.text.substr(idxColon+2).c_str(), _socket);
             } else {
               HTTPS_LOGW("Malformed request header: %s", _parserLine.text.c_str());
-              clientError();
+              raiseError(400, "Bad Request");
               break;
             }
           }
@@ -558,7 +599,7 @@ bool HTTPConnection::loop() {
         } else {
           // No match (no default route configured, nothing does match)
           HTTPS_LOGW("Could not find a matching resource");
-          serverError();
+          raiseError(404, "Not Found");
         }
 
       }
@@ -593,7 +634,6 @@ bool HTTPConnection::loop() {
   // Return true if connection has more data to process
   return (!isClosed() && ((_bufferProcessed < _bufferUnusedIdx) || canReadData()));
 }
-
 
 bool HTTPConnection::checkWebsocket() {
   if(_httpMethod == "GET" &&

@@ -8,12 +8,15 @@ HTTPServer::HTTPServer(const uint16_t port, const uint8_t maxConnections, const 
   _maxConnections(maxConnections),
   _bindAddress(bindAddress) {
 
-  // Create space for the connections
-  _connections = new HTTPConnection*[maxConnections];
-  for(uint8_t i = 0; i < maxConnections; i++) _connections[i] = NULL;
+  _connections = NULL;
+  _workers = NULL;
 
   // Configure runtime data
   _socket = -1;
+  _selectMutex = xSemaphoreCreateMutex();
+  _numWorkers = 0;
+  _workQueue = NULL;
+  _pendingConnection = NULL;
   _running = false;
 }
 
@@ -25,8 +28,28 @@ HTTPServer::~HTTPServer() {
     stop();
   }
 
-  // Delete connection pointers
-  delete[] _connections;
+  // Delete allocated memory
+  if (_workers) delete[] _workers;
+  if (_connections) delete[] _connections;
+  if (_connectionMutex) delete[] _connectionMutex;
+  if (_selectMutex) vSemaphoreDelete(_selectMutex);
+  if (_workQueue) vQueueDelete(_workQueue);
+}
+
+/**
+ *  Enables workers, each running in separate FreeRTOS task
+ */
+void HTTPServer::enableWorkers(uint8_t numWorkers, size_t stackSize, int priority) {
+  if (!_running && (numWorkers > 0)) {
+    _numWorkers = numWorkers;
+    if (_workers == NULL) {
+      _workers = new HTTPWorker * [numWorkers];
+      HTTPS_LOGD("Creating %d worker(s) (%u,%d)", numWorkers, stackSize, priority);
+      for(uint8_t i = 0; i < numWorkers; i++) {
+        _workers[i] = new HTTPWorker(this, stackSize, priority);
+      }
+    }
+  }
 }
 
 /**
@@ -35,7 +58,23 @@ HTTPServer::~HTTPServer() {
 uint8_t HTTPServer::start() {
   if (!_running) {
     if (setupSocket()) {
+      // Create space for the connections if not using worker tasks
+      if (!_workQueue) {
+        _workQueue = xQueueCreate(2 * _maxConnections, sizeof(int8_t));
+      }
+      if (!_connections) {
+        _connections = new HTTPConnection*[_maxConnections];
+        for(uint8_t i = 0; i < _maxConnections; i++) _connections[i] = NULL;
+      }
+      if (!_connectionMutex) {
+        _connectionMutex = new SemaphoreHandle_t[_maxConnections];
+        for(uint8_t i = 0; i < _maxConnections; i++) _connectionMutex[i] = xSemaphoreCreateMutex();
+      }
       _running = true;
+      // start the workers
+      if (_numWorkers > 0) {
+        for(uint8_t i = 0; i < _numWorkers; i++) _workers[i]->start();
+      }
       return 1;
     }
     return 0;
@@ -56,28 +95,58 @@ void HTTPServer::stop() {
   if (_running) {
     // Set the flag that the server is stopped
     _running = false;
+    xSemaphoreTake(_selectMutex, portMAX_DELAY); // We won't be releasing this
 
-    // Clean up the connections
-    bool hasOpenConnections = true;
-    while(hasOpenConnections) {
-      hasOpenConnections = false;
-      for(int i = 0; i < _maxConnections; i++) {
-        if (_connections[i] != NULL) {
-          _connections[i]->closeConnection();
+    if (_connections) {
+      // Clean up the connections    
+      bool hasOpenConnections = true;
+      while(hasOpenConnections) {
+        hasOpenConnections = false;
+        for(int i = 0; i < _maxConnections; i++) {
+          xSemaphoreTake(_connectionMutex[i], portMAX_DELAY);
+          if (_connections[i] != NULL) {
+            _connections[i]->closeConnection();
 
-          // Check if closing succeeded. If not, we need to call the close function multiple times
-          // and wait for the client
-          if (_connections[i]->isClosed()) {
-            delete _connections[i];
-          } else {
-            hasOpenConnections = true;
+            // Check if closing succeeded. If not, we need to call the close function multiple times
+            // and wait for the client
+            if (_connections[i]->isClosed()) {
+              delete _connections[i];
+              _connections[i] = NULL;
+            } else {
+              hasOpenConnections = true;
+            }
           }
+          xSemaphoreGive(_connectionMutex[i]);
+          vSemaphoreDelete(_connectionMutex[i]);
         }
+        delay(1);
       }
-      delay(1);
-    }
+    } // if (_connections)
 
     teardownSocket();
+
+    // Server _running is false, workers should terminate themselves...
+    if (_workers) {
+      // Just give them invalid connection number if they are blocked on the work queue
+      int8_t noWork = -1;
+      for(int i = 0; i < _numWorkers; i++) xQueueSend(_workQueue, &noWork, 0);
+      bool workerStillActive = false;
+      do {
+        for(int i = 0; i < _maxConnections; i++) {          
+          if (_workers[i] != NULL) {
+            if (_workers[i]->isRunning()) {
+              workerStillActive = true;
+            } else {
+              delete _workers[i];
+              _workers[i] = NULL;
+            }
+          }
+        }
+        if (workerStillActive) vTaskDelay(1);
+      } while (workerStillActive);
+      delete _workers;
+      _workers = NULL;
+    } // if (_workers)
 
   }
 }
@@ -92,75 +161,235 @@ void HTTPServer::setDefaultHeader(std::string name, std::string value) {
 }
 
 /**
- * The loop method can either be called by periodical interrupt or in the main loop and handles processing
- * of data
+ * Manages server connections 
+ *  - Cleans up closed connections
+ *  - Queues work if there is new data on existing connection
+ *  - Checks for new connections
+ *  - Accepts pending connections when there is space in connection pool
+ *  - Closes idle connections when there are pending ones
+ *  
+ *  Returns after all needed work is done or maxTimeoutMs expires
  */
-void HTTPServer::loop() {
+void HTTPServer::manageConnections(int maxTimeoutMs) {
+  fd_set readFDs, exceptFDs, timeoutFDs;
+  FD_ZERO(&readFDs);
+  FD_ZERO(&exceptFDs);
+  FD_ZERO(&timeoutFDs);
+  int maxSocket = -1;
 
-  // Only handle requests if the server is still running
-  if(!_running) return;
+  // The idea here is to block on something (up to maxTimeoutMs) until 
+  // there is new data or new connection, so work can be queue up
 
-  // Step 1: Process existing connections
-  // Process open connections and store the index of a free connection
-  // (we might use that later on)
-  int freeConnectionIdx = -1;
+  // Add only the server socket or the pending connection socket
+  // as trying to select on the server socket while we know that
+  // there is pending connection will return imediatelly
+  if (_pendingConnection) {
+    // If there is pending connection and we have not yet received data
+    if (!_lookForIdleConnection) {
+      int pendingSocket = _pendingConnection->getSocket();
+      FD_SET(pendingSocket, &readFDs);
+      FD_SET(pendingSocket, &exceptFDs);
+      maxSocket = pendingSocket;
+    }
+  } else {
+    // No pending connections (that we know of), monitor server socket
+    FD_SET(_socket, &readFDs);
+    FD_SET(_socket, &exceptFDs);
+    maxSocket = _socket;
+  }
+
+  // Cleanup closed connections and find minimal select timeout
+  // Add active connections to select sets
+  int minRemain = maxTimeoutMs;
   for (int i = 0; i < _maxConnections; i++) {
-    // Fetch a free index in the pointer array
-    if (_connections[i] == NULL) {
-      freeConnectionIdx = i;
+    if (_connections[i] != NULL) {
+      // Try to lock connection.
+      if (xSemaphoreTake(_connectionMutex[i], 0)) {
+        // If we suceeded, connection is currently not beening worked by other task
+        int fd = _connections[i]->getSocket();
+        if (_connections[i]->isClosed()) {
+          // if it's closed clean up:
+          HTTPS_LOGV("Deleted connection[%d], FID=%d", i, fd);
+          delete _connections[i];
+          _connections[i] = NULL;
+           // We released one connection slot, don't look for idle connection
+          _lookForIdleConnection = false;
+          fd = -1;
+        }
+        if (fd > 0) {
+          int remain = _connections[i]->remainingMsUntilTimeout();
+          if (_lookForIdleConnection) {
+            // There is partially accepted pending connection, check for idle connections
+            if ((remain < 1) || _connections[i]->isIdle()) {
+              HTTPS_LOGI("Closing IDLE connection[%d] FID=%d to accept FID=%d", i, fd, _pendingConnection->getSocket());
+              _connections[i]->closeConnection();
+              // We closed one connection, don't look for more idle connections
+              _lookForIdleConnection = false;              
+              fd = _connections[i]->getSocket();
+            } else { 
+              remain = min(remain, (int)HTTPS_CONNECTION_IDLE_TIMEOUT);
+            }
+          }
+          if (fd > 0) {
+            // Add the connection to select sets
+            if (remain < 1) FD_SET(fd, &timeoutFDs);
+            FD_SET(fd, &readFDs);
+            FD_SET(fd, &exceptFDs);
+            if (fd > maxSocket) maxSocket = fd;      
+          } else {
+            remain = 0; // Force imediate rescan
+          }
+          if (remain < minRemain) minRemain = remain;
+        }
+        xSemaphoreGive(_connectionMutex[i]);        
+      }
+    }
+  }
 
+  // Select on socket sets with minRemain (ms) timeout
+  if (minRemain < 0) minRemain = 0;
+  timeval _timeout;
+  _timeout.tv_sec  = minRemain / 1000;
+  _timeout.tv_usec = (minRemain - _timeout.tv_sec * 1000) * 1000;
+  select(maxSocket + 1, &readFDs, NULL, &exceptFDs, &_timeout);
+
+  // if FD_ISSET(serverSocket, &except_fds) {} // server is stopping ?
+
+  // Assign work for connections that have data, error or timeout
+  // and find empty connection slot 
+  int8_t freeIndex = -1;
+  for (int8_t i = 0; i < _maxConnections; i++) {
+    if (_connections[i] != NULL) {
+      int fd = _connections[i]->getSocket();
+      if ((fd < 1) || (FD_ISSET(fd, &readFDs)) || (FD_ISSET(fd, &exceptFDs)) || (FD_ISSET(fd, &timeoutFDs))) {
+        xQueueSend(_workQueue, &i, 0);
+        HTTPS_LOGV("Queued work for connection[%d], FID=%d", i, fd);
+      }
     } else {
-      // if there is a connection (_connections[i]!=NULL), check if its open or closed:
-      if (_connections[i]->isClosed()) {
-        // if it's closed, clean up:
-        delete _connections[i];
-        _connections[i] = NULL;
-        freeConnectionIdx = i;
+      freeIndex = i;
+    }
+  }
+
+  // If we have known pending connection ...
+  if (_pendingConnection) {
+    int pendingSocket = _pendingConnection->getSocket();
+    // ... and if it is talking to us (client speaks first for both HTTP and TLS) ...
+    if (_lookForIdleConnection || (FD_ISSET(pendingSocket, &readFDs))) {
+      // ... and if we have space to fully accept ...
+      if (freeIndex >= 0) {
+        // ... try to fully accept the connection.
+        if (_pendingConnection->fullyAccept() > 0) {
+          // Fully accepted, add to active connections
+          HTTPS_LOGV("Accepted connection[%d], FID=%d", freeIndex, pendingSocket);
+          _connections[freeIndex] = _pendingConnection;
+          xQueueSend(_workQueue, &freeIndex, 0);
+        } else {
+          HTTPS_LOGD("Discarded connection FID=%d", pendingSocket);
+          delete _pendingConnection;
+        }
+        _pendingConnection = NULL;
+        _lookForIdleConnection = false;
       } else {
-        // if not, process it:
-        _connections[i]->loop();
+        // Pending connection has data to read but we currently 
+        // have no space in connection pool... set flag to try 
+        // to close one of the idle connections...
+        _lookForIdleConnection = true;
+      }    
+    }
+  } else {
+    // No pending connection, see if we have new one on the server socket
+    if (FD_ISSET(_socket, &readFDs)) {
+      // Try to initially accept the new connection
+      HTTPConnection * connection = createConnection();
+      int newSocket = (connection) ? connection->initialAccept() : -1;
+      if (newSocket > 0) {
+        // Initial accept succeded, do we have space in the pool
+        if (freeIndex >= 0) {
+          if (connection->fullyAccept() > 0) {
+            _connections[freeIndex] = connection;
+            xQueueSend(_workQueue, &freeIndex, 0);
+            HTTPS_LOGV("Accepted pending connection[%d], FID=%d", freeIndex, newSocket);
+          } else {
+            HTTPS_LOGD("Discarded pending connection, FID=%d", newSocket);
+            delete connection;
+          }
+        } else {
+          // No space in the connection pool, keep it as pending connection
+          // until it actually sends data (HTTP request or TLS 'hello')
+          HTTPS_LOGV("Connection is pending, FID=%d", newSocket);
+          _pendingConnection = connection;
+        }
+      } else {
+        // Discard new connection imediatelly
+        delete connection;
       }
     }
-  }
- 
-  // Step 2: Check for new connections
-  // This makes only sense if there is space to store the connection
-  if (freeConnectionIdx > -1) {
+  } // if/else (_pendingConnection)
 
-    // We create a file descriptor set to be able to use the select function
-    fd_set sockfds;
-    // Out socket is the only socket in this set
-    FD_ZERO(&sockfds);
-    FD_SET(_socket, &sockfds);
+} // manageConnections()
 
-    // We define a "immediate" timeout
-    timeval timeout;
-    timeout.tv_sec  = 0;
-    timeout.tv_usec = 0; // Return immediately, if possible
-
-    // Wait for input
-    // As by 2017-12-14, it seems that FD_SETSIZE is defined as 0x40, but socket IDs now
-    // start at 0x1000, so we need to use _socket+1 here
-    select(_socket + 1, &sockfds, NULL, NULL, &timeout);
-
-    // There is input
-    if (FD_ISSET(_socket, &sockfds)) {
-      int socketIdentifier = createConnection(freeConnectionIdx);
-
-      // If initializing did not work, discard the new socket immediately
-      if (socketIdentifier < 0) {
-        delete _connections[freeConnectionIdx];
-        _connections[freeConnectionIdx] = NULL;
-      }
-    }
-
-  }
+/**
+ * Pick up item (connection index) from work queue and 
+ * call connection's loop method to consume the data on the socket
+ * 
+ * Returns false if there was no work in the queue and timeout expired
+ */
+bool HTTPServer::doQueuedWork(TickType_t waitDelay) {
+  int8_t connIndex = -1;
+  if (xQueueReceive(_workQueue, &connIndex, waitDelay)) {
+    if ((connIndex >= 0) && xSemaphoreTake(_connectionMutex[connIndex], portMAX_DELAY)) {
+      HTTPConnection * connection = _connections[connIndex];
+      // Work the connection until it runs out of data
+      while (connection && connection->loop()); 
+      xSemaphoreGive(_connectionMutex[connIndex]);
+    } 
+    return true;
+  } 
+  return false;
 }
 
-int HTTPServer::createConnection(int idx) {
+/**
+ * The loop method handles processing of data and should be called by periodicaly 
+ * from the main loop when there are no workers enabled
+ * 
+ * If timeout (in millisecods) is supplied, it will wait for event 
+ * on the 'server soceket' for new connection and/or on established 
+ * connection sockets for closing/error.
+ * 
+ * Return value is remaining milliseconds if funtion returned early
+ * 
+ * NOTE: When workers are enabled, calling this method periodically
+ *       is not needed and has no effect.
+ */
+int HTTPServer::loop(int timeoutMs) {
+
+  // Only handle requests if the server is still running
+  // and we are handling connections in async mode
+  if (!_running || (_numWorkers > 0)) {
+    delay(timeoutMs);
+    return 0;
+  }
+  uint32_t startMs = millis();
+
+  // Step 1: Process existing connections
+  manageConnections(timeoutMs);
+
+  // Step 2: Complete any remaining work (without waiting)
+  while (doQueuedWork(0));
+
+  // Return the remaining time from the timeoutMs requested
+  uint32_t deltaMs = (startMs + timeoutMs - millis());
+  if (deltaMs > 0x7FFFFFFF) deltaMs = 0;
+  return deltaMs;
+}
+
+/**
+ * Create new connection, initialize headers and return the pointer
+ */
+HTTPConnection * HTTPServer::createConnection() {
   HTTPConnection * newConnection = new HTTPConnection(this);
-  _connections[idx] = newConnection;
-  return newConnection->initialize(_socket, &_defaultHeaders);
+  newConnection->initialize(_socket, &_defaultHeaders);  
+  return newConnection;  
 }
 
 /**
@@ -205,6 +434,10 @@ void HTTPServer::teardownSocket() {
   // Close the actual server sockets
   close(_socket);
   _socket = -1;
+}
+
+int HTTPServer::serverSocket() {
+  return _socket;
 }
 
 } /* namespace httpsserver */

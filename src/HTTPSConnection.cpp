@@ -5,6 +5,7 @@ namespace httpsserver {
 
 HTTPSConnection::HTTPSConnection(ResourceResolver * resResolver):
   HTTPConnection(resResolver) {
+  _sslCtx = NULL;
   _ssl = NULL;
   _TLSTickets = NULL;
 }
@@ -19,19 +20,33 @@ bool HTTPSConnection::isSecure() {
 }
 
 /**
- * Initializes the connection from a server socket.
+ * Initializes the connection with SSL context
+ */
+void HTTPSConnection::initialize(int serverSocketID, HTTPHeaders *defaultHeaders, SSL_CTX * sslCtx, TLSTickets * tickets) {
+  HTTPConnection::initialize(serverSocketID, defaultHeaders);
+  _sslCtx = sslCtx;
+  _TLSTickets = tickets;
+}
+
+/**
+ * Accepts the connection from a server socket.
  *
  * The call WILL BLOCK if accept(serverSocketID) blocks. So use select() to check for that in advance.
  */
-int HTTPSConnection::initialize(int serverSocketID, SSL_CTX * sslCtx, HTTPHeaders *defaultHeaders) {
+int HTTPSConnection::fullyAccept() {
+
   if (_connectionState == STATE_UNDEFINED) {
-    // Let the base class connect the plain tcp socket
-    int resSocket = HTTPConnection::initialize(serverSocketID, defaultHeaders);
+    initialAccept();
+  }
+  
+  if (_connectionState == STATE_ACCEPTED) {
+    int resSocket = _socket;
 
     // Build up SSL Connection context if the socket has been created successfully
     if (resSocket >= 0) {
+      HTTPS_LOGV("Before SSL accept free:%u, lfb:%u\n", heap_caps_get_free_size(MALLOC_CAP_8BIT), heap_caps_get_largest_free_block(MALLOC_CAP_8BIT));
+      _ssl = SSL_new(_sslCtx);
 
-      _ssl = SSL_new(sslCtx);
       if (_TLSTickets != NULL) _TLSTickets->enable(_ssl);
 
       if (_ssl) {
@@ -42,9 +57,13 @@ int HTTPSConnection::initialize(int serverSocketID, SSL_CTX * sslCtx, HTTPHeader
           // Perform the handshake
           success = SSL_accept(_ssl);
           if (success) {
+            HTTPS_LOGD("SSL accepted (FID=%d)", resSocket);
+            HTTPS_LOGV("After SSL accept free:%u, lfb:%u", heap_caps_get_free_size(MALLOC_CAP_8BIT), heap_caps_get_largest_free_block(MALLOC_CAP_8BIT));
+            _connectionState = STATE_INITIAL;
             return resSocket;
           } else {
             HTTPS_LOGE("SSL_accept failed. Aborting handshake. FID=%d", resSocket);
+            HTTPS_LOGV("After fail free:%u, lfb:%u", heap_caps_get_free_size(MALLOC_CAP_8BIT), heap_caps_get_largest_free_block(MALLOC_CAP_8BIT));
           }
         } else {
           HTTPS_LOGE("SSL_set_fd failed. Aborting handshake. FID=%d", resSocket);

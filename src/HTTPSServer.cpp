@@ -59,10 +59,10 @@ void HTTPSServer::teardownSocket() {
   _sslctx = NULL;
 }
 
-int HTTPSServer::createConnection(int idx) {
+HTTPSConnection * HTTPSServer::createConnection() {
   HTTPSConnection * newConnection = new HTTPSConnection(this);
-  _connections[idx] = newConnection;
-  return newConnection->initialize(_socket, _sslctx, &_defaultHeaders);
+  newConnection->initialize(_socket, &_defaultHeaders, _sslctx, _TLSTickets);
+  return newConnection;
 }
 
 /**

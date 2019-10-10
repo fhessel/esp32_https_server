@@ -36,6 +36,8 @@ public:
   // RFC 5077 TLS session tickets
   void enableTLSTickets(uint32_t liftimeSeconds = 86400, bool useHardwareRNG = false);
 
+  virtual HTTPSConnection * createConnection() override;
+
 private:
   // Static configuration. Port, keys, etc. ====================
   // Certificate that should be used (includes private key)
@@ -51,9 +53,6 @@ private:
   virtual void teardownSocket();
   uint8_t setupSSLCTX();
   uint8_t setupCert();
-
-  // Helper functions
-  virtual int createConnection(int idx);
 };
 
 } /* namespace httpsserver */

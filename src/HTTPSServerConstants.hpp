@@ -7,6 +7,7 @@
 // 2: Error + Warn
 // 3: Error + Warn + Info
 // 4: Error + Warn + Info + Debug
+// 5: Error + Warn + Info + Debug + Verbose
 
 #ifndef HTTPS_LOGLEVEL
   #define HTTPS_LOGLEVEL 3
@@ -82,6 +83,12 @@
 #define HTTPS_CONNECTION_TIMEOUT               20000
 #endif
 
+// Timeout for connection in STATE_INITIAL to be considered idle.
+// When connection is idle, server may close it and switch to pending connection
+#ifndef HTTPS_CONNECTION_IDLE_TIMEOUT          
+#define HTTPS_CONNECTION_IDLE_TIMEOUT          500
+#endif 
+
 // Timeout used to wait for shutdown of SSL connection (ms)
 // (time for the client to return notify close flag) - without it, truncation attacks might be possible
 #ifndef HTTPS_SHUTDOWN_TIMEOUT
@@ -91,6 +98,15 @@
 // Length of a SHA1 hash
 #ifndef HTTPS_SHA1_LENGTH
 #define HTTPS_SHA1_LENGTH                      20
+#endif
+
+// Default values for workers. 
+// Stack size should not be less than 4096 for TLS connections
+#ifndef HTTPS_CONN_TASK_STACK_SIZE
+#define HTTPS_CONN_TASK_STACK_SIZE             4096
+#endif
+#ifndef HTTPS_CONN_TASK_PRIORITY
+#define HTTPS_CONN_TASK_PRIORITY               (tskIDLE_PRIORITY + 1)
 #endif
 
 #endif /* SRC_HTTPSSERVERCONSTANTS_HPP_ */
