@@ -23,6 +23,7 @@
 #include "ResourceNode.hpp"
 #include "HTTPRequest.hpp"
 #include "HTTPResponse.hpp"
+#include "TLSTickets.hpp"
 
 namespace httpsserver {
 
@@ -50,6 +51,7 @@ protected:
 private:
   // SSL context for this connection
   SSL * _ssl;
+	TLSTickets * _TLSTickets;
 
 };
 

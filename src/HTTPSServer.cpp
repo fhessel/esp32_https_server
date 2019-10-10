@@ -9,6 +9,7 @@ HTTPSServer::HTTPSServer(SSLCert * cert, const uint16_t port, const uint8_t maxC
 
   // Configure runtime data
   _sslctx = NULL;
+  _TLSTickets = NULL;
 }
 
 HTTPSServer::~HTTPSServer() {
@@ -43,6 +44,10 @@ uint8_t HTTPSServer::setupSocket() {
   } else {
     return 1;
   }
+}
+
+void HTTPSServer::enableTLSTickets(uint32_t liftimeSeconds, bool useHardwareRNG) {
+  _TLSTickets = new TLSTickets("esp32_https_server", liftimeSeconds, useHardwareRNG);
 }
 
 void HTTPSServer::teardownSocket() {

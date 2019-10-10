@@ -6,6 +6,7 @@ namespace httpsserver {
 HTTPSConnection::HTTPSConnection(ResourceResolver * resResolver):
   HTTPConnection(resResolver) {
   _ssl = NULL;
+  _TLSTickets = NULL;
 }
 
 HTTPSConnection::~HTTPSConnection() {
@@ -31,6 +32,7 @@ int HTTPSConnection::initialize(int serverSocketID, SSL_CTX * sslCtx, HTTPHeader
     if (resSocket >= 0) {
 
       _ssl = SSL_new(sslCtx);
+      if (_TLSTickets != NULL) _TLSTickets->enable(_ssl);
 
       if (_ssl) {
         // Bind SSL to the socket
