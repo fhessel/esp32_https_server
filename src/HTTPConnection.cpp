@@ -331,7 +331,13 @@ size_t HTTPConnection::getCacheSize() {
   return (_isKeepAlive ? HTTPS_KEEPALIVE_CACHESIZE : 0);
 }
 
-void HTTPConnection::loop() {
+/**
+ * Connection main async loop method
+ * 
+ * Returns true if there is more data to be processed in 
+ * the input buffers 
+ */
+bool HTTPConnection::loop() {
   // First, update the buffer
   // newByteCount will contain the number of new bytes that have to be processed
   updateBuffer();
@@ -379,7 +385,8 @@ void HTTPConnection::loop() {
         _connectionState = STATE_REQUEST_FINISHED;
       }
 
-      break;
+      if (_connectionState != STATE_REQUEST_FINISHED) break;
+
     case STATE_REQUEST_FINISHED: // Read headers
 
       while (_bufferProcessed < _bufferUnusedIdx && !isClosed()) {
@@ -414,7 +421,8 @@ void HTTPConnection::loop() {
         }
       }
 
-      break;
+      if (_connectionState != STATE_HEADERS_FINISHED) break;
+
     case STATE_HEADERS_FINISHED: // Handle body
       {
         HTTPS_LOGD("Resolving resource...");
@@ -520,19 +528,23 @@ void HTTPConnection::loop() {
             // we have no chance to do so.
             if (!_isKeepAlive) {
               // No KeepAlive -> We are done. Transition to next state.
+              HTTPS_LOGD("No keep-alive");
               if (!isClosed()) {
                 _connectionState = STATE_BODY_FINISHED;
               }
             } else {
               if (res.isResponseBuffered()) {
-                // If the response could be buffered:
+                // If the response is buffered:
+                HTTPS_LOGD("Buffered, set keep-alive");
                 res.setHeader("Connection", "keep-alive");
                 res.finalize();
+              } 
+              if (res.correctContentLength()) {
                 if (_clientState != CSTATE_CLOSED) {
                   // Refresh the timeout for the new request
                   refreshTimeout();
                   // Reset headers for the new connection
-                  _httpHeaders->clearAll();
+                  if (_httpHeaders) _httpHeaders->clearAll();
                   // Go back to initial state
                   _connectionState = STATE_INITIAL;
                 }
@@ -550,13 +562,16 @@ void HTTPConnection::loop() {
         }
 
       }
-      break;
+      if (_connectionState != STATE_BODY_FINISHED) break;
+
     case STATE_BODY_FINISHED: // Request is complete
       closeConnection();
       break;
+
     case STATE_CLOSING: // As long as we are in closing state, we call closeConnection() again and wait for it to finish or timeout
       closeConnection();
       break;
+
     case STATE_WEBSOCKET: // Do handling of the websocket
       refreshTimeout();  // don't timeout websocket connection
       if(pendingBufferSize() > 0) {
@@ -575,6 +590,8 @@ void HTTPConnection::loop() {
     }
   }
 
+  // Return true if connection has more data to process
+  return (!isClosed() && ((_bufferProcessed < _bufferUnusedIdx) || canReadData()));
 }
 
 

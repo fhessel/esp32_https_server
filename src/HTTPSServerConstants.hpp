@@ -42,6 +42,13 @@
   #define HTTPS_LOGD(...) do {} while (0)
 #endif
 
+#if HTTPS_LOGLEVEL > 4
+  #define HTTPS_LOGV(...) HTTPS_LOGTAG("D");Serial.printf(__VA_ARGS__);Serial.println()
+#else
+  #define HTTPS_LOGV(...) {}
+#endif
+
+
 // The following lines define limits of the protocol. Exceeding these limits will lead to a 500 error
 
 // Maximum of header lines that are parsed

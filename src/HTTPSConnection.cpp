@@ -105,19 +105,21 @@ void HTTPSConnection::closeConnection() {
 }
 
 size_t HTTPSConnection::writeBuffer(byte* buffer, size_t length) {
-  return SSL_write(_ssl, buffer, length);
+  if (_ssl != NULL) return SSL_write(_ssl, buffer, length);
+  return 0;
 }
 
 size_t HTTPSConnection::readBytesToBuffer(byte* buffer, size_t length) {
-  return SSL_read(_ssl, buffer, length);
+  if (_ssl != NULL) return SSL_read(_ssl, buffer, length);
+  return 0;
 }
 
 size_t HTTPSConnection::pendingByteCount() {
-  return SSL_pending(_ssl);
+  return (_ssl != NULL) && SSL_pending(_ssl);
 }
 
 bool HTTPSConnection::canReadData() {
-  return HTTPConnection::canReadData() || (SSL_pending(_ssl) > 0);
+  return HTTPConnection::canReadData() || ((_ssl != NULL) && (SSL_pending(_ssl) > 0));
 }
 
 } /* namespace httpsserver */

@@ -43,7 +43,7 @@ public:
   virtual void closeConnection();
   virtual bool isSecure();
 
-  void loop();
+  bool loop();
   bool isClosed();
   bool isError();
 

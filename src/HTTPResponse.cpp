@@ -13,16 +13,14 @@ HTTPResponse::HTTPResponse(ConnectionContext * con):
   _statusText = "OK";
   _headerWritten = false;
   _isError = false;
+  _setLength = 0;
+  _sentBytesCount = 0;
 
   _responseCacheSize = con->getCacheSize();
   _responseCachePointer = 0;
-  if (_responseCacheSize > 0) {
-    HTTPS_LOGD("Creating buffered response, size: %d", _responseCacheSize);
-    _responseCache = new byte[_responseCacheSize];
-  } else {
-    HTTPS_LOGD("Creating non-buffered response");
-    _responseCache = NULL;
-  }
+  _responseCache = NULL;
+  // Don't create buffer response just yet, 
+  // wait and see if we receive Content-Length ...
 }
 
 HTTPResponse::~HTTPResponse() {
@@ -48,8 +46,26 @@ std::string HTTPResponse::getStatusText() {
   return _statusText;
 }
 
+void HTTPResponse::setContentLength(size_t size) {
+  if (isHeaderWritten()) {
+    HTTPS_LOGE("Setting Content-Lenght after headers sent!");
+    error();
+    return;
+  }
+  if ((_setLength > 0) && (size != _setLength)) {
+    HTTPS_LOGW("Setting Content-Lenght more than once!");
+  }
+  HTTPS_LOGD("Set Content-Lenght: %d", size);
+  _setLength = size;
+}
+
 void HTTPResponse::setHeader(std::string const &name, std::string const &value) {
   _headers.set(new HTTPHeader(name, value));
+  // Watch for "Content-Length" header
+  if (name.compare("Content-Length") == 0) {
+    setContentLength(parseUInt(value));
+    return;
+  }
 }
 
 bool HTTPResponse::isHeaderWritten() {
@@ -58,6 +74,14 @@ bool HTTPResponse::isHeaderWritten() {
 
 bool HTTPResponse::isResponseBuffered() {
   return _responseCache != NULL;
+}
+
+bool HTTPResponse::correctContentLength() {
+  if (_setLength > 0) {
+    if (_sentBytesCount == _setLength) return true;
+    HTTPS_LOGE("Content-Lenght (%u) and data sent (%u) mismatch!", _setLength,  _sentBytesCount);
+  }
+  return false;
 }
 
 void HTTPResponse::finalize() {
@@ -77,6 +101,22 @@ void HTTPResponse::printStd(const std::string &str) {
  * Writes bytes to the response. May be called several times.
  */
 size_t  HTTPResponse::write(const uint8_t *buffer, size_t size) {
+  if (_sentBytesCount < 1) {
+    if (_setLength > 0) {
+      HTTPS_LOGD("Streaming response directly, size: %d", _setLength);
+    } else if (size > 0) {
+      // Try buffering
+      if (_responseCacheSize > 0) {
+        _responseCache = new byte[_responseCacheSize];
+        HTTPS_LOGD("Content-Length not set. Creating buffered response, size: %d", _responseCacheSize);
+      } else {
+        // We'll have to tear down the connection to signal end of data
+        setHeader("Connection", "close");
+        HTTPS_LOGD("Content-Length not set. Creating non-buffered response");
+      }
+    }
+  }
+  _sentBytesCount += size;
   if(!isResponseBuffered()) {
     printHeader();
   }
@@ -87,11 +127,8 @@ size_t  HTTPResponse::write(const uint8_t *buffer, size_t size) {
  * Writes a single byte to the response.
  */
 size_t  HTTPResponse::write(uint8_t b) {
-  if(!isResponseBuffered()) {
-    printHeader();
-  }
   byte ba[] = {b};
-  return writeBytesInternal(ba, 1);
+  return write(ba, 1);
 }
 
 /**
@@ -168,8 +205,8 @@ void HTTPResponse::drainBuffer(bool onOverflow) {
     HTTPS_LOGD("Draining response buffer");
     // Check for 0 as it may be an overflow reaction without any data that has been written earlier
     if(_responseCachePointer > 0) {
-      // FIXME: Return value?
-      _con->writeBuffer((byte*)_responseCache, _responseCachePointer);
+      _setLength = _responseCachePointer;
+      _sentBytesCount = _con->writeBuffer((byte*)_responseCache, _responseCachePointer);
     }
     delete[] _responseCache;
     _responseCache = NULL;

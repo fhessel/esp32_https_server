@@ -42,7 +42,9 @@ public:
 
   void error();
 
+  void setContentLength(size_t size);
   bool isResponseBuffered();
+  bool correctContentLength();
   void finalize();
 
   ConnectionContext * _con;
@@ -58,6 +60,10 @@ private:
   HTTPHeaders _headers;
   bool _headerWritten;
   bool _isError;
+
+  // Response length
+  size_t _setLength;
+  size_t _sentBytesCount;
 
   // Response cache
   byte * _responseCache;
