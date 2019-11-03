@@ -1,4 +1,5 @@
 #include "ResourceParameters.hpp"
+#include "HTTPSServerConstants.hpp"
 
 namespace httpsserver {
 
@@ -157,7 +158,7 @@ void ResourceParameters::resetPathParameters() {
 }
 
 void ResourceParameters::setPathParameter(size_t idx, std::string const &val) {
-  if(idx>=_pathParams.capacity()) {
+  if(idx>=_pathParams.size()) {
     _pathParams.resize(idx + 1);
   }
   _pathParams.at(idx) = val;

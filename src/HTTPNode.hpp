@@ -45,7 +45,7 @@ public:
 
   bool hasPathParameter();
   size_t getPathParamCount();
-  size_t getParamIdx(uint8_t);
+  ssize_t getParamIdx(size_t);
 
   std::vector<HTTPValidator*> * getValidators();
 
@@ -61,9 +61,8 @@ public:
   void addPathParamValidator(size_t paramIdx, const HTTPValidationFunction * validator);
 
 private:
-  size_t _pathParamCount;
-  size_t * _pathParamIdx;
-  std::vector<HTTPValidator*> * _validators;
+  std::vector<size_t> _pathParamIdx;
+  std::vector<HTTPValidator*> _validators;
 };
 
 } // namespace httpserver
