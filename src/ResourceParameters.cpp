@@ -1,4 +1,5 @@
 #include "ResourceParameters.hpp"
+#include "HTTPSServerConstants.hpp"
 
 namespace httpsserver {
 
@@ -46,7 +47,7 @@ void ResourceParameters::setRequestParameter(std::string const &name, std::strin
  *
  * The parameter idx defines the index of the parameter, starting with 0.
  */
-std::string ResourceParameters::getUrlParameter(uint8_t idx) {
+std::string ResourceParameters::getUrlParameter(size_t idx) {
   return _urlParams.at(idx);
 }
 
@@ -57,7 +58,7 @@ std::string ResourceParameters::getUrlParameter(uint8_t idx) {
  *
  * The parameter idx defines the index of the parameter, starting with 0.
  */
-uint16_t ResourceParameters::getUrlParameterInt(uint8_t idx) {
+uint16_t ResourceParameters::getUrlParameterInt(size_t idx) {
   return parseInt(getUrlParameter(idx));
 }
 
@@ -65,10 +66,12 @@ void ResourceParameters::resetUrlParameters() {
   _urlParams.clear();
 }
 
-void ResourceParameters::setUrlParameter(uint8_t idx, std::string const &val) {
-  if(idx>=_urlParams.capacity()) {
+void ResourceParameters::setUrlParameter(size_t idx, std::string const &val) {
+  if(idx>=_urlParams.size()) {
+    HTTPS_LOGD("Resizing from %d to %d", _urlParams.size(), idx + 1);
     _urlParams.resize(idx + 1);
   }
+  HTTPS_LOGD("Size is now %d, accessing idx %d", _urlParams.size(), idx);
   _urlParams.at(idx) = val;
 }
 

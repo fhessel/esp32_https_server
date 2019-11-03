@@ -29,11 +29,10 @@ public:
   uint16_t getRequestParameterInt(std::string const &name);
   void setRequestParameter(std::string const &name, std::string const &value);
 
-  std::string getUrlParameter(uint8_t idx);
-  uint16_t getUrlParameterInt(uint8_t idx);
+  std::string getUrlParameter(size_t idx);
+  uint16_t getUrlParameterInt(size_t idx);
   void resetUrlParameters();
-  void setUrlParameterCount(uint8_t idx);
-  void setUrlParameter(uint8_t idx, std::string const &val);
+  void setUrlParameter(size_t idx, std::string const &val);
 
 private:
   std::vector<std::string> _urlParams;

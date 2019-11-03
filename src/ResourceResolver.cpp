@@ -35,6 +35,8 @@ void ResourceResolver::resolveNode(const std::string &method, const std::string 
 
   // Split URL in resource name and request params. Request params start after an optional '?'
   size_t reqparamIdx = url.find('?');
+  // Store this index to stop path parsing there
+  size_t pathEnd = reqparamIdx != std::string::npos ? reqparamIdx : url.size();
 
   // If no '?' is contained in url, 0:npos will return the string as it is
   std::string resourceName = url.substr(0, reqparamIdx);
@@ -72,92 +74,68 @@ void ResourceResolver::resolveNode(const std::string &method, const std::string 
 
 
   // Check whether a resource matches
-  for(std::vector<HTTPNode*>::iterator node = _nodes->begin(); node != _nodes->end(); ++node) {
+  for(std::vector<HTTPNode*>::iterator itNode = _nodes->begin(); itNode != _nodes->end(); ++itNode) {
     params->resetUrlParameters();
-    if ((*node)->_nodeType==nodeType) {
+    HTTPNode *node = *itNode;
+    if (node->_nodeType==nodeType) {
       if (
         // For handler functions, check the method declared with the node
-        ((*node)->_nodeType==HANDLER_CALLBACK && ((ResourceNode*)*node)->_method == method) ||
+        (node->_nodeType==HANDLER_CALLBACK && ((ResourceNode*)node)->_method == method) ||
         // For websockets, the specification says that GET is the only choice
-        ((*node)->_nodeType==WEBSOCKET && method=="GET")
+        (node->_nodeType==WEBSOCKET && method=="GET")
       ) {
-        const std::string nodepath = ((*node)->_path);
-        if (!((*node)->hasUrlParameter())) {
-          HTTPS_LOGD("Testing simple match on %s", nodepath.c_str());
+        HTTPS_LOGD("Testing route %s", node->_path.c_str());
+        bool match = true;
+        size_t paramCount = node->getUrlParamCount();
+        // indices in input and pattern
+        size_t inputIdx = 0, pathIdx = 0;
+        HTTPS_LOGD("(INIT) inputIdx: %d, pathIdx: %d, pathEnd: %d, path: %s, url: %s",
+          inputIdx, pathIdx, pathEnd, node->_path.c_str(), url.c_str());
 
-          // Simple matching, the node does not contain any resource parameters
-          if (nodepath == resourceName) {
-            resolvedResource.setMatchingNode(*node);
-            HTTPS_LOGD("It's a match! Path: %s", nodepath.c_str());
-            break;
-          }
-        } else {
-          HTTPS_LOGD("Testing parameter match on %s", nodepath.c_str());
+        for (size_t paramIdx = 0; match && paramIdx < paramCount; paramIdx += 1) {
+          HTTPS_LOGD("(LOOP) inputIdx: %d, pathIdx: %d, pathEnd: %d, path: %s, url: %s",
+            inputIdx, pathIdx, pathEnd, node->_path.c_str(), url.c_str());
+          // Test static path before the parameter
+          size_t paramPos = node->getParamIdx(paramIdx);
+          size_t staticLength = paramPos - pathIdx;
+          match &= url.substr(inputIdx, staticLength) == node->_path.substr(pathIdx, staticLength);
+          inputIdx += staticLength;
+          pathIdx += staticLength;
 
-          // Advanced matching, we need to align the /?/ parts.
-          bool didMatch = true;
-          size_t urlIdx = 0; // Pointer how far the input url is processed
-          size_t nodeIdx = 0; // Pointer how far the node url is processed
-          for (int pIdx = 0; didMatch && pIdx < (*node)->getUrlParamCount(); pIdx++) {
-            size_t pOffset = (*node)->getParamIdx(pIdx);
-
-            // First step: Check static part
-            size_t staticLength = pOffset-nodeIdx;
-            if (nodepath.substr(nodeIdx, staticLength).compare(resourceName.substr(urlIdx, staticLength))!=0) {
-              // static part did not match
-              didMatch = false;
-              HTTPS_LOGD("No match on static part %d", pIdx);
-            } else {
-              // static part did match, increase pointers
-              nodeIdx += staticLength + 1; // +1 to take care of the '*' placeholder.
-              urlIdx  += staticLength; // The pointer should now point to the begin of the static part
-
-              // Second step: Grab the parameter value
-              if (nodeIdx == nodepath.length()) {
-                // Easy case: parse until end of string
-                params->setUrlParameter(pIdx, urlDecode(resourceName.substr(urlIdx)));
-              } else {
-                // parse until first char after the placeholder
-                char terminatorChar = nodepath[nodeIdx];
-                size_t terminatorPosition = resourceName.find(terminatorChar, urlIdx);
-                if (terminatorPosition != std::string::npos) {
-                  // We actually found the terminator
-                  size_t dynamicLength = terminatorPosition-urlIdx;
-                  params->setUrlParameter(pIdx, urlDecode(resourceName.substr(urlIdx, dynamicLength)));
-                  urlIdx = urlIdx + dynamicLength;
-                } else {
-                  // We did not find the terminator
-                  didMatch = false;
-                  HTTPS_LOGD("No match on dynamic part %d", pIdx);
-                }
-              }
-            } // static part did match
-          } // placeholder loop
-
-          // If there is some final static part to process
-          if (didMatch && nodeIdx < nodepath.length()) {
-            size_t staticLength = nodepath.length()-nodeIdx;
-            if (nodepath.substr(nodeIdx, staticLength).compare(url.substr(urlIdx, staticLength))!=0) {
-              didMatch = false;
-              HTTPS_LOGD("No match, final static part did not match");
-            } else {
-              urlIdx += staticLength;
-              // If there is some string remaining in the url that did not match
-              if (urlIdx < resourceName.length()) {
-                didMatch = false;
-                HTTPS_LOGD("No match, URL is longer than final static part");
-              }
+          // Extract parameter value
+          if (match) {
+            size_t paramEnd = url.find('/', inputIdx);
+            if (paramEnd == std::string::npos && inputIdx <= pathEnd) {
+              // Consume the remaining input (might be "" for the last param)
+              paramEnd = pathEnd;
             }
+            if (paramEnd != std::string::npos) {
+              size_t paramLength = paramEnd - inputIdx;
+              params->setUrlParameter(paramIdx, urlDecode(url.substr(inputIdx, paramLength)));
+              pathIdx += 1;
+              inputIdx += paramLength;
+            } else {
+              match = false;
+              HTTPS_LOGD("(LOOP) No match on param part");
+            }
+          } else {
+            HTTPS_LOGD("(LOOP) No match on static part");
           }
+        }
+        HTTPS_LOGD("(STTC) inputIdx: %d, pathIdx: %d, pathEnd: %d, path: %s, url: %s",
+          inputIdx, pathIdx, pathEnd, node->_path.c_str(), url.c_str());
+        // Test static path after the parameter (up to pathEnd)
+        if (match) {
+          match = url.substr(inputIdx, pathEnd - inputIdx)==node->_path.substr(pathIdx);
+        }
+        HTTPS_LOGD("(END ) inputIdx: %d, pathIdx: %d, pathEnd: %d, path: %s, url: %s",
+          inputIdx, pathIdx, pathEnd, node->_path.c_str(), url.c_str());
 
-          // Every check worked, so the full url matches and the params are set
-          if (didMatch) {
-            resolvedResource.setMatchingNode(*node);
-            HTTPS_LOGD("It's a match!");
-            break;
-          }
-
-        } // static/dynamic url
+        if (match) {
+          resolvedResource.setMatchingNode(node);
+          HTTPS_LOGD("It's a match!");
+          break;
+        }
       } // method check
     } // node type check
   } // resource node for loop

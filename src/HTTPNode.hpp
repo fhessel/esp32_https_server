@@ -44,8 +44,8 @@ public:
   const HTTPNodeType _nodeType;
 
   bool hasUrlParameter();
-  uint8_t getUrlParamCount();
-  size_t getParamIdx(uint8_t);
+  size_t getUrlParamCount();
+  ssize_t getParamIdx(size_t);
 
   std::vector<HTTPValidator*> * getValidators();
 
@@ -61,9 +61,8 @@ public:
   void addURLParamValidator(uint8_t paramIdx, const HTTPValidationFunction * validator);
 
 private:
-  uint8_t _urlParamCount;
-  size_t * _urlParamIdx;
-  std::vector<HTTPValidator*> * _validators;
+  std::vector<size_t> _urlParamIdx;
+  std::vector<HTTPValidator*> _validators;
 };
 
 } // namespace httpserver
