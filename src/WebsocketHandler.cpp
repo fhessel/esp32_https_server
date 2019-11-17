@@ -238,7 +238,7 @@ void WebsocketHandler::send(uint8_t* data, uint16_t length, uint8_t sendType) {
     frame.len = 126;
     _con->writeBuffer((uint8_t *)&frame, sizeof(frame));
     uint16_t net_len = htons(length);
-    _con->writeBuffer((uint8_t *) net_len, sizeof(uint16_t));  // Convert to network byte order from host byte order
+    _con->writeBuffer((uint8_t *)&net_len, sizeof(uint16_t));  // Convert to network byte order from host byte order
   }
   _con->writeBuffer(data, length);
   HTTPS_LOGD("<< Websocket.send()");
