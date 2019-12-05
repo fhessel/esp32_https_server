@@ -53,7 +53,8 @@ HTTPSServer secureServer = HTTPSServer(&cert);
 // We declare some handler functions (definition at the end of the file)
 void handleRoot(HTTPRequest * req, HTTPResponse * res);
 void handleSVG(HTTPRequest * req, HTTPResponse * res);
-void handleURLParam(HTTPRequest * req, HTTPResponse * res);
+void handleQueryDemo(HTTPRequest * req, HTTPResponse * res);
+void handlePathParam(HTTPRequest * req, HTTPResponse * res);
 void handle404(HTTPRequest * req, HTTPResponse * res);
 
 void setup() {
@@ -72,19 +73,20 @@ void setup() {
 
   // For every resource available on the server, we need to create a ResourceNode
   // The ResourceNode links URL and HTTP method to a handler function
-  ResourceNode * nodeRoot     = new ResourceNode("/", "GET", &handleRoot);
-  ResourceNode * nodeSVG      = new ResourceNode("/images/awesome.svg", "GET", &handleSVG);
-  ResourceNode * node404      = new ResourceNode("", "GET", &handle404);
+  ResourceNode * nodeRoot      = new ResourceNode("/", "GET", &handleRoot);
+  ResourceNode * nodeSVG       = new ResourceNode("/images/awesome.svg", "GET", &handleSVG);
+  ResourceNode * nodeQueryDemo = new ResourceNode("/queryparams", "GET", &handleQueryDemo);
+  ResourceNode * node404       = new ResourceNode("", "GET", &handle404);
 
-  // URL params
+  // Path parameters
   // If you want (for example) to return a specific instance of an object type by its ID
   // you can use URLs like /led/1, led/2, ... - And you do not need to register one Resource
-  // Node per ID, but you can use wildcards in the URL definition. The following function
-  // has to wildcards, and will match for example to /urlparam/foo/bar, where "foo" and "bar"
+  // Node per ID, but you can use wildcards in the route definition. The following route
+  // has two wildcards, and will match for example to /urlparam/foo/bar, where "foo" and "bar"
   // are accessible parameters in the handler function.
   // Note: The wildcards can only be used between slashes at the moment (so /urlparam* would
   // not work).
-  ResourceNode * nodeURLParam = new ResourceNode("/urlparam/*/*", "GET", &handleURLParam);
+  ResourceNode * nodeURLParam = new ResourceNode("/urlparam/*/*", "GET", &handlePathParam);
 
   // Add the root node to the server
   secureServer.registerNode(nodeRoot);
@@ -92,7 +94,10 @@ void setup() {
   // Add the SVG image
   secureServer.registerNode(nodeSVG);
 
-  // Add the URL param node
+  // Query parameter demo
+  secureServer.registerNode(nodeQueryDemo);
+
+  // Add the path parameter
   // Note: The order of nodes may become important here. If you have one node for "/led" (e.g. list of LEDs)
   // and one node for /led/* (LED details), you should register the non-parameterized version first. The server
   // follows a first-match policy. If you would register the details node first, a call to /led/ will be targetted
@@ -126,9 +131,11 @@ void handleRoot(HTTPRequest * req, HTTPResponse * res) {
   res->println("<!DOCTYPE html>");
   res->println("<html>");
   res->println("<head><title>Hello World!</title></head>");
+  res->println("<style>.info{font-style:italic}</style>");
   res->println("<body>");
 
-  res->println("<h1>GET parameters</h1>");
+  res->println("<h1>Query Parameters</h1>");
+  res->println("<p class=\"info\">The parameters after the question mark in your URL.</p>");
 
   // Show a form to select a color to colorize the faces
   // We pass the selection as get parameter "shades" to this very same page,
@@ -158,8 +165,8 @@ void handleRoot(HTTPRequest * req, HTTPResponse * res) {
     // Depending on the selection we show the images in a specific color shade
     // Default is dark gray.
     int r = 63, g = 63, b = 63;
-    if (params->isRequestParameterSet(paramName)) {
-      std::string paramVal = params->getRequestParameter(paramName);
+    std::string paramVal;
+    if (params->getQueryParameter(paramName, paramVal)) {
       if (paramVal == "red" || paramVal == "magenta" || paramVal == "yellow" || paramVal == "rainbow") {
         r = 128 + random(0, 128);
       }
@@ -178,19 +185,21 @@ void handleRoot(HTTPRequest * req, HTTPResponse * res) {
 
     res->print("\" alt=\"Awesome!\" />");
   }
+  res->println("<p>You'll find another demo <a href=\"/queryparams?a=42&b&c=13&a=hello\">here</a>.</p>");
 
-  // Link to the URL parameter demo
-  res->println("<h1>URL parameters</h1>");
+  // Link to the path parameter demo
+  res->println("<h1>Path Parameters</h1>");
+  res->println("<p class=\"info\">The parameters derived from placeholders in your path, like /foo/bar.</p>");
   res->println("<p>You'll find the demo <a href=\"/urlparam/foo/bar\">here</a>.</p>");
 
   res->println("</body>");
   res->println("</html>");
 }
 
-// This callback responds with an SVG image to a GET request. The icon is the awesome face.
+// This callback responds with an SVG image to a GET request. The icon is the "awesome face".
 // (borrowed from https://commons.wikimedia.org/wiki/File:718smiley.svg)
 //
-// If the color request parameter is set (so the URL is like awesome.svg?color=fede58), the
+// If the color query parameter is set (so the URL is like awesome.svg?color=fede58), the
 // background of our awesome face is changed.
 void handleSVG(HTTPRequest * req, HTTPResponse * res) {
   // Get access to the parameters
@@ -205,10 +214,11 @@ void handleSVG(HTTPRequest * req, HTTPResponse * res) {
   // Get request parameter (like awesome.svg?color=ff0000) and validate it
   std::string colorParamName = "color";
 
-  // Check that the parameter is set
-  if (params->isRequestParameterSet(colorParamName)) {
-    // Get the value of the parameter
-    std::string requestColor = params->getRequestParameter(colorParamName);
+  // Check that the parameter is set and retrieve it.
+  // The getQueryParameter function will modify the second parameter, but only if the query
+  // parameter is set.
+  std::string requestColor;
+  if (params->getQueryParameter(colorParamName, requestColor)) {
     // Check for correct length
     if (requestColor.length()==6) {
       bool colorOk = true;
@@ -247,10 +257,58 @@ void handleSVG(HTTPRequest * req, HTTPResponse * res) {
   res->print("</svg>");
 }
 
+// This is a more generic demo for the query parameters. It makes use of the iterator
+// interface to access them, which is useful if you do not know the paramter names in
+// adavance.
+void handleQueryDemo(HTTPRequest * req, HTTPResponse * res) {
+  // A word of warning: In this example, we use the query parameters and directly print
+  // them into the HTML output. We do this to simplify the demo. NEVER do this in a
+  // real application, as it allows cross-site-scripting.
+  res->setHeader("Content-Type", "text/html");
+
+  res->println("<!DOCTYPE html>");
+  res->println("<html>");
+  res->println("<head>");
+  res->println("<title>Query Parameter Demo</title>");
+  res->println("</head>");
+  res->println("<body>");
+  res->println("<p>The following query paramters have been set:</p>");
+  
+  // Start a table to display the parameters
+  res->println("<table style=\"border:1px solid black collapse;\">");
+  res->println("<tr><th>Key</th><th>Value</th></tr>");
+  // Iterate over the parameters. For more information, read about the C++ standard template library, 
+  // especially about vectors and iterators.
+  ResourceParameters *params = req->getParams();
+  for(auto it = params->beginQueryParameters(); it != params->endQueryParameters(); ++it) {
+    res->print("<tr><td>");
+    
+    // The iterator yields std::pairs of std::strings. The first value contains the parameter key
+    res->printStd((*it).first);
+    res->print("</td><td>");
+
+    // and the second value contains the parameter value
+    res->printStd((*it).second);
+    res->println("</td></tr>");
+  }
+  res->println("</table>");
+
+  // You can retrieve the total parameter count from the parameters instance:
+  res->print("<p>There are a total of ");
+  res->print(params->getQueryParameterCount());
+  res->print(" parameters, with ");
+  res->print(params->getQueryParameterCount(true));
+  res->println(" unique keys.</p>");
+
+  res->println("<p>Go <a href=\"/\">back to main page</a>.</p>");
+  res->println("</body>");
+  res->println("</html>");
+}
+
 // This is a simple handler function that will show the content of URL parameters.
 // If you call for example /urlparam/foo/bar, you will get the parameter values
 // "foo" and "bar" provided by the ResourceParameters.
-void handleURLParam(HTTPRequest * req, HTTPResponse * res) {
+void handlePathParam(HTTPRequest * req, HTTPResponse * res) {
   // Get access to the parameters
   ResourceParameters * params = req->getParams();
 
@@ -260,19 +318,26 @@ void handleURLParam(HTTPRequest * req, HTTPResponse * res) {
   // The url pattern is: /urlparam/*/*
   // This will make the content for the first parameter available on index 0,
   // and the second wildcard as index 1.
+  // getPathParameter will - like getQueryParameter - write the value to the second parameter,
+  // and return true, if the index is valid. Otherwise it returns false and leaves the second
+  // parameter as it is.
 
+  std::string parameter1, parameter2;
   // Print the first parameter value
-  res->print("Parameter 1: ");
-  res->printStd(params->getUrlParameter(0));
+  if (params->getPathParameter(0, parameter1)) {
+    res->print("Parameter 1: ");
+    res->printStd(parameter1);
+  }
+
+  res->println();
 
   // Print the second parameter value
-  res->print("\nParameter 2: ");
-  res->printStd(params->getUrlParameter(1));
+  if (params->getPathParameter(1, parameter2)) {
+    res->print("Parameter 2: ");
+    res->printStd(parameter2);
+  }
 
   res->println("\n\nChange the parameters in the URL to see how they get parsed!");
-
-  // Note: If you have objects that are identified by an ID, you may also use
-  // ResourceParameters::getUrlParameterInt(int) for convenience
 }
 
 // For details to this function, see the Static-Page example

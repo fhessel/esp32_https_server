@@ -62,7 +62,7 @@ void ResourceResolver::resolveNode(const std::string &method, const std::string 
       }
 
       // Now we finally have name and value.
-      params->setRequestParameter(name, value);
+      params->setQueryParameter(name, value);
 
       // Update reqparamIdx
       reqparamIdx = nextparamIdx;
@@ -73,7 +73,7 @@ void ResourceResolver::resolveNode(const std::string &method, const std::string 
 
   // Check whether a resource matches
   for(std::vector<HTTPNode*>::iterator node = _nodes->begin(); node != _nodes->end(); ++node) {
-    params->resetUrlParameters();
+    params->resetPathParameters();
     if ((*node)->_nodeType==nodeType) {
       if (
         // For handler functions, check the method declared with the node
@@ -82,7 +82,7 @@ void ResourceResolver::resolveNode(const std::string &method, const std::string 
         ((*node)->_nodeType==WEBSOCKET && method=="GET")
       ) {
         const std::string nodepath = ((*node)->_path);
-        if (!((*node)->hasUrlParameter())) {
+        if (!((*node)->hasPathParameter())) {
           HTTPS_LOGD("Testing simple match on %s", nodepath.c_str());
 
           // Simple matching, the node does not contain any resource parameters
@@ -98,7 +98,7 @@ void ResourceResolver::resolveNode(const std::string &method, const std::string 
           bool didMatch = true;
           size_t urlIdx = 0; // Pointer how far the input url is processed
           size_t nodeIdx = 0; // Pointer how far the node url is processed
-          for (int pIdx = 0; didMatch && pIdx < (*node)->getUrlParamCount(); pIdx++) {
+          for (int pIdx = 0; didMatch && pIdx < (*node)->getPathParamCount(); pIdx++) {
             size_t pOffset = (*node)->getParamIdx(pIdx);
 
             // First step: Check static part
@@ -115,7 +115,7 @@ void ResourceResolver::resolveNode(const std::string &method, const std::string 
               // Second step: Grab the parameter value
               if (nodeIdx == nodepath.length()) {
                 // Easy case: parse until end of string
-                params->setUrlParameter(pIdx, urlDecode(resourceName.substr(urlIdx)));
+                params->setPathParameter(pIdx, urlDecode(resourceName.substr(urlIdx)));
               } else {
                 // parse until first char after the placeholder
                 char terminatorChar = nodepath[nodeIdx];
@@ -123,7 +123,7 @@ void ResourceResolver::resolveNode(const std::string &method, const std::string 
                 if (terminatorPosition != std::string::npos) {
                   // We actually found the terminator
                   size_t dynamicLength = terminatorPosition-urlIdx;
-                  params->setUrlParameter(pIdx, urlDecode(resourceName.substr(urlIdx, dynamicLength)));
+                  params->setPathParameter(pIdx, urlDecode(resourceName.substr(urlIdx, dynamicLength)));
                   urlIdx = urlIdx + dynamicLength;
                 } else {
                   // We did not find the terminator
@@ -164,7 +164,7 @@ void ResourceResolver::resolveNode(const std::string &method, const std::string 
 
   // If the resource did not match, configure the default resource
   if (!resolvedResource.didMatch() && _defaultNode != NULL) {
-    params->resetUrlParameters();
+    params->resetPathParameters();
     resolvedResource.setMatchingNode(_defaultNode);
   }
 
