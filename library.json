@@ -1,7 +1,7 @@
 {
   "name": "esp32_https_server",
   "keywords": "communication, esp32, http, https, server, ssl, tls, webserver, websockets",
-  "description": "An Arduino library for an ESP32 HTTP/HTTPS web server implementation",
+  "description": "Alternative ESP32 Webserver implementation for the ESP32, supporting HTTPS and HTTP. The library provides TLS support and simultaneous connections. It can be used to run an HTTP or HTTPS server, or both in parallel. The server's resources are defined through handler and middleware functions, giving an easy start to everyone who has worked with frameworks like Express or Servlets before.",
   "repository":
   {
     "type": "git",
