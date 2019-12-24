@@ -78,6 +78,16 @@ char contentTypes[][2][32] = {
 #include <HTTPResponse.hpp>
 #include <util.hpp>
 
+// The HTTPS Server comes in a separate namespace. For easier use, include it here.
+using namespace httpsserver;
+
+SSLCert * getCertificate();
+void handleSPIFFS(HTTPRequest * req, HTTPResponse * res);
+void handleGetUptime(HTTPRequest * req, HTTPResponse * res);
+void handleGetEvents(HTTPRequest * req, HTTPResponse * res);
+void handlePostEvent(HTTPRequest * req, HTTPResponse * res);
+void handleDeleteEvent(HTTPRequest * req, HTTPResponse * res);
+
 // We use the following struct to store GPIO events:
 #define MAX_EVENTS 20
 struct {
@@ -90,9 +100,6 @@ struct {
   // and to which state?
   int state;
 } events[MAX_EVENTS];
-
-// The HTTPS Server comes in a separate namespace. For easier use, include it here.
-using namespace httpsserver;
 
 // We just create a reference to the server here. We cannot call the constructor unless
 // we have initialized the SPIFFS and read or created the certificate
@@ -504,7 +511,7 @@ void handlePostEvent(HTTPRequest * req, HTTPResponse * res) {
 void handleDeleteEvent(HTTPRequest * req, HTTPResponse * res) {
   // Access the parameter from the URL. See Parameters example for more details on this
   ResourceParameters * params = req->getParams();
-  uint16_t eid = params->getUrlParameterInt(0);
+  size_t eid = std::atoi(params->getPathParameter(0).c_str());
 
   if (eid < MAX_EVENTS) {
     // Set the inactive flag

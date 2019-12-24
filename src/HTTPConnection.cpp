@@ -612,8 +612,12 @@ void validationMiddleware(HTTPRequest * req, HTTPResponse * res, std::function<v
   // Iterate over the validators and run them
   std::vector<HTTPValidator*> * validators = node->getValidators();
   for(std::vector<HTTPValidator*>::iterator validator = validators->begin(); valid && validator != validators->end(); ++validator) {
-    std::string param = params->getUrlParameter((*validator)->_idx);
-    valid = ((*validator)->_validatorFunction)(param);
+    std::string param;
+    if (params->getPathParameter((*validator)->_idx, param)) {
+      valid = ((*validator)->_validatorFunction)(param);
+    } else {
+      valid = false;
+    }
   }
 
   if (valid) {

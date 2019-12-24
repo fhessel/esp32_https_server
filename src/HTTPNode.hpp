@@ -43,8 +43,8 @@ public:
   /** Stores the type of the node (as we have not runtime type information by default) */
   const HTTPNodeType _nodeType;
 
-  bool hasUrlParameter();
-  uint8_t getUrlParamCount();
+  bool hasPathParameter();
+  size_t getPathParamCount();
   size_t getParamIdx(uint8_t);
 
   std::vector<HTTPValidator*> * getValidators();
@@ -58,11 +58,11 @@ public:
    * 
    * @see ValidatorFunctions.hpp if you need some predefined templates for functions
    */
-  void addURLParamValidator(uint8_t paramIdx, const HTTPValidationFunction * validator);
+  void addPathParamValidator(size_t paramIdx, const HTTPValidationFunction * validator);
 
 private:
-  uint8_t _urlParamCount;
-  size_t * _urlParamIdx;
+  size_t _pathParamCount;
+  size_t * _pathParamIdx;
   std::vector<HTTPValidator*> * _validators;
 };
 

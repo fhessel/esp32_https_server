@@ -14,30 +14,44 @@
 
 namespace httpsserver {
 
-struct requestparam_t {std::string name; std::string value;};
+class ResourceResolver;
 
 /**
- * \brief Class used to handle access to the URL parameters
+ * @brief The ResourceParameters provide access to the parameters passed in the URI.
+ * 
+ * There are two types of parameters: Path parameters and query parameters.
+ * 
+ * Path parameters are the values that fill the asterisk placeholders in the route
+ * definition of a ResourceNode.
+ * 
+ * Query parameters are the key-value pairs after a question mark which can be added
+ * to each request, either by specifying them manually or as result of submitting an
+ * HTML form with a GET as method property.
  */
 class ResourceParameters {
 public:
   ResourceParameters();
   virtual ~ResourceParameters();
 
-  bool isRequestParameterSet(std::string const &name);
-  std::string getRequestParameter(std::string const &name);
-  uint16_t getRequestParameterInt(std::string const &name);
-  void setRequestParameter(std::string const &name, std::string const &value);
+  bool isQueryParameterSet(std::string const &name);
+  bool getQueryParameter(std::string const &name, std::string &value);
+  std::vector<std::pair<std::string,std::string>>::iterator beginQueryParameters();
+  std::vector<std::pair<std::string,std::string>>::iterator endQueryParameters();
+  size_t getQueryParameterCount(bool unique=false);
+  bool getPathParameter(size_t const idx, std::string &value);
+  std::string getPathParameter(size_t const idx);
 
-  std::string getUrlParameter(uint8_t idx);
-  uint16_t getUrlParameterInt(uint8_t idx);
-  void resetUrlParameters();
-  void setUrlParameterCount(uint8_t idx);
-  void setUrlParameter(uint8_t idx, std::string const &val);
+protected:
+  friend class ResourceResolver;
+  void setQueryParameter(std::string const &name, std::string const &value);
+  void resetPathParameters();
+  void setPathParameter(size_t idx, std::string const &val);
 
 private:
-  std::vector<std::string> _urlParams;
-  std::vector<std::pair<std::string, std::string>> _reqParams;
+  /** Parameters in the path of the URL, the actual values for asterisk placeholders */
+  std::vector<std::string> _pathParams;
+  /** HTTP Query parameters, as key-value pairs */
+  std::vector<std::pair<std::string, std::string>> _queryParams;
 };
 
 } /* namespace httpsserver */
