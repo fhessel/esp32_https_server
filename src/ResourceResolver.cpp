@@ -51,20 +51,24 @@ void ResourceResolver::resolveNode(const std::string &method, const std::string 
       size_t nextparamIdx = url.find('&', reqparamIdx);
 
       // Get the "name=value" string
-      std::string param = url.substr(reqparamIdx, nextparamIdx - reqparamIdx);
+      std::string param = nextparamIdx == std::string::npos ?
+         url.substr(reqparamIdx) :
+         url.substr(reqparamIdx, nextparamIdx - reqparamIdx);
 
-      // Find the position where the string has to be split
-      size_t nvSplitIdx = param.find('=');
+      if (param.length() > 0) {
+        // Find the position where the string has to be split
+        size_t nvSplitIdx = param.find('=');
 
-      // Use empty string if only name is set. /foo?bar&baz=1 will return "" for bar
-      std::string name  = param.substr(0, nvSplitIdx);
-      std::string value = "";
-      if (nvSplitIdx != std::string::npos) {
-        value = urlDecode(param.substr(nvSplitIdx+1));
+        // Use empty string if only name is set. /foo?bar&baz=1 will return "" for bar
+        std::string name  = urlDecode(param.substr(0, nvSplitIdx));
+        std::string value = "";
+        if (nvSplitIdx != std::string::npos) {
+          value = urlDecode(param.substr(nvSplitIdx+1));
+        }
+
+        // Now we finally have name and value.
+        params->setQueryParameter(name, value);
       }
-
-      // Now we finally have name and value.
-      params->setQueryParameter(name, value);
 
       // Update reqparamIdx
       reqparamIdx = nextparamIdx;
