@@ -53,11 +53,19 @@ git clone https://github.com/fhessel/esp32_https_server.git
 
 > **Note:** While the `master` branch should contain a running version of the library at any time, the API might already have changes towards the next major release. So for a stable setup, it is recommended to use a published release.
 
-### Arduino
+### Arduino IDE
 
-Download [the latest release](https://github.com/fhessel/esp32_https_server/releases) and extract it into your Arduino/libraries folder. Then restart your IDE.
+You can install the library using Arduino IDE's [library manager](https://www.arduino.cc/en/Guide/Libraries). In the _Sketch_ menu, click on _Include Library_ and select _Manage Libraries..._ directly at the top of the menu. Then search for "ESP32 HTTPS Server" and click on the _Install_ button.
 
-You then should be able to add the library to your project if you selected the ESP32 as architecture.
+Alternatively, you can download [a release](https://github.com/fhessel/esp32_https_server/releases) and extract it into your `Arduino/libraries` folder. Then restart your IDE.
+
+If you want to use the latest `master` branch, open a command line, navigate to the libraries folder and run:
+
+```bash
+git clone https://github.com/fhessel/esp32_https_server.git
+```
+
+> **Note:** While the `master` branch should contain a running version of the library at any time, the API might already have changes towards the next major release. So for a stable setup, it is recommended to use a published release.
 
 ## Examples
 
