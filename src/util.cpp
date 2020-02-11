@@ -61,7 +61,14 @@ std::string intToString(int i) {
 
 std::string urlDecode(std::string input) {
   std::size_t idxReplaced = 0;
-  std::size_t idxFound = input.find('%');
+  // First replace + by space
+  std::size_t idxFound = input.find('+');
+  while (idxFound != std::string::npos) {
+    input.replace(idxFound, 1, 1, ' ');
+    idxFound = input.find('+', idxFound + 1);
+  }
+  // Now replace percent-escapes
+  idxFound = input.find('%');
   while (idxFound != std::string::npos) {
     if (idxFound <= input.length() + 3) {
       char hex[2] = { input[idxFound+1], input[idxFound+2] };
