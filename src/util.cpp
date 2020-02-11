@@ -65,7 +65,7 @@ std::string urlDecode(std::string input) {
   std::size_t idxFound = input.find('+');
   while (idxFound != std::string::npos) {
     input.replace(idxFound, 1, 1, ' ');
-    idxFound = input.find('+', idxFound);
+    idxFound = input.find('+', idxFound + 1);
   }
   // Now replace percent-escapes
   idxFound = input.find('%');
