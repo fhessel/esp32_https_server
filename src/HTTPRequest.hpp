@@ -2,6 +2,7 @@
 #define SRC_HTTPREQUEST_HPP_
 
 #include <Arduino.h>
+#include <IPAddress.h>
 #include <string>
 
 #include <mbedtls/base64.h>
@@ -29,6 +30,7 @@ public:
   std::string getRequestString();
   std::string getMethod();
   std::string getTag();
+  IPAddress getClientIP();
 
   size_t readChars(char * buffer, size_t length);
   size_t readBytes(byte * buffer, size_t length);
