@@ -2,6 +2,7 @@
 #define SRC_CONNECTIONCONTEXT_HPP_
 
 #include <Arduino.h>
+#include <IPAddress.h>
 
 // Required for SSL
 #include "openssl/ssl.h"
@@ -30,6 +31,7 @@ public:
 
   virtual bool isSecure() = 0;
   virtual void setWebsocketHandler(WebsocketHandler *wsHandler);
+  virtual IPAddress getClientIP() = 0;
 
   WebsocketHandler * _wsHandler;
 };

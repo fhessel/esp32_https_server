@@ -33,6 +33,7 @@ HTTPConnection::~HTTPConnection() {
 int HTTPConnection::initialize(int serverSocketID, HTTPHeaders *defaultHeaders) {
   if (_connectionState == STATE_UNDEFINED) {
     _defaultHeaders = defaultHeaders;
+    _addrLen = sizeof(_sockAddr);
     _socket = accept(serverSocketID, (struct sockaddr * )&_sockAddr, &_addrLen);
 
     // Build up SSL Connection context if the socket has been created successfully
@@ -42,11 +43,11 @@ int HTTPConnection::initialize(int serverSocketID, HTTPHeaders *defaultHeaders) 
       _httpHeaders = new HTTPHeaders();
       refreshTimeout();
       return _socket;
-
     }
      
     HTTPS_LOGE("Could not accept() new connection");
    
+    _addrLen = 0;
     _connectionState = STATE_ERROR;
     _clientState = CSTATE_ACTIVE;
 
@@ -58,6 +59,16 @@ int HTTPConnection::initialize(int serverSocketID, HTTPHeaders *defaultHeaders) 
   return -1;
 }
 
+/**
+ * Returns the client's IPv4
+ */
+IPAddress HTTPConnection::getClientIP() {
+  if (_addrLen > 0 && _sockAddr.sa_family == AF_INET) {
+    struct sockaddr_in *sockAddrIn = (struct sockaddr_in *)(&_sockAddr);
+    return IPAddress(sockAddrIn->sin_addr.s_addr);
+  }
+  return IPAddress(0, 0, 0, 0);
+}
 
 /**
  * True if the connection is timed out.

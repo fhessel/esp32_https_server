@@ -53,6 +53,10 @@ HTTPNode * HTTPRequest::getResolvedNode() {
   return _resolvedNode;
 }
 
+IPAddress HTTPRequest::getClientIP() {
+  return _con->getClientIP();
+}
+
 size_t HTTPRequest::readBytes(byte * buffer, size_t length) {
 
   // Limit reading to content length
