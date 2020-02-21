@@ -38,6 +38,7 @@ public:
   bool   requestComplete();
   void   discardRequestBody();
   ResourceParameters * getParams();
+  HTTPHeaders *getHTTPHeaders();
   std::string getBasicAuthUser();
   std::string getBasicAuthPassword();
   bool   isSecure();

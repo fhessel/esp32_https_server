@@ -67,3 +67,6 @@ private_key.h
 
 # Do not push VS Code project files
 .vscode
+
+# Ignore platformio work directory
+.pio

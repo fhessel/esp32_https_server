@@ -19,7 +19,10 @@ namespace httpsserver {
  */
 class HTTPBodyParser {
 public:
+  const size_t unknownLength = 0x7ffffffe;
+
   HTTPBodyParser(HTTPRequest * req): _request(req) {};
+  virtual ~HTTPBodyParser() {}
 
   /**
    * Proceeds to the next field of the body
@@ -33,6 +36,9 @@ public:
   /** Returns the name of the current field */
   virtual std::string getFieldName() = 0;
 
+  /** Returns the filename of the current field or an empty string */
+  virtual std::string getFieldFilename() = 0;
+  
   /**
    * Returns the mime type of the current field.
    * 
@@ -43,14 +49,14 @@ public:
    */
   virtual std::string getFieldMimeType() = 0;
 
-  /** Returns the total length of the field */
-  virtual size_t getLength() = 0;
-
-  /** Returns the remaining length of the field. 0 means the field has been read completely */
-  virtual size_t getRemainingLength() = 0;
-
-  /** Reads a maximum of bufferSize bytes into buffer and returns the actual amount of bytes that have been read */
+  /** 
+   * Reads a maximum of bufferSize bytes into buffer and returns the actual amount of bytes that have been read 
+   */
   virtual size_t read(byte* buffer, size_t bufferSize) = 0;
+
+  /** Returns true when all field data has been read */
+  virtual bool endOfField() = 0;
+
 
 protected:
   /** The underlying request */

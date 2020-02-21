@@ -8,13 +8,30 @@ namespace httpsserver {
 
 class HTTPMultipartBodyParser : public HTTPBodyParser {
 public:
-  // From HTTPBodyParser
+  HTTPMultipartBodyParser(HTTPRequest * req);
+  ~HTTPMultipartBodyParser();
   virtual bool nextField();
   virtual std::string getFieldName();
+  virtual std::string getFieldFilename();
   virtual std::string getFieldMimeType();
-  virtual size_t getLength();
-  virtual size_t getRemainingLength();
+  virtual bool endOfField();
   virtual size_t read(byte* buffer, size_t bufferSize);
+private:
+  std::string readLine();
+  void fillBuffer(size_t maxLen);
+  void consumedBuffer(size_t consumed);
+  bool skipCRLF();
+  bool peekBoundary();
+  void discardBody();
+  bool endOfBody();
+  char *peekBuffer;
+  size_t peekBufferSize;
+
+  std::string boundary;
+  std::string lastBoundary;
+  std::string fieldName;
+  std::string fieldMimeType;
+  std::string fieldFilename;
 };
 
 } // namespace httpserver
