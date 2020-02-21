@@ -88,56 +88,56 @@ void setup() {
   Serial.println("Starting HTTP server...");
   insecureServer.start();
   if (secureServer.isRunning() && insecureServer.isRunning()) {
-	  Serial.println("Servers ready.");
+    Serial.println("Servers ready.");
   }
 }
 
 void loop() {
-	// We need to call both loop functions here
-	secureServer.loop();
-	insecureServer.loop();
+  // We need to call both loop functions here
+  secureServer.loop();
+  insecureServer.loop();
 
-	// Other code would go here...
-	delay(1);
+  // Other code would go here...
+  delay(1);
 }
 
 // The hanlder functions are the same as in the Static-Page example.
 // The only difference is the check for isSecure in the root handler
 
 void handleRoot(HTTPRequest * req, HTTPResponse * res) {
-	res->setHeader("Content-Type", "text/html");
+  res->setHeader("Content-Type", "text/html");
 
-	res->println("<!DOCTYPE html>");
-	res->println("<html>");
-	res->println("<head><title>Hello World!</title></head>");
-	res->println("<body>");
-	res->println("<h1>Hello World!</h1>");
+  res->println("<!DOCTYPE html>");
+  res->println("<html>");
+  res->println("<head><title>Hello World!</title></head>");
+  res->println("<body>");
+  res->println("<h1>Hello World!</h1>");
 
-	res->print("<p>Your server is running for ");
-	res->print((int)(millis()/1000), DEC);
-	res->println(" seconds.</p>");
+  res->print("<p>Your server is running for ");
+  res->print((int)(millis()/1000), DEC);
+  res->println(" seconds.</p>");
 
-	// You can check if you are connected over a secure connection, eg. if you
-	// want to use authentication and redirect the user to a secure connection
-	// for that
-	if (req->isSecure()) {
-		res->println("<p>You are connected via <strong>HTTPS</strong>.</p>");
-	} else {
-		res->println("<p>You are connected via <strong>HTTP</strong>.</p>");
-	}
+  // You can check if you are connected over a secure connection, eg. if you
+  // want to use authentication and redirect the user to a secure connection
+  // for that
+  if (req->isSecure()) {
+    res->println("<p>You are connected via <strong>HTTPS</strong>.</p>");
+  } else {
+    res->println("<p>You are connected via <strong>HTTP</strong>.</p>");
+  }
 
-	res->println("</body>");
-	res->println("</html>");
+  res->println("</body>");
+  res->println("</html>");
 }
 
 void handle404(HTTPRequest * req, HTTPResponse * res) {
-	req->discardRequestBody();
-	res->setStatusCode(404);
-	res->setStatusText("Not Found");
-	res->setHeader("Content-Type", "text/html");
-	res->println("<!DOCTYPE html>");
-	res->println("<html>");
-	res->println("<head><title>Not Found</title></head>");
-	res->println("<body><h1>404 Not Found</h1><p>The requested resource was not found on this server.</p></body>");
-	res->println("</html>");
+  req->discardRequestBody();
+  res->setStatusCode(404);
+  res->setStatusText("Not Found");
+  res->setHeader("Content-Type", "text/html");
+  res->println("<!DOCTYPE html>");
+  res->println("<html>");
+  res->println("<head><title>Not Found</title></head>");
+  res->println("<body><h1>404 Not Found</h1><p>The requested resource was not found on this server.</p></body>");
+  res->println("</html>");
 }

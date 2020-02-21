@@ -5,7 +5,10 @@
 #include "HTTPResponse.hpp"
 
 namespace httpsserver {
-	typedef void (HTTPSCallbackFunction)(HTTPRequest * req, HTTPResponse * res);
+  /**
+   * \brief A callback function that will be called by the server to handle a request
+   */
+  typedef void (HTTPSCallbackFunction)(HTTPRequest * req, HTTPResponse * res);
 }
 
 #endif /* SRC_HTTPSCALLBACKFUNCTION_HPP_ */

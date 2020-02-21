@@ -7,12 +7,15 @@ namespace httpsserver {
 
 typedef bool (HTTPValidationFunction)(std::string);
 
+/**
+ * \brief Internal representation of a validator function
+ */
 class HTTPValidator {
 public:
-	HTTPValidator(const uint8_t idx, const HTTPValidationFunction * validatorFunction);
-	virtual ~HTTPValidator();
-	const uint8_t _idx;
-	const HTTPValidationFunction * _validatorFunction;
+  HTTPValidator(const uint8_t idx, const HTTPValidationFunction * validatorFunction);
+  virtual ~HTTPValidator();
+  const uint8_t _idx;
+  const HTTPValidationFunction * _validatorFunction;
 };
 
 } /* namespace httpsserver */

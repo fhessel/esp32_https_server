@@ -21,24 +21,24 @@ namespace httpsserver {
 class WebsocketInputStreambuf : public std::streambuf {
 public:
   WebsocketInputStreambuf(
-	  ConnectionContext *con,
-		size_t dataLength,
-		uint8_t *_ = nullptr,
-		size_t bufferSize = 2048
+    ConnectionContext *con,
+    size_t dataLength,
+    uint8_t *_ = nullptr,
+    size_t bufferSize = 2048
   );
   virtual ~WebsocketInputStreambuf();
 
-	int_type underflow();
-	void discard();
-	size_t getRecordSize();
+  int_type underflow();
+  void discard();
+  size_t getRecordSize();
 
 private:
-	char *_buffer;
-	ConnectionContext *_con;
-	size_t _dataLength;
-	size_t _bufferSize;
-	size_t _sizeRead;
-	uint8_t *_pMask;
+  char *_buffer;
+  ConnectionContext *_con;
+  size_t _dataLength;
+  size_t _bufferSize;
+  size_t _sizeRead;
+  uint8_t *_pMask;
 
 };
 

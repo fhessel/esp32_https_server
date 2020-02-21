@@ -1,0 +1,4 @@
+<map id="httpsserver::HTTPResponse" name="httpsserver::HTTPResponse">
+<area shape="rect" id="node3" href="$classhttpsserver_1_1ConnectionContext.html" title="Internal class to handle the state of a connection. " alt="" coords="101,95,307,121"/>
+<area shape="rect" id="node4" href="$classhttpsserver_1_1WebsocketHandler.html" title="httpsserver::WebsocketHandler" alt="" coords="101,5,307,32"/>
+</map>

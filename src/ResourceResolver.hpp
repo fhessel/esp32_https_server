@@ -16,31 +16,34 @@
 
 namespace httpsserver {
 
+/**
+ * \brief This class is used internally to resolve a string URL to the corresponding HTTPNode
+ */
 class ResourceResolver {
 public:
-	ResourceResolver();
-	~ResourceResolver();
+  ResourceResolver();
+  ~ResourceResolver();
 
-	void registerNode(HTTPNode *node);
-	void unregisterNode(HTTPNode *node);
-	void setDefaultNode(HTTPNode *node);
-	void resolveNode(const std::string &method, const std::string &url, ResolvedResource &resolvedResource, HTTPNodeType nodeType);
+  void registerNode(HTTPNode *node);
+  void unregisterNode(HTTPNode *node);
+  void setDefaultNode(HTTPNode *node);
+  void resolveNode(const std::string &method, const std::string &url, ResolvedResource &resolvedResource, HTTPNodeType nodeType);
 
-	/** Add a middleware function to the end of the middleware function chain. See HTTPSMiddlewareFunction.hpp for details. */
-	void addMiddleware(const HTTPSMiddlewareFunction * mwFunction);
-	/** Remove a specific function from the middleware function chain. */
-	void removeMiddleware(const HTTPSMiddlewareFunction * mwFunction);
-	/** Get the current middleware chain with a resource function at the end */
-	const std::vector<HTTPSMiddlewareFunction*> getMiddleware();
+  /** Add a middleware function to the end of the middleware function chain. See HTTPSMiddlewareFunction.hpp for details. */
+  void addMiddleware(const HTTPSMiddlewareFunction * mwFunction);
+  /** Remove a specific function from the middleware function chain. */
+  void removeMiddleware(const HTTPSMiddlewareFunction * mwFunction);
+  /** Get the current middleware chain with a resource function at the end */
+  const std::vector<HTTPSMiddlewareFunction*> getMiddleware();
 
 private:
 
-	// This vector holds all nodes (with callbacks) that are registered
-	std::vector<HTTPNode*> * _nodes;
-	HTTPNode * _defaultNode;
+  // This vector holds all nodes (with callbacks) that are registered
+  std::vector<HTTPNode*> * _nodes;
+  HTTPNode * _defaultNode;
 
-	// Middleware functions, if any are registered. Will be called in order of the vector.
-	std::vector<const HTTPSMiddlewareFunction*> _middleware;
+  // Middleware functions, if any are registered. Will be called in order of the vector.
+  std::vector<const HTTPSMiddlewareFunction*> _middleware;
 };
 
 } /* namespace httpsserver */

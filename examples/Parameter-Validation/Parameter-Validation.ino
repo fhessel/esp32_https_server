@@ -1,4 +1,3 @@
-#include <Arduino.h>
 /**
  * Example for the ESP32 HTTP(S) Webserver
  *
@@ -115,13 +114,13 @@ void setup() {
   // This node will turn an LED on or of. It has two parameters:
   // 1) The ID of the LED (0..LEDCOUNT)
   // 2) The new state (0..1)
-  // For more information on URL parameters in general, see the Parameters example.
+  // For more information on path parameters in general, see the Parameters example.
   ResourceNode * nodeSwitch = new ResourceNode("/led/*/*", "POST", &handleSwitch);
 
   // We want to use parameter validation. The ResourceNode class provides the method
-  // addURLParamValidator() for that. This method takes two parameters:
+  // addPathParamValidator() for that. This method takes two parameters:
   // 1) The index of the parameter that you want to validate, so for the first wildcard
-  //    in the URL pattern that has been specified above, it's 0, and for the second
+  //    in the route pattern that has been specified above, it's 0, and for the second
   //    parameter it's 1.
   // 2) A function pointer that takes an std::string as parameter and returns a bool.
   //    That bool should be true if the parameter is considered valid.
@@ -138,14 +137,14 @@ void setup() {
 
   // First we will take care of the LED ID. This ID should be...
   // ... an unsigned integer ...
-  nodeSwitch->addURLParamValidator(0, &validateUnsignedInteger);
+  nodeSwitch->addPathParamValidator(0, &validateUnsignedInteger);
   // ... and within the range of known IDs.
   // We can treat the parameter safely as integer in this validator, as all validators
   // are executed in order and validateUnsignedInteger has been run before.
-  nodeSwitch->addURLParamValidator(0, &validateLEDID);
+  nodeSwitch->addPathParamValidator(0, &validateLEDID);
 
   // The second parameter should either be 0 or 1. We use our custom validateLEDState() validator for this:
-  nodeSwitch->addURLParamValidator(1, &validateLEDState);
+  nodeSwitch->addPathParamValidator(1, &validateLEDState);
 
   // Not found node
   ResourceNode * node404 = new ResourceNode("", "GET", &handle404);
@@ -162,49 +161,49 @@ void setup() {
   Serial.println("Starting server...");
   secureServer.start();
   if (secureServer.isRunning()) {
-	  Serial.println("Server ready.");
+    Serial.println("Server ready.");
   }
 }
 
 void loop() {
-	// This call will let the server do its work
-	secureServer.loop();
+  // This call will let the server do its work
+  secureServer.loop();
 
-	// Other code would go here...
-	delay(1);
+  // Other code would go here...
+  delay(1);
 }
 
 void handleRoot(HTTPRequest * req, HTTPResponse * res) {
-	// We will deliver an HTML page
-	res->setHeader("Content-Type", "text/html");
+  // We will deliver an HTML page
+  res->setHeader("Content-Type", "text/html");
 
-	// Write the response page
-	res->println("<!DOCTYPE html>");
-	res->println("<html><head><style>");
+  // Write the response page
+  res->println("<!DOCTYPE html>");
+  res->println("<html><head><style>");
   res->println("* {font-family: sans-serif; font-size:12px}");
   res->println("form.on {background: #ffffcc;color:black;}");
   res->println("form.off {background: #404040;color:white;}");
   res->println("</style><title>Parameter Validation Example</title></head>");
-	res->println("<body>");
+  res->println("<body>");
 
   // Iterate over the LEDs.
   for(int id = 0; id < LEDCOUNT; id++) {
     LED * led = &myLEDs[id];
     res->print(
       "<form "
-        "style=\"border:1px solid black;padding:10px;width:300px;margin:10px;float:left\" "
-        "method=\"post\" "
-        "class=\"");
+      "style=\"border:1px solid black;padding:10px;width:300px;margin:10px;float:left\" "
+      "method=\"post\" "
+      "class=\"");
     res->print(led->_on ? "on" : "off");
     res->print(
-        "\" "
-        "action=\"/led/"
+      "\" "
+      "action=\"/led/"
     );
     res->print(id);
     res->print("/");
     res->print(led->_on ? 0 : 1);
     res->print(
-        "\">"
+      "\">"
       "<p style=\"text-align:center;font-size:16px;\">"
     );
     res->printStd(led->_name);
@@ -228,23 +227,23 @@ void handleSwitch(HTTPRequest * req, HTTPResponse * res) {
   // POST, so drain the input, if any
   req->discardRequestBody();
 
-	// Get access to the parameters
-	ResourceParameters * params = req->getParams();
+  // Get access to the parameters
+  ResourceParameters * params = req->getParams();
 
   // Get the LED that is requested.
-  // Note that we can use the parameter directly without further validation, as we
+  // Note that we can call stoi safely without further validation, as we
   // defined that is has to be an unsigned integer and must not be >LEDCOUNT-1
-  LED * led = &myLEDs[params->getUrlParameterInt(0)];
+  LED * led = &myLEDs[std::stoi(params->getPathParameter(0))];
 
   // Set the state of the LED. The value of the parameter can only be "0" or "1" here,
   // otherwise the server would not have called the handler.
-  led->setOn(params->getUrlParameter(1)!="0");
+  led->setOn(params->getPathParameter(1)!="0");
 
-	// Redirect the user to the main page
+  // Redirect the user to the main page
   res->setStatusCode(303);
   // This should make the browser do a GET /
   res->setStatusText("See Other"); 
-	res->setHeader("Location", "/");
+  res->setHeader("Location", "/");
   res->println("Redirecting...");
 }
 
@@ -257,19 +256,19 @@ bool validateLEDState(std::string s) {
 // This function is a validator for the first parameter of the POST /led route.
 // We did check before that the parameter is an integer, now we check its range.
 bool validateLEDID(std::string s) {
-  uint32_t id = parseUInt(s);
+  uint32_t id = std::stoul(s);
   return id < LEDCOUNT;
 }
 
 // For details to this function, see the Static-Page example
 void handle404(HTTPRequest * req, HTTPResponse * res) {
-	req->discardRequestBody();
-	res->setStatusCode(404);
-	res->setStatusText("Not Found");
-	res->setHeader("Content-Type", "text/html");
-	res->println("<!DOCTYPE html>");
-	res->println("<html>");
-	res->println("<head><title>Not Found</title></head>");
-	res->println("<body><h1>404 Not Found</h1><p>The requested resource was not found on this server.</p></body>");
-	res->println("</html>");
+  req->discardRequestBody();
+  res->setStatusCode(404);
+  res->setStatusText("Not Found");
+  res->setHeader("Content-Type", "text/html");
+  res->println("<!DOCTYPE html>");
+  res->println("<html>");
+  res->println("<head><title>Not Found</title></head>");
+  res->println("<body><h1>404 Not Found</h1><p>The requested resource was not found on this server.</p></body>");
+  res->println("</html>");
 }

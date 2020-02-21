@@ -124,16 +124,16 @@ void setup() {
   Serial.println("Starting server...");
   secureServer.start();
   if (secureServer.isRunning()) {
-	  Serial.println("Server ready.");
+    Serial.println("Server ready.");
   }
 }
 
 void loop() {
-	// This call will let the server do its work
-	secureServer.loop();
+  // This call will let the server do its work
+  secureServer.loop();
 
-	// Other code would go here...
-	delay(1);
+  // Other code would go here...
+  delay(1);
 }
 
 /**
@@ -151,64 +151,64 @@ void loop() {
  * without any other functions being called.
  */
 void middlewareAuthentication(HTTPRequest * req, HTTPResponse * res, std::function<void()> next) {
-	// Unset both headers to discard any value from the client
-	// This prevents authentication bypass by a client that just sets X-USERNAME
-	req->setHeader(HEADER_USERNAME, "");
-	req->setHeader(HEADER_GROUP, "");
+  // Unset both headers to discard any value from the client
+  // This prevents authentication bypass by a client that just sets X-USERNAME
+  req->setHeader(HEADER_USERNAME, "");
+  req->setHeader(HEADER_GROUP, "");
 
- 	// Get login information from request
-	// If you use HTTP Basic Auth, you can retrieve the values from the request.
-	// The return values will be empty strings if the user did not provide any data,
-	// or if the format of the Authorization header is invalid (eg. no Basic Method
-	// for Authorization, or an invalid Base64 token)
-	std::string reqUsername = req->getBasicAuthUser();
-	std::string reqPassword = req->getBasicAuthPassword();
+  // Get login information from request
+  // If you use HTTP Basic Auth, you can retrieve the values from the request.
+  // The return values will be empty strings if the user did not provide any data,
+  // or if the format of the Authorization header is invalid (eg. no Basic Method
+  // for Authorization, or an invalid Base64 token)
+  std::string reqUsername = req->getBasicAuthUser();
+  std::string reqPassword = req->getBasicAuthPassword();
 
- 	// If the user entered login information, we will check it
-	if (reqUsername.length() > 0 && reqPassword.length() > 0) {
+  // If the user entered login information, we will check it
+  if (reqUsername.length() > 0 && reqPassword.length() > 0) {
 
-		// _Very_ simple hardcoded user database to check credentials and assign the group
-		bool authValid = true;
-		std::string group = "";
-		if (reqUsername == "admin" && reqPassword == "secret") {
-			group = "ADMIN";
-		} else if (reqUsername == "user" && reqPassword == "test") {
-			group = "USER";
-		} else {
-			authValid = false;
-		}
+    // _Very_ simple hardcoded user database to check credentials and assign the group
+    bool authValid = true;
+    std::string group = "";
+    if (reqUsername == "admin" && reqPassword == "secret") {
+      group = "ADMIN";
+    } else if (reqUsername == "user" && reqPassword == "test") {
+      group = "USER";
+    } else {
+      authValid = false;
+    }
 
- 		// If authentication was successful
-		if (authValid) {
-			// set custom headers and delegate control
-			req->setHeader(HEADER_USERNAME, reqUsername);
-			req->setHeader(HEADER_GROUP, group);
+    // If authentication was successful
+    if (authValid) {
+      // set custom headers and delegate control
+      req->setHeader(HEADER_USERNAME, reqUsername);
+      req->setHeader(HEADER_GROUP, group);
 
-			// The user tried to authenticate and was successful
-			// -> We proceed with this request.
-			next();
-		} else {
-			// Display error page
-			res->setStatusCode(401);
-			res->setStatusText("Unauthorized");
-			res->setHeader("Content-Type", "text/plain");
+      // The user tried to authenticate and was successful
+      // -> We proceed with this request.
+      next();
+    } else {
+      // Display error page
+      res->setStatusCode(401);
+      res->setStatusText("Unauthorized");
+      res->setHeader("Content-Type", "text/plain");
 
-			// This should trigger the browser user/password dialog, and it will tell
-			// the client how it can authenticate
-			res->setHeader("WWW-Authenticate", "Basic realm=\"ESP32 privileged area\"");
+      // This should trigger the browser user/password dialog, and it will tell
+      // the client how it can authenticate
+      res->setHeader("WWW-Authenticate", "Basic realm=\"ESP32 privileged area\"");
 
-			// Small error text on the response document. In a real-world scenario, you
-			// shouldn't display the login information on this page, of course ;-)
-			res->println("401. Unauthorized (try admin/secret or user/test)");
+      // Small error text on the response document. In a real-world scenario, you
+      // shouldn't display the login information on this page, of course ;-)
+      res->println("401. Unauthorized (try admin/secret or user/test)");
 
-			// NO CALL TO next() here, as the authentication failed.
-			// -> The code above did handle the request already.
-		}
-	} else {
-		// No attempt to authenticate
-		// -> Let the request pass through by calling next()
-		next();
-	}
+      // NO CALL TO next() here, as the authentication failed.
+      // -> The code above did handle the request already.
+    }
+  } else {
+    // No attempt to authenticate
+    // -> Let the request pass through by calling next()
+    next();
+  }
 }
 
 /**
@@ -219,134 +219,134 @@ void middlewareAuthentication(HTTPRequest * req, HTTPResponse * res, std::functi
  * This example only prevents unauthorized access to every ResourceNode stored under an /internal/... path.
  */
 void middlewareAuthorization(HTTPRequest * req, HTTPResponse * res, std::function<void()> next) {
-	// Get the username (if any)
-	std::string username = req->getHeader(HEADER_USERNAME);
+  // Get the username (if any)
+  std::string username = req->getHeader(HEADER_USERNAME);
 
- 	// Check that only logged-in users may get to the internal area (All URLs starting with /internal)
-	// Only a simple example, more complicated configuration is up to you.
-	if (username == "" && req->getRequestString().substr(0,9) == "/internal") {
-		// Same as the deny-part in middlewareAuthentication()
-		res->setStatusCode(401);
-		res->setStatusText("Unauthorized");
-		res->setHeader("Content-Type", "text/plain");
-		res->setHeader("WWW-Authenticate", "Basic realm=\"ESP32 privileged area\"");
-		res->println("401. Unauthorized (try admin/secret or user/test)");
+  // Check that only logged-in users may get to the internal area (All URLs starting with /internal)
+  // Only a simple example, more complicated configuration is up to you.
+  if (username == "" && req->getRequestString().substr(0,9) == "/internal") {
+    // Same as the deny-part in middlewareAuthentication()
+    res->setStatusCode(401);
+    res->setStatusText("Unauthorized");
+    res->setHeader("Content-Type", "text/plain");
+    res->setHeader("WWW-Authenticate", "Basic realm=\"ESP32 privileged area\"");
+    res->println("401. Unauthorized (try admin/secret or user/test)");
 
-		// No call denies access to protected handler function.
-	} else {
-		// Everything else will be allowed, so we call next()
-		next();
-	}
+    // No call denies access to protected handler function.
+  } else {
+    // Everything else will be allowed, so we call next()
+    next();
+  }
 }
 
 // This is the internal page. It will greet the user with
 // a personalized message and - if the user is in the ADMIN group -
 // provide a link to the admin interface.
 void handleInternalPage(HTTPRequest * req, HTTPResponse * res) {
-	// Header
-	res->setStatusCode(200);
-	res->setStatusText("OK");
-	res->setHeader("Content-Type", "text/html; charset=utf8");
+  // Header
+  res->setStatusCode(200);
+  res->setStatusText("OK");
+  res->setHeader("Content-Type", "text/html; charset=utf8");
 
-	// Write page
- 	res->println("<!DOCTYPE html>");
-	res->println("<html>");
-	res->println("<head>");
-	res->println("<title>Internal Area</title>");
-	res->println("</head>");
-	res->println("<body>");
+  // Write page
+  res->println("<!DOCTYPE html>");
+  res->println("<html>");
+  res->println("<head>");
+  res->println("<title>Internal Area</title>");
+  res->println("</head>");
+  res->println("<body>");
 
-	// Personalized greeting
-	res->print("<h1>Hello ");
-	// We can safely use the header value, this area is only accessible if it's
-	// set (the middleware takes care of this)
-	res->printStd(req->getHeader(HEADER_USERNAME));
-	res->print("!</h1>");
+  // Personalized greeting
+  res->print("<h1>Hello ");
+  // We can safely use the header value, this area is only accessible if it's
+  // set (the middleware takes care of this)
+  res->printStd(req->getHeader(HEADER_USERNAME));
+  res->print("!</h1>");
 
-	res->println("<p>Welcome to the internal area. Congratulations on successfully entering your password!</p>");
+  res->println("<p>Welcome to the internal area. Congratulations on successfully entering your password!</p>");
 
- 	// The "admin area" will only be shown if the correct group has been assigned in the authenticationMiddleware
-	if (req->getHeader(HEADER_GROUP) == "ADMIN") {
-		res->println("<div style=\"border:1px solid red;margin: 20px auto;padding:10px;background:#ff8080\">");
-		res->println("<h2>You are an administrator</h2>");
-		res->println("<p>You are allowed to access the admin page:</p>");
-		res->println("<p><a href=\"/internal/admin\">Go to secret admin page</a></p>");
-		res->println("</div>");
-	}
+  // The "admin area" will only be shown if the correct group has been assigned in the authenticationMiddleware
+  if (req->getHeader(HEADER_GROUP) == "ADMIN") {
+    res->println("<div style=\"border:1px solid red;margin: 20px auto;padding:10px;background:#ff8080\">");
+    res->println("<h2>You are an administrator</h2>");
+    res->println("<p>You are allowed to access the admin page:</p>");
+    res->println("<p><a href=\"/internal/admin\">Go to secret admin page</a></p>");
+    res->println("</div>");
+  }
 
-	// Link to the root page
- 	res->println("<p><a href=\"/\">Go back home</a></p>");
-	res->println("</body>");
-	res->println("</html>");
+  // Link to the root page
+  res->println("<p><a href=\"/\">Go back home</a></p>");
+  res->println("</body>");
+  res->println("</html>");
 }
 
 void handleAdminPage(HTTPRequest * req, HTTPResponse * res) {
-	// Headers
-	res->setHeader("Content-Type", "text/html; charset=utf8");
+  // Headers
+  res->setHeader("Content-Type", "text/html; charset=utf8");
 
- 	std::string header = "<!DOCTYPE html><html><head><title>Secret Admin Page</title></head><body><h1>Secret Admin Page</h1>";
-	std::string footer = "</body></html>";
+  std::string header = "<!DOCTYPE html><html><head><title>Secret Admin Page</title></head><body><h1>Secret Admin Page</h1>";
+  std::string footer = "</body></html>";
 
- 	// Checking permissions can not only be done centrally in the middleware function but also in the actual request handler.
-	// This would be handy if you provide an API with lists of resources, but access rights are defined object-based.
-	if (req->getHeader(HEADER_GROUP) == "ADMIN") {
-		res->setStatusCode(200);
-		res->setStatusText("OK");
-		res->printStd(header);
-		res->println("<div style=\"border:1px solid red;margin: 20px auto;padding:10px;background:#ff8080\">");
-		res->println("<h1>Congratulations</h1>");
-		res->println("<p>You found the secret administrator page!</p>");
-		res->println("<p><a href=\"/internal\">Go back</a></p>");
-		res->println("</div>");
-	} else {
-		res->printStd(header);
-		res->setStatusCode(403);
-		res->setStatusText("Unauthorized");
-		res->println("<p><strong>403 Unauthorized</strong> You have no power here!</p>");
-	}
+  // Checking permissions can not only be done centrally in the middleware function but also in the actual request handler.
+  // This would be handy if you provide an API with lists of resources, but access rights are defined object-based.
+  if (req->getHeader(HEADER_GROUP) == "ADMIN") {
+    res->setStatusCode(200);
+    res->setStatusText("OK");
+    res->printStd(header);
+    res->println("<div style=\"border:1px solid red;margin: 20px auto;padding:10px;background:#ff8080\">");
+    res->println("<h1>Congratulations</h1>");
+    res->println("<p>You found the secret administrator page!</p>");
+    res->println("<p><a href=\"/internal\">Go back</a></p>");
+    res->println("</div>");
+  } else {
+    res->printStd(header);
+    res->setStatusCode(403);
+    res->setStatusText("Unauthorized");
+    res->println("<p><strong>403 Unauthorized</strong> You have no power here!</p>");
+  }
 
- 	res->printStd(footer);
+  res->printStd(footer);
 }
 
 // Just a simple page for demonstration, very similar to the root page.
 void handlePublicPage(HTTPRequest * req, HTTPResponse * res) {
-	res->setHeader("Content-Type", "text/html");
-	res->println("<!DOCTYPE html>");
-	res->println("<html>");
-	res->println("<head><title>Hello World!</title></head>");
-	res->println("<body>");
-	res->println("<h1>Hello World!</h1>");
-	res->print("<p>Your server is running for ");
-	res->print((int)(millis()/1000), DEC);
-	res->println(" seconds.</p>");
-	res->println("<p><a href=\"/\">Go back</a></p>");
-	res->println("</body>");
-	res->println("</html>");
+  res->setHeader("Content-Type", "text/html");
+  res->println("<!DOCTYPE html>");
+  res->println("<html>");
+  res->println("<head><title>Hello World!</title></head>");
+  res->println("<body>");
+  res->println("<h1>Hello World!</h1>");
+  res->print("<p>Your server is running for ");
+  res->print((int)(millis()/1000), DEC);
+  res->println(" seconds.</p>");
+  res->println("<p><a href=\"/\">Go back</a></p>");
+  res->println("</body>");
+  res->println("</html>");
 }
 
 // For details on the implementation of the hanlder functions, refer to the Static-Page example.
 void handleRoot(HTTPRequest * req, HTTPResponse * res) {
-	res->setHeader("Content-Type", "text/html");
-	res->println("<!DOCTYPE html>");
-	res->println("<html>");
-	res->println("<head><title>Hello World!</title></head>");
-	res->println("<body>");
-	res->println("<h1>Hello World!</h1>");
-	res->println("<p>This is the authentication and authorization example. When asked for login "
-			"information, try admin/secret or user/test.</p>");
-	res->println("<p>Go to: <a href=\"/internal\">Internal Page</a> | <a href=\"/public\">Public Page</a></p>");
-	res->println("</body>");
-	res->println("</html>");
+  res->setHeader("Content-Type", "text/html");
+  res->println("<!DOCTYPE html>");
+  res->println("<html>");
+  res->println("<head><title>Hello World!</title></head>");
+  res->println("<body>");
+  res->println("<h1>Hello World!</h1>");
+  res->println("<p>This is the authentication and authorization example. When asked for login "
+      "information, try admin/secret or user/test.</p>");
+  res->println("<p>Go to: <a href=\"/internal\">Internal Page</a> | <a href=\"/public\">Public Page</a></p>");
+  res->println("</body>");
+  res->println("</html>");
 }
 
 void handle404(HTTPRequest * req, HTTPResponse * res) {
-	req->discardRequestBody();
-	res->setStatusCode(404);
-	res->setStatusText("Not Found");
-	res->setHeader("Content-Type", "text/html");
-	res->println("<!DOCTYPE html>");
-	res->println("<html>");
-	res->println("<head><title>Not Found</title></head>");
-	res->println("<body><h1>404 Not Found</h1><p>The requested resource was not found on this server.</p></body>");
-	res->println("</html>");
+  req->discardRequestBody();
+  res->setStatusCode(404);
+  res->setStatusText("Not Found");
+  res->setHeader("Content-Type", "text/html");
+  res->println("<!DOCTYPE html>");
+  res->println("<html>");
+  res->println("<head><title>Not Found</title></head>");
+  res->println("<body><h1>404 Not Found</h1><p>The requested resource was not found on this server.</p></body>");
+  res->println("</html>");
 }

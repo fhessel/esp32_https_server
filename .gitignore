@@ -64,3 +64,6 @@ extras/exampleca.srl
 # Cert files in every example
 cert.h
 private_key.h
+
+# Do not push VS Code project files
+.vscode

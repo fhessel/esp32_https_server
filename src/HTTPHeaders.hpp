@@ -12,21 +12,24 @@
 
 namespace httpsserver {
 
+/**
+ * \brief Groups and manages a set of HTTPHeader instances
+ */
 class HTTPHeaders {
 public:
-	HTTPHeaders();
-	virtual ~HTTPHeaders();
+  HTTPHeaders();
+  virtual ~HTTPHeaders();
 
-	HTTPHeader * get(std::string name);
-	std::string getValue(std::string name);
-	void set(HTTPHeader * header);
+  HTTPHeader * get(std::string const &name);
+  std::string getValue(std::string const &name);
+  void set(HTTPHeader * header);
 
-	std::vector<HTTPHeader *> * getAll();
+  std::vector<HTTPHeader *> * getAll();
 
-	void clearAll();
+  void clearAll();
 
 private:
-	std::vector<HTTPHeader*> * _headers;
+  std::vector<HTTPHeader*> * _headers;
 };
 
 } /* namespace httpsserver */

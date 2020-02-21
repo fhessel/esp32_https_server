@@ -101,16 +101,16 @@ void setup() {
   Serial.println("Starting server...");
   secureServer.start();
   if (secureServer.isRunning()) {
-	  Serial.println("Server ready.");
+    Serial.println("Server ready.");
   }
 }
 
 void loop() {
-	// This call will let the server do its work
-	secureServer.loop();
+  // This call will let the server do its work
+  secureServer.loop();
 
-	// Other code would go here...
-	delay(1);
+  // Other code would go here...
+  delay(1);
 }
 
 // We want to log the following information for every request:
@@ -118,42 +118,42 @@ void loop() {
 // - Request Method
 // - Request String (URL + Parameters)
 void middlewareLogging(HTTPRequest * req, HTTPResponse * res, std::function<void()> next) {
-	// We want to print the response status, so we need to call next() first.
-	next();
-	// After the call, the status is (hopefully) set by the handler function, so we can
-	// access it for logging.
-	Serial.printf("middlewareLogging(): %3d\t%s\t\t%s\n",
-			// Status code (like: 200)
-			res->getStatusCode(),
-			// Method used for the request (like: GET)
-			req->getMethod().c_str(),
-			// Request string (like /index.html)
-			req->getRequestString().c_str());
+  // We want to print the response status, so we need to call next() first.
+  next();
+  // After the call, the status is (hopefully) set by the handler function, so we can
+  // access it for logging.
+  Serial.printf("middlewareLogging(): %3d\t%s\t\t%s\n",
+      // Status code (like: 200)
+      res->getStatusCode(),
+      // Method used for the request (like: GET)
+      req->getMethod().c_str(),
+      // Request string (like /index.html)
+      req->getRequestString().c_str());
 }
 
 // For details on the implementation of the hanlder functions, refer to the Static-Page example.
 void handleRoot(HTTPRequest * req, HTTPResponse * res) {
-	res->setHeader("Content-Type", "text/html");
-	res->println("<!DOCTYPE html>");
-	res->println("<html>");
-	res->println("<head><title>Hello World!</title></head>");
-	res->println("<body>");
-	res->println("<h1>Hello World!</h1>");
-	res->print("<p>Your server is running for ");
-	res->print((int)(millis()/1000), DEC);
-	res->println(" seconds.</p>");
-	res->println("</body>");
-	res->println("</html>");
+  res->setHeader("Content-Type", "text/html");
+  res->println("<!DOCTYPE html>");
+  res->println("<html>");
+  res->println("<head><title>Hello World!</title></head>");
+  res->println("<body>");
+  res->println("<h1>Hello World!</h1>");
+  res->print("<p>Your server is running for ");
+  res->print((int)(millis()/1000), DEC);
+  res->println(" seconds.</p>");
+  res->println("</body>");
+  res->println("</html>");
 }
 
 void handle404(HTTPRequest * req, HTTPResponse * res) {
-	req->discardRequestBody();
-	res->setStatusCode(404);
-	res->setStatusText("Not Found");
-	res->setHeader("Content-Type", "text/html");
-	res->println("<!DOCTYPE html>");
-	res->println("<html>");
-	res->println("<head><title>Not Found</title></head>");
-	res->println("<body><h1>404 Not Found</h1><p>The requested resource was not found on this server.</p></body>");
-	res->println("</html>");
+  req->discardRequestBody();
+  res->setStatusCode(404);
+  res->setStatusText("Not Found");
+  res->setHeader("Content-Type", "text/html");
+  res->println("<!DOCTYPE html>");
+  res->println("<html>");
+  res->println("<head><title>Not Found</title></head>");
+  res->println("<body><h1>404 Not Found</h1><p>The requested resource was not found on this server.</p></body>");
+  res->println("</html>");
 }
