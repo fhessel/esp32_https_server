@@ -1,8 +1,9 @@
 #include "HTTPURLEncodedBodyParser.hpp"
 
 namespace httpsserver {
-HTTPURLEncodedBodyParser::HTTPURLEncodedBodyParser(HTTPRequest * req)
-: HTTPBodyParser(req),
+
+HTTPURLEncodedBodyParser::HTTPURLEncodedBodyParser(HTTPRequest * req):
+  HTTPBodyParser(req),
   bodyBuffer(NULL),
   bodyPtr(NULL),
   bodyLength(0),
@@ -20,7 +21,9 @@ HTTPURLEncodedBodyParser::HTTPURLEncodedBodyParser(HTTPRequest * req)
 }
 
 HTTPURLEncodedBodyParser::~HTTPURLEncodedBodyParser() {
-  if (bodyBuffer) delete[] bodyBuffer;
+  if (bodyBuffer) {
+    delete[] bodyBuffer;
+  }
   bodyBuffer = NULL;
 }
 
@@ -30,7 +33,9 @@ bool HTTPURLEncodedBodyParser::nextField() {
   fieldRemainingLength = 0;
 
   char *equalPtr = index(bodyPtr, '=');
-  if (equalPtr == NULL) return false;
+  if (equalPtr == NULL) {
+    return false;
+  }
   fieldName = std::string(bodyPtr, equalPtr-bodyPtr);
   
   char *valuePtr = equalPtr + 1;
@@ -65,12 +70,13 @@ bool HTTPURLEncodedBodyParser::endOfField() {
 }
 
 size_t HTTPURLEncodedBodyParser::read(byte* buffer, size_t bufferSize) {
-  if (bufferSize > fieldRemainingLength) bufferSize = fieldRemainingLength;
+  if (bufferSize > fieldRemainingLength) {
+    bufferSize = fieldRemainingLength;
+  }
   memcpy(buffer, fieldPtr, bufferSize);
   fieldRemainingLength -= bufferSize;
   fieldPtr += bufferSize;
   return bufferSize;
 }
 
-
-}
+} /* namespace httpsserver */
