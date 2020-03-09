@@ -1,5 +1,8 @@
 #include "HTTPURLEncodedBodyParser.hpp"
 
+#define CHUNKSIZE 512
+#define MINCHUNKSIZE 64
+
 namespace httpsserver {
 
 HTTPURLEncodedBodyParser::HTTPURLEncodedBodyParser(HTTPRequest * req):
@@ -13,16 +16,56 @@ HTTPURLEncodedBodyParser::HTTPURLEncodedBodyParser(HTTPRequest * req):
 {
   bodyLength = _request->getContentLength();
   if (bodyLength) {
-    bodyBuffer = new char[bodyLength+1];
-    _request->readChars(bodyBuffer, bodyLength);
+    // We know the body length. We try to read that much and give an error if it fails.
+    bodyBuffer = (char *)malloc(bodyLength+1);
+    if (bodyBuffer == NULL) {
+      HTTPS_LOGE("HTTPURLEncodedBodyParser: out of memory");
+      return;
+    }
     bodyPtr = bodyBuffer;
-    bodyBuffer[bodyLength] = '\0';
+    size_t toRead = bodyLength;
+    while(toRead > 0) {
+      size_t didRead = _request->readChars(bodyPtr, toRead);
+      if (didRead == 0) {
+        HTTPS_LOGE("HTTPURLEncodedBodyParser: short read");
+        bodyLength = bodyPtr - bodyBuffer;
+        break;
+      }
+      bodyPtr += didRead;
+      toRead -= didRead;
+    }
+  } else {
+    // We don't know the length. Read as much as possible.
+    bodyBuffer = (char *)malloc(CHUNKSIZE+1);
+    if (bodyBuffer == NULL) {
+      HTTPS_LOGE("HTTPURLEncodedBodyParser: out of memory");
+      return;
+    }
+    bodyPtr = bodyBuffer;
+    size_t bufferUsed = 0;
+    size_t bufferAvailable = CHUNKSIZE;
+    while(!_request->requestComplete()) {
+      if (bufferAvailable < MINCHUNKSIZE) {
+        bodyBuffer = (char *)realloc(bodyBuffer, bufferUsed + CHUNKSIZE+1);
+        if (bodyBuffer == NULL) {
+          HTTPS_LOGE("HTTPURLEncodedBodyParser: out of memory");
+          return;
+        }
+        bufferAvailable = CHUNKSIZE;
+      }
+      size_t didRead = _request->readChars(bodyBuffer+bufferUsed, bufferAvailable);
+      bufferUsed += didRead;
+      bufferAvailable -= didRead;
+    }
+    bodyLength = bufferUsed;
   }
+  bodyPtr = bodyBuffer;
+  bodyBuffer[bodyLength] = '\0';
 }
 
 HTTPURLEncodedBodyParser::~HTTPURLEncodedBodyParser() {
   if (bodyBuffer) {
-    delete[] bodyBuffer;
+    free(bodyBuffer);
   }
   bodyBuffer = NULL;
 }
