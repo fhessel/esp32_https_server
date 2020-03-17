@@ -1,5 +1,7 @@
 # ESP32 HTTPS Server
 
+![Continuous Integration](https://github.com/fhessel/esp32_https_server/workflows/Continuous%20Integration/badge.svg)
+
 This repository contains an HTTPS server library that can be used with the [ESP32 Arduino Core](https://github.com/espressif/arduino-esp32). It supports HTTP as well.
 
 ## Features
