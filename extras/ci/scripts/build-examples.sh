@@ -60,7 +60,7 @@ for EXAMPLE in "$EXAMPLEDIR"/*; do
       echo "------------------------------------------------------------"
       # (re-)create the project directory under tmp/
       if [ -d "$PROJECTDIR" ] && [ "$PROJECTDIR" != "" ]; then
-        rmdir -r "$PROJECTDIR"
+        rm -r "$PROJECTDIR"
       fi
       # Create the lib folder to link the current version of the library
       mkdir -p "$PROJECTDIR/lib"
@@ -92,6 +92,10 @@ for EXAMPLE in "$EXAMPLEDIR"/*; do
         EXAMPLES_FAILURE+=("$EXAMPLENAME")
       else
         EXAMPLES_SUCCESS+=("$EXAMPLENAME")
+      fi
+      # Delete project directory
+      if [ -d "$PROJECTDIR" ] && [ "$PROJECTDIR" != "" ]; then
+        rm -r "$PROJECTDIR"
       fi
     fi # TEST_THIS_EXAMPLE
   fi # example dir exists and contains .ino
