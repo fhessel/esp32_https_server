@@ -74,6 +74,12 @@ for EXAMPLE in "$EXAMPLEDIR"/*; do
       echo "#include <Arduino.h>" > "$MAINCPP"
       cat "$INOFILE" >> "$MAINCPP"
       rm "$INOFILE"
+      # If the example has dependencies, rewrite platformio.ini
+      if [[ -f "$EXAMPLEDIR/$EXAMPLENAME/.ci_lib_deps" ]]; then
+        LIB_DEPS=$(head -n1 "$EXAMPLEDIR/$EXAMPLENAME/.ci_lib_deps")
+        sed "s#\\#lib_deps#lib_deps = $LIB_DEPS#" "$PROJECTDIR/platformio.ini" > "$PROJECTDIR/platformio.ini.tmp"
+        mv "$PROJECTDIR/platformio.ini.tmp" "$PROJECTDIR/platformio.ini"
+      fi
       # Try building the application (+e as we want to test every example and get a
       # summary on what is working)
       set +e
