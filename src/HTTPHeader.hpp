@@ -18,6 +18,15 @@ public:
   std::string print();
 };
 
+/**
+ * \brief Normalizes case in header names
+ * 
+ * It converts the first letter and every letter after a non-alnum character
+ * to uppercase. For example, "content-length" becomes "Content-Length" and
+ * "HOST" becomes "Host".
+ */
+std::string normalizeHeaderName(std::string const &name);
+
 } /* namespace httpsserver */
 
 #endif /* SRC_HTTPHEADER_HPP_ */

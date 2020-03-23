@@ -13,8 +13,9 @@ HTTPHeaders::~HTTPHeaders() {
 }
 
 HTTPHeader * HTTPHeaders::get(std::string const &name) {
+  std::string normalizedName = normalizeHeaderName(name);
   for(std::vector<HTTPHeader*>::iterator header = _headers->begin(); header != _headers->end(); ++header) {
-    if ((*header)->_name.compare(name)==0) {
+    if ((*header)->_name.compare(normalizedName)==0) {
       return (*header);
     }
   }
@@ -22,8 +23,9 @@ HTTPHeader * HTTPHeaders::get(std::string const &name) {
 }
 
 std::string HTTPHeaders::getValue(std::string const &name) {
+  std::string normalizedName = normalizeHeaderName(name);
   for(std::vector<HTTPHeader*>::iterator header = _headers->begin(); header != _headers->end(); ++header) {
-    if ((*header)->_name.compare(name)==0) {
+    if ((*header)->_name.compare(normalizedName)==0) {
       return ((*header)->_value);
     }
   }
