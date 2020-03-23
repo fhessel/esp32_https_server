@@ -11,12 +11,9 @@ jobs:
   build-examples:
     strategy:
       matrix:
-        os: 
-          - ubuntu-latest
         example:
           - Async-Server
           - Authentication
-          - HTML-Forms
           - HTTPS-and-HTTP
           - Middleware
           - Parameters
@@ -29,7 +26,7 @@ jobs:
         board:
           - wrover
           - wroom
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest
     steps:
     - name: Checkout codebase
       uses: actions/checkout@f90c7b395dac7c5a277c1a6d93d5057c1cddb74e
