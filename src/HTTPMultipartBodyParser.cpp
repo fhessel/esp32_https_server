@@ -26,8 +26,7 @@ HTTPMultipartBodyParser::HTTPMultipartBodyParser(HTTPRequest * req):
     discardBody();
     return;
   }
-  //TODO: remove all magic constants
-  boundary = contentType.substr(boundaryIndex + 9);
+  boundary = contentType.substr(boundaryIndex + 9); // "boundary="
   auto commaIndex = boundary.find(';');
   boundary = "--" + boundary.substr(0, commaIndex);
   if(boundary.size() > 72) {
