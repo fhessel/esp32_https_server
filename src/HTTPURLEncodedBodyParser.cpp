@@ -46,11 +46,14 @@ HTTPURLEncodedBodyParser::HTTPURLEncodedBodyParser(HTTPRequest * req):
     size_t bufferAvailable = CHUNKSIZE;
     while(!_request->requestComplete()) {
       if (bufferAvailable < MINCHUNKSIZE) {
-        bodyBuffer = (char *)realloc(bodyBuffer, bufferUsed + CHUNKSIZE+1);
-        if (bodyBuffer == NULL) {
+        char *pBuf = (char *)realloc(bodyBuffer, bufferUsed + CHUNKSIZE+1);
+        if (pBuf == NULL) {
           HTTPS_LOGE("HTTPURLEncodedBodyParser: out of memory");
+          free(bodyBuffer);
+          bodyBuffer = NULL;
           return;
         }
+        bodyBuffer = pBuf;
         bufferAvailable = CHUNKSIZE;
       }
       size_t didRead = _request->readChars(bodyBuffer+bufferUsed, bufferAvailable);
