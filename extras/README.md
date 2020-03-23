@@ -2,6 +2,10 @@
 
 This folder contains files that are not directly part of the library.
 
+## CI – Continuous Integration
+
+The [ci](ci) folder contains scripts and data used for automated testing.
+
 ## Documentation
 
 The [docs](docs/) folder contains documentation about the internal structure
