@@ -83,7 +83,11 @@ fi
 # Try building the application (+e as we want to test every example and get a
 # summary on what is working)
 set +e
-pio --no-ansi run -d "$PROJECTDIR" -e "$BOARD" 2>&1 | "$CIDIR/scripts/pio-to-gh-log.py"
+pio --no-ansi run -d "$PROJECTDIR" -e "$BOARD" 2>&1 | \
+  "$CIDIR/scripts/pio-to-gh-log.py" \
+    "src/main.cpp:examples/$EXAMPLENAME/$EXAMPLENAME.ino:-1" \
+    "lib/esp32_https_server/:src/" \
+    "$REPODIR/:"
 RC=${PIPESTATUS[0]}
 if [[ "$RC" != "0" ]]; then
   echo "::error::pio returned with RC=$RC"
