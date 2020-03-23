@@ -52,6 +52,15 @@ void HTTPResponse::setHeader(std::string const &name, std::string const &value) 
   _headers.set(new HTTPHeader(name, value));
 }
 
+std::string HTTPResponse::getHeader(std::string const &name) {
+  HTTPHeader * h = _headers.get(name);
+  if (h != NULL) {
+    return h->_value;
+  } else {
+    return std::string();
+  }
+}
+
 bool HTTPResponse::isHeaderWritten() {
   return _headerWritten;
 }

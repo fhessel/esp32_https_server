@@ -529,9 +529,15 @@ void HTTPConnection::loop() {
             // Now we need to check if we can use keep-alive to reuse the SSL connection
             // However, if the client did not set content-size or defined connection: close,
             // we have no chance to do so.
+            // Also, the programmer may have explicitly set Connection: close for the response.
+            std::string hConnection = res.getHeader("Connection");
+            if (hConnection == "close") {
+              _isKeepAlive = false;
+            }
             if (!_isKeepAlive) {
               // No KeepAlive -> We are done. Transition to next state.
               if (!isClosed()) {
+                res.finalize();
                 _connectionState = STATE_BODY_FINISHED;
               }
             } else {
