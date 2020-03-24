@@ -1,12 +1,8 @@
 name: Build Examples
 
 on:
-  push:
-    branches:
-      - master
   pull_request:
-    branches:
-      - master
+    types: [labeled]
 jobs:
   build-examples:
     strategy:
@@ -28,6 +24,7 @@ jobs:
           - wrover
           - wroom
     runs-on: ubuntu-latest
+    if: "contains( github.event.pull_request.labels.*.name, 'CI: Build Examples' )"
     steps:
     - name: Checkout codebase
       uses: actions/checkout@f90c7b395dac7c5a277c1a6d93d5057c1cddb74e
@@ -41,3 +38,17 @@ jobs:
         pip install platformio
     - name: Build example
       run: ./extras/ci/scripts/build-example.sh ${{ matrix.board }} ${{ matrix.example }}
+  remove-label:
+    runs-on: ubuntu-latest
+    if: "contains( github.event.pull_request.labels.*.name, 'CI: Build Examples' )"
+    steps:
+    - name: Remove Label from PR
+      uses: octokit/request-action@57ec46afcc4c58c813af3afe67e57ced1ea9f165
+      with:
+        route: DELETE /repos/:repository/issues/:issue_number/labels/:name
+        repository: ${{ github.repository }}
+        issue_number: ${{ github.event.number }}
+        name: 'CI: Build Examples'
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      
