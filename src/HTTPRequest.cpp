@@ -36,6 +36,10 @@ ResourceParameters * HTTPRequest::getParams() {
   return _params;
 }
 
+HTTPHeaders * HTTPRequest::getHTTPHeaders() {
+  return _headers;
+}
+
 std::string HTTPRequest::getHeader(std::string const &name) {
   HTTPHeader * h = _headers->get(name);
   if (h != NULL) {
