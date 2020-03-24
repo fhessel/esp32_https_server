@@ -66,11 +66,22 @@ void HTTPMultipartBodyParser::fillBuffer(size_t maxLen) {
   if (peekBuffer == NULL) {
     // Nothing in the buffer. Allocate one of the wanted size
     peekBuffer = (char *)malloc(maxLen);
+    if (peekBuffer == NULL) {
+      HTTPS_LOGE("Multipart: out of memory");
+      discardBody();
+      return;
+    }
     bufPtr = peekBuffer;
     peekBufferSize = 0;
   } else if (peekBufferSize < maxLen) {
     // Something in the buffer, but not enough
-    peekBuffer = (char *)realloc(peekBuffer, maxLen);
+    char *newPeekBuffer = (char *)realloc(peekBuffer, maxLen);
+    if (newPeekBuffer == NULL) {
+      HTTPS_LOGE("Multipart: out of memory");
+      discardBody();
+      return;
+    }
+    peekBuffer = newPeekBuffer;
     bufPtr = peekBuffer + peekBufferSize;
   } else {
     // We already have enough data in the buffer.
