@@ -48,7 +48,7 @@ jobs:
         route: DELETE /repos/:repository/issues/:issue_number/labels/:name
         repository: ${{ github.repository }}
         issue_number: ${{ github.event.number }}
-        name: "CI: Build Examples"
+        name: "CI%3A Build Examples"
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       
