@@ -82,8 +82,8 @@ IPv6Address HTTPConnection::getClientIPv6() {
   } else if (_addrLen > 0 && _sockAddr.ss_family == AF_INET) {
     // TODO: handle this scenario, check if ipv6 is enabled?
   }
-  const uint8_t *address = 0; // TODO
-  return IPv6Address(address);
+  const in6_addr address = { 0 };
+  return IPv6Address(address.s6_addr);
 }
 
 /**
