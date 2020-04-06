@@ -169,14 +169,18 @@ int HTTPServer::createConnection(int idx) {
  */
 uint8_t HTTPServer::setupSocket() {
   // (AF_INET = IPv4, SOCK_STREAM = TCP)
-  _socket = socket(AF_INET, SOCK_STREAM, 0);
+  _socket = socket(AF_INET6, SOCK_STREAM, 0);
 
   if (_socket>=0) {
-    _sock_addr.sin_family = AF_INET;
+    bzero(&_sock_addr, sizeof (struct sockaddr_in6)); // Unnecessary or not?
+    ((struct sockaddr_in6 *)&_sock_addr)->sin6_flowinfo = 0;
+
+    // Assume we are using only ipv6 for now...
+    ((struct sockaddr_in6 *)&_sock_addr)->sin6_family = AF_INET6;
     // Listen on all interfaces
-    _sock_addr.sin_addr.s_addr = _bindAddress;
+    ((struct sockaddr_in6 *)&_sock_addr)->sin6_addr = in6addr_any;
     // Set the server port
-    _sock_addr.sin_port = htons(_port);
+    ((struct sockaddr_in6 *)&_sock_addr)->sin6_port = htons(_port);
 
     // Now bind the TCP socket we did create above to the socket address we specified
     // (The TCP-socket now listens on 0.0.0.0:port)

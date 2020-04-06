@@ -63,7 +63,7 @@ int HTTPConnection::initialize(int serverSocketID, HTTPHeaders *defaultHeaders) 
  * Returns the client's IPv4
  */
 IPAddress HTTPConnection::getClientIP() {
-  if (_addrLen > 0 && _sockAddr.sa_family == AF_INET) {
+  if (_addrLen > 0 && _sockAddr.ss_family == AF_INET) {
     struct sockaddr_in *sockAddrIn = (struct sockaddr_in *)(&_sockAddr);
     return IPAddress(sockAddrIn->sin_addr.s_addr);
   }

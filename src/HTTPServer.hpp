@@ -59,7 +59,7 @@ protected:
   int _socket;
 
   // The server socket address, that our service is bound to
-  sockaddr_in _sock_addr;
+  sockaddr_storage _sock_addr;
   // Headers that are included in every response
   HTTPHeaders _defaultHeaders;
 

@@ -133,7 +133,7 @@ private:
   int _bufferUnusedIdx;
 
   // Socket address, length etc for the connection
-  struct sockaddr _sockAddr;
+  struct sockaddr_storage _sockAddr;
   socklen_t _addrLen;
   int _socket;
 
