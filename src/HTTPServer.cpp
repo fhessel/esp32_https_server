@@ -3,10 +3,11 @@
 namespace httpsserver {
 
 
-HTTPServer::HTTPServer(const uint16_t port, const uint8_t maxConnections, const in_addr_t bindAddress):
+HTTPServer::HTTPServer(const uint16_t port, const uint8_t maxConnections, const in_addr_t bindAddress, const bool enableIPv6):
   _port(port),
   _maxConnections(maxConnections),
-  _bindAddress(bindAddress) {
+  _bindAddress(bindAddress),
+  _enableIPv6(enableIPv6) {
 
   // Create space for the connections
   _connections = new HTTPConnection*[maxConnections];
@@ -168,19 +169,33 @@ int HTTPServer::createConnection(int idx) {
  * This method prepares the tcp server socket
  */
 uint8_t HTTPServer::setupSocket() {
-  // (AF_INET = IPv4, SOCK_STREAM = TCP)
-  _socket = socket(AF_INET6, SOCK_STREAM, 0);
+  if (_enableIPv6) {
+    // (AF_INET = IPv6, SOCK_STREAM = TCP)
+    _socket = socket(AF_INET6, SOCK_STREAM, 0);
+  } else {
+    // (AF_INET6 = IPv4, SOCK_STREAM = TCP)
+    _socket = socket(AF_INET, SOCK_STREAM, 0);
+  }
 
   if (_socket>=0) {
-    bzero(&_sock_addr, sizeof (struct sockaddr_in6)); // Unnecessary or not?
-    ((struct sockaddr_in6 *)&_sock_addr)->sin6_flowinfo = 0;
+    if (_enableIPv6) {
+      bzero(&_sock_addr, sizeof (struct sockaddr_in6)); // Unnecessary or not?
+      ((struct sockaddr_in6 *)&_sock_addr)->sin6_flowinfo = 0;
 
-    // Assume we are using only ipv6 for now...
-    ((struct sockaddr_in6 *)&_sock_addr)->sin6_family = AF_INET6;
-    // Listen on all interfaces
-    ((struct sockaddr_in6 *)&_sock_addr)->sin6_addr = in6addr_any;
-    // Set the server port
-    ((struct sockaddr_in6 *)&_sock_addr)->sin6_port = htons(_port);
+      // Assume we are using only ipv6 for now...
+      // TODO: check if we can use this with ipv4 as well
+      ((struct sockaddr_in6 *)&_sock_addr)->sin6_family = AF_INET6;
+      // Listen on all interfaces
+      ((struct sockaddr_in6 *)&_sock_addr)->sin6_addr = in6addr_any;
+      // Set the server port
+      ((struct sockaddr_in6 *)&_sock_addr)->sin6_port = htons(_port);
+    } else {
+      ((struct sockaddr_in *)&_sock_addr)->sin_family = AF_INET;
+      // Listen on all interfaces
+      ((struct sockaddr_in *)&_sock_addr)->sin_addr.s_addr = _bindAddress;
+      // Set the server port
+      ((struct sockaddr_in *)&_sock_addr)->sin_port = htons(_port);
+    }
 
     // Now bind the TCP socket we did create above to the socket address we specified
     // (The TCP-socket now listens on 0.0.0.0:port)
