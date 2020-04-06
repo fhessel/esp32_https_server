@@ -3,6 +3,7 @@
 
 #include <Arduino.h>
 #include <IPAddress.h>
+#include <IPv6Address.h>
 
 #include <string>
 #include <mbedtls/base64.h>
@@ -44,6 +45,7 @@ public:
   virtual void closeConnection();
   virtual bool isSecure();
   virtual IPAddress getClientIP();
+  virtual IPv6Address getClientIPv6();
 
   void loop();
   bool isClosed();

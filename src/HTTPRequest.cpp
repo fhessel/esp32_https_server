@@ -61,6 +61,10 @@ IPAddress HTTPRequest::getClientIP() {
   return _con->getClientIP();
 }
 
+IPv6Address HTTPRequest::getClientIPv6() {
+  return _con->getClientIPv6();
+}
+
 size_t HTTPRequest::readBytes(byte * buffer, size_t length) {
 
   // Limit reading to content length

@@ -66,8 +66,24 @@ IPAddress HTTPConnection::getClientIP() {
   if (_addrLen > 0 && _sockAddr.ss_family == AF_INET) {
     struct sockaddr_in *sockAddrIn = (struct sockaddr_in *)(&_sockAddr);
     return IPAddress(sockAddrIn->sin_addr.s_addr);
+  } else if (_addrLen > 0 && _sockAddr.ss_family == AF_INET6) {
+    // TODO: handle this scenario
   }
   return IPAddress(0, 0, 0, 0);
+}
+
+/**
+ * Returns the client's IPv6
+ */
+IPv6Address HTTPConnection::getClientIPv6() {
+  if (_addrLen > 0 && _sockAddr.ss_family == AF_INET6) {
+    struct sockaddr_in6 *sockAddrIn6 = (struct sockaddr_in6 *)(&_sockAddr);
+    return IPv6Address(sockAddrIn6->sin6_addr.s6_addr);
+  } else if (_addrLen > 0 && _sockAddr.ss_family == AF_INET) {
+    // TODO: handle this scenario, check if ipv6 is enabled?
+  }
+  const uint8_t *address = 0; // TODO
+  return IPv6Address(address);
 }
 
 /**
