@@ -205,17 +205,19 @@ See the [Async-Server example](https://github.com/fhessel/esp32_https_server/tre
 
 ## Advanced Configuration
 
-This section covers some advanced configuration options that allow you, for example, to customize the build process, but which might require more advanced programming skills and a more sophisticated IDE that just the default Arduino IDE.
+This section covers some advanced configuration options that allow you, for example, to customize the build process, but which might require more advanced programming skills and a more sophisticated IDE than just the default Arduino IDE.
 
-### Saving Space by Reducing Functionality
+### Exclude Parts of the Library
 
-To save program space on the microcontroller, there are some parts of the library that can be disabled during compilation and will then not be a part of your program.
+By setting build flags, you can exclude parts from the library. This can save you a bit of space in your final program or help you to disable unwanted functionality.
 
 The following flags are currently available:
 
-| Flag                      | Effect
-| ------------------------- | ---------------------------
-| HTTPS_DISABLE_SELFSIGNING | Removes the code for generating a self-signed certificate at runtime. You will need to provide certificate and private key data from another data source to use the `HTTPSServer`.
+| Flag                        | Effect
+| --------------------------- | ---------------------------
+| `HTTPS_DISABLE_SELFSIGNING` | Removes the code for generating a self-signed certificate at runtime. You will need to provide certificate and private key data from another data source to use the `HTTPSServer`.
+| `HTTPS_DISABLE_IPV4`        | Disable support for IPv4. Cannot be used together with `HTTPS_DISABLE_IPV6`.
+| `HTTPS_DISABLE_IPV6`        | Disable support for IPv6. Cannot be used together with `HTTPS_DISABLE_IPV4`.
 
 Setting these flags requires a build environment that gives you some control of the compiler, as libraries are usually compiled separately, so just doing a `#define HTTPS_SOMETHING` in your sketch will not work.
 

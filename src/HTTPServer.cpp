@@ -2,11 +2,12 @@
 
 namespace httpsserver {
 
-
-HTTPServer::HTTPServer(const uint16_t port, const uint8_t maxConnections, const in_addr_t bindAddress):
-  _port(port),
-  _maxConnections(maxConnections),
-  _bindAddress(bindAddress) {
+#ifndef HTTPS_DISABLE_IPV4
+HTTPServer::HTTPServer(const IPAddress bindAddress, const uint16_t port, const uint8_t maxConnections):
+    _port(port),
+    _maxConnections(maxConnections) {
+  // in_addr_t is an uint32, so no copying here
+  _bindAddressesV4.push_back(bindAddress);
 
   // Create space for the connections
   _connections = new HTTPConnection*[maxConnections];
@@ -16,6 +17,25 @@ HTTPServer::HTTPServer(const uint16_t port, const uint8_t maxConnections, const 
   _socket = -1;
   _running = false;
 }
+#endif
+
+#ifndef HTTPS_DISABLE_IPV6
+HTTPServer::HTTPServer(const IPv6Address bindAddress, const uint16_t port, const uint8_t maxConnections):
+    _port(port),
+    _maxConnections(maxConnections) {
+  // IPv6 is a buffer and we don't control bindAddress, so copy it.
+  _bindAddressesV6.push_back(in6_addr());
+  memcpy(_bindAddressesV6[0].un.u8_addr, (const uint8_t*)bindAddress, sizeof(in6_addr));
+
+  // Create space for the connections
+  _connections = new HTTPConnection*[maxConnections];
+  for(uint8_t i = 0; i < maxConnections; i++) _connections[i] = NULL;
+
+  // Configure runtime data
+  _socket = -1;
+  _running = false;
+}
+#endif
 
 HTTPServer::~HTTPServer() {
 
@@ -168,16 +188,25 @@ int HTTPServer::createConnection(int idx) {
  * This method prepares the tcp server socket
  */
 uint8_t HTTPServer::setupSocket() {
-  // (AF_INET = IPv4, SOCK_STREAM = TCP)
-  _socket = socket(AF_INET, SOCK_STREAM, 0);
-
-  if (_socket>=0) {
-    _sock_addr.sin_family = AF_INET;
+  if (_bindAddressesV4.size()>0) {
+    sockaddr_in *v4addr = (sockaddr_in*)(&_sock_addr);
+    v4addr->sin_family = AF_INET;
     // Listen on all interfaces
-    _sock_addr.sin_addr.s_addr = _bindAddress;
+    v4addr->sin_addr.s_addr = _bindAddressesV4[0];
     // Set the server port
-    _sock_addr.sin_port = htons(_port);
+    v4addr->sin_port = htons(_port);;
+  } else {
+    sockaddr_in6 *v6addr = (sockaddr_in6*)(&_sock_addr);
+    v6addr->sin6_family = AF_INET6;
+    // Listen on all interfaces
+    v6addr->sin6_addr = _bindAddressesV6[0];
+    // Set the server port
+    v6addr->sin6_port = htons(_port);
+  }
 
+  _socket = socket(_sock_addr.sa_family, SOCK_STREAM, 0);
+
+  if (_socket >= 0) {
     // Now bind the TCP socket we did create above to the socket address we specified
     // (The TCP-socket now listens on 0.0.0.0:port)
     int err = bind(_socket, (struct sockaddr* )&_sock_addr, sizeof(_sock_addr));

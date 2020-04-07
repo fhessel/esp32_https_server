@@ -2,14 +2,25 @@
 
 namespace httpsserver {
 
-
-HTTPSServer::HTTPSServer(SSLCert * cert, const uint16_t port, const uint8_t maxConnections, const in_addr_t bindAddress):
-  HTTPServer(port, maxConnections, bindAddress),
+#ifndef HTTPS_DISABLE_IPV4
+HTTPSServer::HTTPSServer(SSLCert * cert, IPAddress bindAddress,
+    const uint16_t portHTTPS, const uint8_t maxConnections):
+  HTTPServer(bindAddress, portHTTPS, maxConnections),
   _cert(cert) {
 
   // Configure runtime data
   _sslctx = NULL;
 }
+#endif
+
+#ifndef HTTPS_DISABLE_IPV6
+HTTPSServer::HTTPSServer(SSLCert * cert, IPv6Address bindAddress,
+    const uint16_t portHTTPS, const uint8_t maxConnections):
+  HTTPServer(bindAddress, portHTTPS, maxConnections),
+  _cert(cert) {
+  _sslctx = NULL;
+}
+#endif
 
 HTTPSServer::~HTTPSServer() {
 
