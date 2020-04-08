@@ -8,7 +8,7 @@
     "url": "https://github.com/fhessel/esp32_https_server.git"
   },
   "license": "MIT",
-  "version": "0.3.1",
+  "version": "1.0.0",
   "frameworks": "arduino",
   "platforms": ["espressif32"]
 }
