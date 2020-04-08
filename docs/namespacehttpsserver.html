@@ -94,6 +94,8 @@ Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classhttpsserver_1_1ConnectionContext.html">ConnectionContext</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Internal class to handle the state of a connection.  <a href="classhttpsserver_1_1ConnectionContext.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classhttpsserver_1_1HTTPBodyParser.html">HTTPBodyParser</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classhttpsserver_1_1HTTPConnection.html">HTTPConnection</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Represents a single open connection for the plain <a class="el" href="classhttpsserver_1_1HTTPServer.html" title="Main implementation for the plain HTTP server. Use HTTPSServer for TLS support. ">HTTPServer</a>, without TLS.  <a href="classhttpsserver_1_1HTTPConnection.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -102,6 +104,8 @@ Classes</h2></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classhttpsserver_1_1HTTPHeaders.html">HTTPHeaders</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Groups and manages a set of <a class="el" href="classhttpsserver_1_1HTTPHeader.html" title="Represents a single name/value pair of an HTTP header. ">HTTPHeader</a> instances.  <a href="classhttpsserver_1_1HTTPHeaders.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classhttpsserver_1_1HTTPMultipartBodyParser.html">HTTPMultipartBodyParser</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classhttpsserver_1_1HTTPNode.html">HTTPNode</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Base class for a URL/route-handler in the server.  <a href="classhttpsserver_1_1HTTPNode.html#details">More...</a><br /></td></tr>
@@ -121,10 +125,10 @@ Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classhttpsserver_1_1HTTPSServer.html">HTTPSServer</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Main implementation of the HTTP Server with TLS support. Use <a class="el" href="classhttpsserver_1_1HTTPServer.html" title="Main implementation for the plain HTTP server. Use HTTPSServer for TLS support. ">HTTPServer</a> for plain HTTP.  <a href="classhttpsserver_1_1HTTPSServer.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classhttpsserver_1_1HTTPURLEncodedBodyParser.html">HTTPURLEncodedBodyParser</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classhttpsserver_1_1HTTPValidator.html">HTTPValidator</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Internal representation of a validator function.  <a href="classhttpsserver_1_1HTTPValidator.html#details">More...</a><br /></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structhttpsserver_1_1requestparam__t.html">requestparam_t</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classhttpsserver_1_1ResolvedResource.html">ResolvedResource</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">This class represents a resolved resource, meaning the result of mapping a string URL to an <a class="el" href="classhttpsserver_1_1HTTPNode.html" title="Base class for a URL/route-handler in the server. ">HTTPNode</a>.  <a href="classhttpsserver_1_1ResolvedResource.html#details">More...</a><br /></td></tr>
@@ -133,7 +137,7 @@ Classes</h2></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">This <a class="el" href="classhttpsserver_1_1HTTPNode.html" title="Base class for a URL/route-handler in the server. ">HTTPNode</a> represents a route that maps to a regular HTTP request for a resource (static or dynamic)  <a href="classhttpsserver_1_1ResourceNode.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classhttpsserver_1_1ResourceParameters.html">ResourceParameters</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Class used to handle access to the URL parameters.  <a href="classhttpsserver_1_1ResourceParameters.html#details">More...</a><br /></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">The <a class="el" href="classhttpsserver_1_1ResourceParameters.html" title="The ResourceParameters provide access to the parameters passed in the URI. ">ResourceParameters</a> provide access to the parameters passed in the URI.  <a href="classhttpsserver_1_1ResourceParameters.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classhttpsserver_1_1ResourceResolver.html">ResourceResolver</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">This class is used internally to resolve a string URL to the corresponding <a class="el" href="classhttpsserver_1_1HTTPNode.html" title="Base class for a URL/route-handler in the server. ">HTTPNode</a>.  <a href="classhttpsserver_1_1ResourceResolver.html#details">More...</a><br /></td></tr>
@@ -187,6 +191,9 @@ Functions</h2></td></tr>
 <tr class="separator:a95a1abf6125242682b1e624342a342b8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae475bc730f2502e1f55ffc16a5f671a0"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacehttpsserver.html#ae475bc730f2502e1f55ffc16a5f671a0">websocketKeyResponseHash</a> (std::string const &amp;key)</td></tr>
 <tr class="separator:ae475bc730f2502e1f55ffc16a5f671a0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aeb87e6cdb0a41241836a8f8c45315320"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacehttpsserver.html#aeb87e6cdb0a41241836a8f8c45315320">normalizeHeaderName</a> (std::string const &amp;name)</td></tr>
+<tr class="memdesc:aeb87e6cdb0a41241836a8f8c45315320"><td class="mdescLeft">&#160;</td><td class="mdescRight">Normalizes case in header names.  <a href="#aeb87e6cdb0a41241836a8f8c45315320">More...</a><br /></td></tr>
+<tr class="separator:aeb87e6cdb0a41241836a8f8c45315320"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0c2a1f6a28893f118e6980dab067d651"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacehttpsserver.html#a0c2a1f6a28893f118e6980dab067d651">createSelfSignedCert</a> (<a class="el" href="classhttpsserver_1_1SSLCert.html">SSLCert</a> &amp;certCtx, <a class="el" href="namespacehttpsserver.html#abdec669031bd8d35895acf4ab78b0540">SSLKeySize</a> keySize, std::string dn, std::string validFrom=&quot;20190101000000&quot;, std::string validUntil=&quot;20300101000000&quot;)</td></tr>
 <tr class="memdesc:a0c2a1f6a28893f118e6980dab067d651"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates a self-signed certificate on the ESP32.  <a href="#a0c2a1f6a28893f118e6980dab067d651">More...</a><br /></td></tr>
 <tr class="separator:a0c2a1f6a28893f118e6980dab067d651"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -357,6 +364,27 @@ bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="name
       </table>
 </div><div class="memdoc">
 <p>Handler function for the websocket handshake. Will be used by <a class="el" href="classhttpsserver_1_1HTTPConnection.html" title="Represents a single open connection for the plain HTTPServer, without TLS. ">HTTPConnection</a> if a websocket is detected </p>
+
+</div>
+</div>
+<a id="aeb87e6cdb0a41241836a8f8c45315320"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aeb87e6cdb0a41241836a8f8c45315320">&#9670;&nbsp;</a></span>normalizeHeaderName()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::string httpsserver::normalizeHeaderName </td>
+          <td>(</td>
+          <td class="paramtype">std::string const &amp;&#160;</td>
+          <td class="paramname"><em>name</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Normalizes case in header names. </p>
+<p>It converts the first letter and every letter after a non-alnum character to uppercase. For example, "content-length" becomes "Content-Length" and "HOST" becomes "Host". </p>
 
 </div>
 </div>

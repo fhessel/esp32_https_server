@@ -118,20 +118,20 @@ std::string&#160;</td><td class="memItemRight" valign="bottom"><b>getMethod</b> 
 <tr class="memitem:a9ac2e1f2251bcc42c78c205bfffca287 inherit pub_methods_classhttpsserver_1_1HTTPNode"><td class="memItemLeft" align="right" valign="top"><a id="a9ac2e1f2251bcc42c78c205bfffca287"></a>
 &#160;</td><td class="memItemRight" valign="bottom"><b>HTTPNode</b> (const std::string &amp;path, const <a class="el" href="namespacehttpsserver.html#a2dcb10ebf7a4b0511b3ca52d4af865ff">HTTPNodeType</a> nodeType, const std::string &amp;tag=&quot;&quot;)</td></tr>
 <tr class="separator:a9ac2e1f2251bcc42c78c205bfffca287 inherit pub_methods_classhttpsserver_1_1HTTPNode"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a0a50c57105a54ca71d99ead679eb9d3b inherit pub_methods_classhttpsserver_1_1HTTPNode"><td class="memItemLeft" align="right" valign="top"><a id="a0a50c57105a54ca71d99ead679eb9d3b"></a>
-bool&#160;</td><td class="memItemRight" valign="bottom"><b>hasUrlParameter</b> ()</td></tr>
-<tr class="separator:a0a50c57105a54ca71d99ead679eb9d3b inherit pub_methods_classhttpsserver_1_1HTTPNode"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3a5798a031c385839fa7b880dcca37c8 inherit pub_methods_classhttpsserver_1_1HTTPNode"><td class="memItemLeft" align="right" valign="top"><a id="a3a5798a031c385839fa7b880dcca37c8"></a>
-uint8_t&#160;</td><td class="memItemRight" valign="bottom"><b>getUrlParamCount</b> ()</td></tr>
-<tr class="separator:a3a5798a031c385839fa7b880dcca37c8 inherit pub_methods_classhttpsserver_1_1HTTPNode"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a64e6702644bf264d5e23462b77b7354a inherit pub_methods_classhttpsserver_1_1HTTPNode"><td class="memItemLeft" align="right" valign="top"><a id="a64e6702644bf264d5e23462b77b7354a"></a>
-size_t&#160;</td><td class="memItemRight" valign="bottom"><b>getParamIdx</b> (uint8_t)</td></tr>
-<tr class="separator:a64e6702644bf264d5e23462b77b7354a inherit pub_methods_classhttpsserver_1_1HTTPNode"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4522daa31f0131e13905dc78e4b52624 inherit pub_methods_classhttpsserver_1_1HTTPNode"><td class="memItemLeft" align="right" valign="top"><a id="a4522daa31f0131e13905dc78e4b52624"></a>
+bool&#160;</td><td class="memItemRight" valign="bottom"><b>hasPathParameter</b> ()</td></tr>
+<tr class="separator:a4522daa31f0131e13905dc78e4b52624 inherit pub_methods_classhttpsserver_1_1HTTPNode"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1a7beb26428befe39673d41ead8409b8 inherit pub_methods_classhttpsserver_1_1HTTPNode"><td class="memItemLeft" align="right" valign="top"><a id="a1a7beb26428befe39673d41ead8409b8"></a>
+size_t&#160;</td><td class="memItemRight" valign="bottom"><b>getPathParamCount</b> ()</td></tr>
+<tr class="separator:a1a7beb26428befe39673d41ead8409b8 inherit pub_methods_classhttpsserver_1_1HTTPNode"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad4e5367fe2bd1c5e618c18ce1ef3c7c5 inherit pub_methods_classhttpsserver_1_1HTTPNode"><td class="memItemLeft" align="right" valign="top"><a id="ad4e5367fe2bd1c5e618c18ce1ef3c7c5"></a>
+ssize_t&#160;</td><td class="memItemRight" valign="bottom"><b>getParamIdx</b> (size_t)</td></tr>
+<tr class="separator:ad4e5367fe2bd1c5e618c18ce1ef3c7c5 inherit pub_methods_classhttpsserver_1_1HTTPNode"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a37684fe9ce29dedba1d7ce68f2a856df inherit pub_methods_classhttpsserver_1_1HTTPNode"><td class="memItemLeft" align="right" valign="top"><a id="a37684fe9ce29dedba1d7ce68f2a856df"></a>
 std::vector&lt; <a class="el" href="classhttpsserver_1_1HTTPValidator.html">HTTPValidator</a> * &gt; *&#160;</td><td class="memItemRight" valign="bottom"><b>getValidators</b> ()</td></tr>
 <tr class="separator:a37684fe9ce29dedba1d7ce68f2a856df inherit pub_methods_classhttpsserver_1_1HTTPNode"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a53a635902aae002bb9a1135875db31eb inherit pub_methods_classhttpsserver_1_1HTTPNode"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classhttpsserver_1_1HTTPNode.html#a53a635902aae002bb9a1135875db31eb">addURLParamValidator</a> (uint8_t paramIdx, const HTTPValidationFunction *validator)</td></tr>
-<tr class="separator:a53a635902aae002bb9a1135875db31eb inherit pub_methods_classhttpsserver_1_1HTTPNode"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a51fd863bd8b32b429e8fce19661d3dea inherit pub_methods_classhttpsserver_1_1HTTPNode"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classhttpsserver_1_1HTTPNode.html#a51fd863bd8b32b429e8fce19661d3dea">addPathParamValidator</a> (size_t paramIdx, const HTTPValidationFunction *validator)</td></tr>
+<tr class="separator:a51fd863bd8b32b429e8fce19661d3dea inherit pub_methods_classhttpsserver_1_1HTTPNode"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="inherited"></a>
 Additional Inherited Members</h2></td></tr>

@@ -1,10 +1,6 @@
 var searchData=
 [
-  ['registernode',['registerNode',['../classhttpsserver_1_1ResourceResolver.html#af7af69fbd2bd59abc82cd57129f0d4b1',1,'httpsserver::ResourceResolver']]],
-  ['removemiddleware',['removeMiddleware',['../classhttpsserver_1_1ResourceResolver.html#ae28a9f9e98343d5be423d60b8ad7ce56',1,'httpsserver::ResourceResolver']]],
-  ['requestparam_5ft',['requestparam_t',['../structhttpsserver_1_1requestparam__t.html',1,'httpsserver']]],
-  ['resolvedresource',['ResolvedResource',['../classhttpsserver_1_1ResolvedResource.html',1,'httpsserver']]],
-  ['resourcenode',['ResourceNode',['../classhttpsserver_1_1ResourceNode.html',1,'httpsserver']]],
-  ['resourceparameters',['ResourceParameters',['../classhttpsserver_1_1ResourceParameters.html',1,'httpsserver']]],
-  ['resourceresolver',['ResourceResolver',['../classhttpsserver_1_1ResourceResolver.html',1,'httpsserver']]]
+  ['onclose',['onClose',['../classhttpsserver_1_1WebsocketHandler.html#a9a60cb5f4db6d0267b6114f06aa45116',1,'httpsserver::WebsocketHandler']]],
+  ['onerror',['onError',['../classhttpsserver_1_1WebsocketHandler.html#a18f912105b6c238dadd1f2d771cff1bc',1,'httpsserver::WebsocketHandler']]],
+  ['onmessage',['onMessage',['../classhttpsserver_1_1WebsocketHandler.html#a8c0c9881bd80ec13215a64723d37f28d',1,'httpsserver::WebsocketHandler']]]
 ];

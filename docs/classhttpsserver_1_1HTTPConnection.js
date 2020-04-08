@@ -16,6 +16,7 @@ var classhttpsserver_1_1HTTPConnection =
     [ "~HTTPConnection", "classhttpsserver_1_1HTTPConnection.html#a32f1eb2cd50b44000b22227240e72d81", null ],
     [ "canReadData", "classhttpsserver_1_1HTTPConnection.html#a9ef8666437d49c4447cb564c60f43044", null ],
     [ "closeConnection", "classhttpsserver_1_1HTTPConnection.html#a179e017c29682270eb69115df3aab0e7", null ],
+    [ "getClientIP", "classhttpsserver_1_1HTTPConnection.html#a5e103c4b601199d575de6b6f29d7fb95", null ],
     [ "initialize", "classhttpsserver_1_1HTTPConnection.html#a477f2a00400be60f3b0ca08ab53beda5", null ],
     [ "isClosed", "classhttpsserver_1_1HTTPConnection.html#af00c9a10be467a64ece8f820e939190d", null ],
     [ "isError", "classhttpsserver_1_1HTTPConnection.html#a6d8889292d644962a859e6e9b0bff305", null ],

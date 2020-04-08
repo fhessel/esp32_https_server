@@ -4,6 +4,7 @@ var classhttpsserver_1_1HTTPResponse =
     [ "~HTTPResponse", "classhttpsserver_1_1HTTPResponse.html#a685d4286566f93be9fcc3c2fdee394e5", null ],
     [ "error", "classhttpsserver_1_1HTTPResponse.html#addc79f94dc1cf6eda245a15cb62ccb27", null ],
     [ "finalize", "classhttpsserver_1_1HTTPResponse.html#a1a51ee9a26bb3859e2c94caefd179133", null ],
+    [ "getHeader", "classhttpsserver_1_1HTTPResponse.html#a5d496fbd36c3536fd05ffc59cda73af9", null ],
     [ "getStatusCode", "classhttpsserver_1_1HTTPResponse.html#afdf0a0a58a4060299e96417b733be401", null ],
     [ "getStatusText", "classhttpsserver_1_1HTTPResponse.html#a8e26c0d0793af60f1810aa920618e0a5", null ],
     [ "isHeaderWritten", "classhttpsserver_1_1HTTPResponse.html#a15665edae450ea289767ae9d1bbfcce7", null ],

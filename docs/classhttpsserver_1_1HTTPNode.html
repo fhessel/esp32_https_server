@@ -107,23 +107,23 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a9ac2e1f2251bcc42c78c205bfffca287"><td class="memItemLeft" align="right" valign="top"><a id="a9ac2e1f2251bcc42c78c205bfffca287"></a>
 &#160;</td><td class="memItemRight" valign="bottom"><b>HTTPNode</b> (const std::string &amp;path, const <a class="el" href="namespacehttpsserver.html#a2dcb10ebf7a4b0511b3ca52d4af865ff">HTTPNodeType</a> nodeType, const std::string &amp;tag=&quot;&quot;)</td></tr>
 <tr class="separator:a9ac2e1f2251bcc42c78c205bfffca287"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a0a50c57105a54ca71d99ead679eb9d3b"><td class="memItemLeft" align="right" valign="top"><a id="a0a50c57105a54ca71d99ead679eb9d3b"></a>
-bool&#160;</td><td class="memItemRight" valign="bottom"><b>hasUrlParameter</b> ()</td></tr>
-<tr class="separator:a0a50c57105a54ca71d99ead679eb9d3b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3a5798a031c385839fa7b880dcca37c8"><td class="memItemLeft" align="right" valign="top"><a id="a3a5798a031c385839fa7b880dcca37c8"></a>
-uint8_t&#160;</td><td class="memItemRight" valign="bottom"><b>getUrlParamCount</b> ()</td></tr>
-<tr class="separator:a3a5798a031c385839fa7b880dcca37c8"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a64e6702644bf264d5e23462b77b7354a"><td class="memItemLeft" align="right" valign="top"><a id="a64e6702644bf264d5e23462b77b7354a"></a>
-size_t&#160;</td><td class="memItemRight" valign="bottom"><b>getParamIdx</b> (uint8_t)</td></tr>
-<tr class="separator:a64e6702644bf264d5e23462b77b7354a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4522daa31f0131e13905dc78e4b52624"><td class="memItemLeft" align="right" valign="top"><a id="a4522daa31f0131e13905dc78e4b52624"></a>
+bool&#160;</td><td class="memItemRight" valign="bottom"><b>hasPathParameter</b> ()</td></tr>
+<tr class="separator:a4522daa31f0131e13905dc78e4b52624"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1a7beb26428befe39673d41ead8409b8"><td class="memItemLeft" align="right" valign="top"><a id="a1a7beb26428befe39673d41ead8409b8"></a>
+size_t&#160;</td><td class="memItemRight" valign="bottom"><b>getPathParamCount</b> ()</td></tr>
+<tr class="separator:a1a7beb26428befe39673d41ead8409b8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad4e5367fe2bd1c5e618c18ce1ef3c7c5"><td class="memItemLeft" align="right" valign="top"><a id="ad4e5367fe2bd1c5e618c18ce1ef3c7c5"></a>
+ssize_t&#160;</td><td class="memItemRight" valign="bottom"><b>getParamIdx</b> (size_t)</td></tr>
+<tr class="separator:ad4e5367fe2bd1c5e618c18ce1ef3c7c5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a37684fe9ce29dedba1d7ce68f2a856df"><td class="memItemLeft" align="right" valign="top"><a id="a37684fe9ce29dedba1d7ce68f2a856df"></a>
 std::vector&lt; <a class="el" href="classhttpsserver_1_1HTTPValidator.html">HTTPValidator</a> * &gt; *&#160;</td><td class="memItemRight" valign="bottom"><b>getValidators</b> ()</td></tr>
 <tr class="separator:a37684fe9ce29dedba1d7ce68f2a856df"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aaa3b4c1f962e0a5b4d8466c9d8f7d24b"><td class="memItemLeft" align="right" valign="top"><a id="aaa3b4c1f962e0a5b4d8466c9d8f7d24b"></a>
 virtual std::string&#160;</td><td class="memItemRight" valign="bottom"><b>getMethod</b> ()=0</td></tr>
 <tr class="separator:aaa3b4c1f962e0a5b4d8466c9d8f7d24b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a53a635902aae002bb9a1135875db31eb"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classhttpsserver_1_1HTTPNode.html#a53a635902aae002bb9a1135875db31eb">addURLParamValidator</a> (uint8_t paramIdx, const HTTPValidationFunction *validator)</td></tr>
-<tr class="separator:a53a635902aae002bb9a1135875db31eb"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a51fd863bd8b32b429e8fce19661d3dea"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classhttpsserver_1_1HTTPNode.html#a51fd863bd8b32b429e8fce19661d3dea">addPathParamValidator</a> (size_t paramIdx, const HTTPValidationFunction *validator)</td></tr>
+<tr class="separator:a51fd863bd8b32b429e8fce19661d3dea"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
@@ -138,16 +138,16 @@ Public Attributes</h2></td></tr>
 <div class="textblock"><p>Base class for a URL/route-handler in the server. </p>
 <p>Use <a class="el" href="classhttpsserver_1_1ResourceNode.html" title="This HTTPNode represents a route that maps to a regular HTTP request for a resource (static or dynami...">ResourceNode</a> for requests that access dynamic or static resources or HttpNode for routes that create Websockets. </p>
 </div><h2 class="groupheader">Member Function Documentation</h2>
-<a id="a53a635902aae002bb9a1135875db31eb"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a53a635902aae002bb9a1135875db31eb">&#9670;&nbsp;</a></span>addURLParamValidator()</h2>
+<a id="a51fd863bd8b32b429e8fce19661d3dea"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a51fd863bd8b32b429e8fce19661d3dea">&#9670;&nbsp;</a></span>addPathParamValidator()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">void httpsserver::HTTPNode::addURLParamValidator </td>
+          <td class="memname">void httpsserver::HTTPNode::addPathParamValidator </td>
           <td>(</td>
-          <td class="paramtype">uint8_t&#160;</td>
+          <td class="paramtype">size_t&#160;</td>
           <td class="paramname"><em>paramIdx</em>, </td>
         </tr>
         <tr>

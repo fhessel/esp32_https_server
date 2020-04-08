@@ -5,6 +5,10 @@ var hierarchy =
         [ "httpsserver::HTTPSConnection", "classhttpsserver_1_1HTTPSConnection.html", null ]
       ] ]
     ] ],
+    [ "httpsserver::HTTPBodyParser", "classhttpsserver_1_1HTTPBodyParser.html", [
+      [ "httpsserver::HTTPMultipartBodyParser", "classhttpsserver_1_1HTTPMultipartBodyParser.html", null ],
+      [ "httpsserver::HTTPURLEncodedBodyParser", "classhttpsserver_1_1HTTPURLEncodedBodyParser.html", null ]
+    ] ],
     [ "httpsserver::HTTPHeader", "classhttpsserver_1_1HTTPHeader.html", null ],
     [ "httpsserver::HTTPHeaders", "classhttpsserver_1_1HTTPHeaders.html", null ],
     [ "httpsserver::HTTPNode", "classhttpsserver_1_1HTTPNode.html", [
@@ -16,7 +20,6 @@ var hierarchy =
     [ "Print", null, [
       [ "httpsserver::HTTPResponse", "classhttpsserver_1_1HTTPResponse.html", null ]
     ] ],
-    [ "httpsserver::requestparam_t", "structhttpsserver_1_1requestparam__t.html", null ],
     [ "httpsserver::ResolvedResource", "classhttpsserver_1_1ResolvedResource.html", null ],
     [ "httpsserver::ResourceParameters", "classhttpsserver_1_1ResourceParameters.html", null ],
     [ "httpsserver::ResourceResolver", "classhttpsserver_1_1ResourceResolver.html", [

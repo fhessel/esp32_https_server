@@ -1,5 +1,5 @@
 var searchData=
 [
-  ['error',['error',['../classhttpsserver_1_1HTTPResponse.html#addc79f94dc1cf6eda245a15cb62ccb27',1,'httpsserver::HTTPResponse']]],
-  ['esp32_20https_20server',['ESP32 HTTPS Server',['../index.html',1,'']]]
+  ['discard',['discard',['../classhttpsserver_1_1WebsocketInputStreambuf.html#a7873057efc443e33e210d09cca03565c',1,'httpsserver::WebsocketInputStreambuf']]],
+  ['discardrequestbody',['discardRequestBody',['../classhttpsserver_1_1HTTPRequest.html#a4cf913006633555d142f23ab7fa5e876',1,'httpsserver::HTTPRequest']]]
 ];
