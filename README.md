@@ -1,5 +1,7 @@
 # ESP32 HTTPS Server
 
+![GitHub tag (latest SemVer)](https://img.shields.io/github/v/tag/fhessel/esp32_https_server?label=Version&sort=semver) ![Build Examples](https://github.com/fhessel/esp32_https_server/workflows/Build%20Examples/badge.svg?branch=master)
+
 This repository contains an HTTPS server library that can be used with the [ESP32 Arduino Core](https://github.com/espressif/arduino-esp32). It supports HTTP as well.
 
 ## Features
