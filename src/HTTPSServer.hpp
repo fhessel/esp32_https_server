@@ -29,7 +29,8 @@ namespace httpsserver {
  */
 class HTTPSServer : public HTTPServer {
 public:
-  HTTPSServer(SSLCert * cert, const uint16_t portHTTPS = 443, const uint8_t maxConnections = 4, const in_addr_t bindAddress = 0);
+  HTTPSServer(SSLCert * cert, const uint16_t portHTTPS = 443, const uint8_t maxConnections = 4, const in_addr_t bindAddress = INADDR_ANY);
+  HTTPSServer(SSLCert * cert, const uint16_t portHTTPS, const uint8_t maxConnections, const uint8_t bindAddress[16]);
   virtual ~HTTPSServer();
 
 private:

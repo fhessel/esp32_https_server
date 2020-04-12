@@ -3,11 +3,31 @@
 namespace httpsserver {
 
 
-HTTPServer::HTTPServer(const uint16_t port, const uint8_t maxConnections, const in_addr_t bindAddress, const bool enableIPv6):
+// IPv4
+HTTPServer::HTTPServer(const uint16_t port, const uint8_t maxConnections, const in_addr_t bindAddress):
   _port(port),
   _maxConnections(maxConnections),
-  _bindAddress(bindAddress),
-  _enableIPv6(enableIPv6) {
+  _useIPv6(false) {
+
+  _bindAddress.ipv4bindAddress.s_addr = bindAddress;
+
+  // Create space for the connections
+  _connections = new HTTPConnection*[maxConnections];
+  for(uint8_t i = 0; i < maxConnections; i++) _connections[i] = NULL;
+
+  // Configure runtime data
+  _socket = -1;
+  _running = false;
+}
+
+// IPv6 with bindAddress
+HTTPServer::HTTPServer(const uint16_t port, const uint8_t maxConnections, const uint8_t bindAddress[16]):
+  _port(port),
+  _maxConnections(maxConnections),
+  //Enable Ipv6
+  _useIPv6(true) {
+  
+  memcpy(_bindAddress.ipv6bindAddress.s6_addr, bindAddress, 16);
 
   // Create space for the connections
   _connections = new HTTPConnection*[maxConnections];
@@ -169,7 +189,7 @@ int HTTPServer::createConnection(int idx) {
  * This method prepares the tcp server socket
  */
 uint8_t HTTPServer::setupSocket() {
-  if (_enableIPv6) {
+  if (_useIPv6) {
     // (AF_INET = IPv6, SOCK_STREAM = TCP)
     _socket = socket(AF_INET6, SOCK_STREAM, 0);
   } else {
@@ -178,21 +198,23 @@ uint8_t HTTPServer::setupSocket() {
   }
 
   if (_socket>=0) {
-    if (_enableIPv6) {
-      bzero(&_sock_addr, sizeof (struct sockaddr_in6)); // Unnecessary or not?
+    if (_useIPv6) {
+      // Not used but should be set to 0 according to spec
       ((struct sockaddr_in6 *)&_sock_addr)->sin6_flowinfo = 0;
+      // I could't find any codumentation about "sin6_scope_id" actually being implemented in lwIP
+      // The parameter "sin6_len" shouldn't be needed either
 
       // Assume we are using only ipv6 for now...
       // TODO: check if we can use this with ipv4 as well
       ((struct sockaddr_in6 *)&_sock_addr)->sin6_family = AF_INET6;
       // Listen on all interfaces
-      ((struct sockaddr_in6 *)&_sock_addr)->sin6_addr = in6addr_any;
+      ((struct sockaddr_in6 *)&_sock_addr)->sin6_addr = _bindAddress.ipv6bindAddress;
       // Set the server port
       ((struct sockaddr_in6 *)&_sock_addr)->sin6_port = htons(_port);
     } else {
       ((struct sockaddr_in *)&_sock_addr)->sin_family = AF_INET;
       // Listen on all interfaces
-      ((struct sockaddr_in *)&_sock_addr)->sin_addr.s_addr = _bindAddress;
+      ((struct sockaddr_in *)&_sock_addr)->sin_addr = _bindAddress.ipv4bindAddress;
       // Set the server port
       ((struct sockaddr_in *)&_sock_addr)->sin_port = htons(_port);
     }
