@@ -44,6 +44,7 @@ public:
   std::string getBasicAuthUser();
   std::string getBasicAuthPassword();
   bool   isSecure();
+  bool   isIPv6();
   void setWebsocketHandler(WebsocketHandler *wsHandler);
 
 private:

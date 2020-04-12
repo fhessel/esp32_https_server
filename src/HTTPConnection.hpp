@@ -44,6 +44,7 @@ public:
   virtual int initialize(int serverSocketID, HTTPHeaders *defaultHeaders);
   virtual void closeConnection();
   virtual bool isSecure();
+  virtual bool isIPv6();
   virtual IPAddress getClientIP();
   virtual IPv6Address getClientIPv6();
 

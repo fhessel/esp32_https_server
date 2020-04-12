@@ -31,6 +31,7 @@ public:
   virtual size_t writeBuffer(byte* buffer, size_t length) = 0;
 
   virtual bool isSecure() = 0;
+  virtual bool isIPv6() = 0;
   virtual void setWebsocketHandler(WebsocketHandler *wsHandler);
   virtual IPAddress getClientIP() = 0;
   virtual IPv6Address getClientIPv6() = 0;

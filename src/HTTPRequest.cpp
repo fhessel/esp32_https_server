@@ -181,6 +181,9 @@ bool HTTPRequest::isSecure() {
   return _con->isSecure();
 }
 
+bool HTTPRequest::isIPv6() {
+  return _con->isIPv6();
+}
 
 void HTTPRequest::setWebsocketHandler(WebsocketHandler *wsHandler) {
   _con->setWebsocketHandler(wsHandler);

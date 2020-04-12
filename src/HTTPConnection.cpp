@@ -120,6 +120,20 @@ bool HTTPConnection::isSecure() {
   return false;
 }
 
+/**
+ * Returns true if the connection is using IPv6
+ */
+bool HTTPConnection::isIPv6() {
+  if (_addrLen > 0 && _sockAddr.ss_family == AF_INET6) {
+    // Using IPv6
+    return true;
+  } else if (_addrLen > 0 && _sockAddr.ss_family == AF_INET) {
+    // Using IPv4
+    return false;
+  }
+  return false;
+}
+
 void HTTPConnection::closeConnection() {
   // TODO: Call an event handler here, maybe?
 
