@@ -7,7 +7,8 @@ namespace httpsserver {
 HTTPServer::HTTPServer(const uint16_t port, const uint8_t maxConnections, const in_addr_t bindAddress):
   _port(port),
   _maxConnections(maxConnections),
-  _useIPv6(false) {
+  _useIPv6(false),
+  _useIPv6Only(false) {
 
   _bindAddress.ipv4bindAddress.s_addr = bindAddress;
 
@@ -21,11 +22,12 @@ HTTPServer::HTTPServer(const uint16_t port, const uint8_t maxConnections, const 
 }
 
 // IPv6 with bindAddress
-HTTPServer::HTTPServer(const uint16_t port, const uint8_t maxConnections, const uint8_t bindAddress[16]):
+HTTPServer::HTTPServer(const uint16_t port, const uint8_t maxConnections, const uint8_t bindAddress[16], const bool ipv6Only):
   _port(port),
   _maxConnections(maxConnections),
   //Enable Ipv6
-  _useIPv6(true) {
+  _useIPv6(true),
+  _useIPv6Only(ipv6Only) {
   
   memcpy(_bindAddress.ipv6bindAddress.s6_addr, bindAddress, 16);
 
@@ -189,14 +191,25 @@ int HTTPServer::createConnection(int idx) {
  * This method prepares the tcp server socket
  */
 uint8_t HTTPServer::setupSocket() {
+  // Initialize socket
   if (_useIPv6) {
     // (AF_INET = IPv6, SOCK_STREAM = TCP)
     _socket = socket(AF_INET6, SOCK_STREAM, 0);
+
+    if (_useIPv6Only) {
+        // Set the correct flag on the socket
+        int on = 1;
+        if (setsockopt(_socket, IPPROTO_IPV6, IPV6_V6ONLY, (char *)&on, sizeof(on)) == -1) {
+          // Return error if we couldn't set the socket option
+          return 0;
+        }
+      }
   } else {
     // (AF_INET6 = IPv4, SOCK_STREAM = TCP)
     _socket = socket(AF_INET, SOCK_STREAM, 0);
   }
 
+  // Initialize socket address
   if (_socket>=0) {
     if (_useIPv6) {
       // Not used but should be set to 0 according to spec
@@ -220,7 +233,7 @@ uint8_t HTTPServer::setupSocket() {
     }
 
     // Now bind the TCP socket we did create above to the socket address we specified
-    // (The TCP-socket now listens on 0.0.0.0:port)
+    // (The TCP-socket now listens on bindAddress:port)
     int err = bind(_socket, (struct sockaddr* )&_sock_addr, sizeof(_sock_addr));
     if(!err) {
       err = listen(_socket, _maxConnections);

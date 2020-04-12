@@ -13,8 +13,8 @@ HTTPSServer::HTTPSServer(SSLCert * cert, const uint16_t port, const uint8_t maxC
 }
 
 // IPv6
-HTTPSServer::HTTPSServer(SSLCert * cert, const uint16_t port, const uint8_t maxConnections, const uint8_t bindAddress[16]):
-  HTTPServer(port, maxConnections, bindAddress),
+HTTPSServer::HTTPSServer(SSLCert * cert, const uint16_t port, const uint8_t maxConnections, const uint8_t bindAddress[16], const bool ipv6Only):
+  HTTPServer(port, maxConnections, bindAddress, ipv6Only),
   _cert(cert) {
 
   // Configure runtime data

@@ -30,7 +30,7 @@ namespace httpsserver {
 class HTTPServer : public ResourceResolver {
 public:
   HTTPServer(const uint16_t portHTTPS = 80, const uint8_t maxConnections = 8, const in_addr_t bindAddress = INADDR_ANY);
-  HTTPServer(const uint16_t portHTTPS, const uint8_t maxConnections, const uint8_t bindAddress[16]);
+  HTTPServer(const uint16_t portHTTPS, const uint8_t maxConnections, const uint8_t bindAddress[16], const bool ipv6Only);
   virtual ~HTTPServer();
 
   uint8_t start();
@@ -54,8 +54,9 @@ protected:
     struct in6_addr ipv6bindAddress;
   };
   bindAddressv4v6 _bindAddress;
-  // Internal flag for IPv6 support
+  // Internal flags for IPv6 support
   const bool _useIPv6;
+  const bool _useIPv6Only;
 
   //// Runtime data ============================================
   // The array of connections that are currently active
