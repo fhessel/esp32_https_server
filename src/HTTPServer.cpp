@@ -217,8 +217,6 @@ uint8_t HTTPServer::setupSocket() {
       // I could't find any codumentation about "sin6_scope_id" actually being implemented in lwIP
       // The parameter "sin6_len" shouldn't be needed either
 
-      // Assume we are using only ipv6 for now...
-      // TODO: check if we can use this with ipv4 as well
       ((struct sockaddr_in6 *)&_sock_addr)->sin6_family = AF_INET6;
       // Listen on all interfaces
       ((struct sockaddr_in6 *)&_sock_addr)->sin6_addr = _bindAddress.ipv6bindAddress;
