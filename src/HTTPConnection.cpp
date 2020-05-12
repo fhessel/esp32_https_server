@@ -133,6 +133,7 @@ void HTTPConnection::closeConnection() {
 
   if (_httpHeaders != NULL) {
     HTTPS_LOGD("Free headers");
+    _wsHandler->onClose(); 
     delete _httpHeaders;
     _httpHeaders = NULL;
   }
