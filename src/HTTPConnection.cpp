@@ -481,10 +481,10 @@ void HTTPConnection::loop() {
           }
 
           // Find the request handler callback
-          HTTPSCallbackFunction * resourceCallback;
+          HTTPSCallbackFunction resourceCallback;
           if (websocketRequested) {
             // For the websocket, we use the handshake callback defined below
-            resourceCallback = &handleWebsocketHandshake;
+            resourceCallback = HTTPSCallbackFunction(&handleWebsocketHandshake);
           } else {
             // For resource nodes, we use the callback defined by the node itself
             resourceCallback = ((ResourceNode*)resolvedResource.getMatchingNode())->_callback;
