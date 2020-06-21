@@ -111,7 +111,7 @@ size_t HTTPSConnection::writeBuffer(byte* buffer, size_t length) {
 size_t HTTPSConnection::readBytesToBuffer(byte* buffer, size_t length) {
   int ret = SSL_read(_ssl, buffer, length);
   if (ret < 0) {
-	HTTPS_LOGD("SSL_read error: %d",  SSL_get_error(_ssl, ret));
+    HTTPS_LOGD("SSL_read error: %d",  SSL_get_error(_ssl, ret));
   }
   return ret;
 }
