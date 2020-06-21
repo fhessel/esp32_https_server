@@ -133,13 +133,13 @@ void HTTPConnection::closeConnection() {
 
   if (_httpHeaders != NULL) {
     HTTPS_LOGD("Free headers");
-    _wsHandler->onClose(); 
     delete _httpHeaders;
     _httpHeaders = NULL;
   }
 
   if (_wsHandler != nullptr) {
     HTTPS_LOGD("Free WS Handler");
+    _wsHandler->onClose(); 
     delete _wsHandler;
     _wsHandler = NULL;
   }
