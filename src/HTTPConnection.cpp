@@ -207,7 +207,7 @@ int HTTPConnection::updateBuffer() {
         } else {
           // An error occured
           _connectionState = STATE_ERROR;
-          HTTPS_LOGE("An receive error occured, FID=%d, SSL_error=%d", _socket, readReturnCode); 
+          HTTPS_LOGE("An receive error occurred, FID=%d, code=%d", _socket, readReturnCode); 
           closeConnection();
           return -1;
         }
