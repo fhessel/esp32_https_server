@@ -4,7 +4,7 @@
 
 New functionality:
 
-–
+* #97: New example: Captive Portal
 
 Bug fixes:
 
