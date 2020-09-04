@@ -11,6 +11,7 @@ jobs:
         example:
           - Async-Server
           - Authentication
+          - Captive-Portal
           - HTML-Forms
           - HTTPS-and-HTTP
           - Middleware
