@@ -519,9 +519,17 @@ void HTTPConnection::loop() {
 
           // Finally, after the handshake is done, we create the WebsocketHandler and change the internal state.
           if(websocketRequested) {
-            _wsHandler = ((WebsocketNode*)resolvedResource.getMatchingNode())->newHandler();
-            _wsHandler->initialize(this);  // make websocket with this connection 
-            _connectionState = STATE_WEBSOCKET;
+            HTTPNode *node = resolvedResource.getMatchingNode();
+
+            // Check for websocket request on non-websocket node:
+            if (node == nullptr || node->_nodeType != HTTPNodeType::WEBSOCKET) {
+              HTTPS_LOGW("Websocket request on non-websocket node rejected");
+              raiseError(404, "Not Found");
+            } else {
+              _wsHandler = ((WebsocketNode *) node)->newHandler();
+              _wsHandler->initialize(this);  // make websocket with this connection
+              _connectionState = STATE_WEBSOCKET;
+            }
           } else {
             // Handling the request is done
             HTTPS_LOGD("Handler function done, request complete");
