@@ -1,5 +1,12 @@
 #include "SSLCert.hpp"
 
+#include <Arduino.h>
+
+#ifndef HTTPS_DISABLE_SELFSIGNING
+#include <mbedtls/asn1write.h>
+#include <mbedtls/oid.h>
+#endif
+
 namespace httpsserver {
 
 SSLCert::SSLCert(unsigned char * certData, uint16_t certLength, unsigned char * pkData, uint16_t pkLength):
@@ -52,6 +59,56 @@ void SSLCert::clear() {
 }
 
 #ifndef HTTPS_DISABLE_SELFSIGNING
+
+/**
+ * Returns the CN value from a DN, or "" if it cannot be found
+ */
+static std::string get_cn(std::string dn) {
+  size_t cnStart = dn.find("CN=");
+  if (cnStart == std::string::npos) {
+    return "";
+  }
+  cnStart += 3;
+  size_t cnStop = dn.find(",", cnStart);
+  if (cnStop == std::string::npos) {
+    cnStop = dn.length();
+  }
+  return dn.substr(cnStart, cnStop - cnStart);
+}
+
+/**
+ * Sets the DN as subjectAltName extension in the certificate
+ */
+static int add_subject_alt_name(mbedtls_x509write_cert *crt, std::string &cn) {
+  size_t bufsize = cn.length() + 8; // some additional space for tags and length fields
+  uint8_t buf[bufsize];
+  uint8_t *p = &buf[bufsize - 1];
+  uint8_t *start = buf;
+  int length = 0;
+  int ret; // used by MBEDTLS macro
+
+  // The ASN structure that we will construct as parameter for write_crt_set_extension is as follows:
+  // | 0x30 = Sequence | length | 0x82 = dNSName, context-specific | length | cn0 | cn1 | cn2 | cn3 | .. | cnn |
+  //                       ↑    :                                      ↑     `-------------v------------------´:
+  //                       |    :                                      `-------------------´                   :
+  //                       |    `----------v------------------------------------------------------------------´
+  //                       `---------------´
+  // Let's encrypt has useful infos: https://letsencrypt.org/docs/a-warm-welcome-to-asn1-and-der/#choice-and-any-encoding
+  MBEDTLS_ASN1_CHK_ADD(length,
+    mbedtls_asn1_write_raw_buffer(&p, start, (uint8_t*)cn.c_str(), cn.length()));
+  MBEDTLS_ASN1_CHK_ADD(length,
+    mbedtls_asn1_write_len(&p, start, length));
+  MBEDTLS_ASN1_CHK_ADD(length,
+    mbedtls_asn1_write_tag(&p, start, MBEDTLS_ASN1_CONTEXT_SPECIFIC | 0x02)); // 0x02 = dNSName
+  MBEDTLS_ASN1_CHK_ADD(length,
+    mbedtls_asn1_write_len(&p, start, length));
+  MBEDTLS_ASN1_CHK_ADD(length,
+    mbedtls_asn1_write_tag(&p, start, MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE ));
+  return mbedtls_x509write_crt_set_extension( crt,
+    MBEDTLS_OID_SUBJECT_ALT_NAME, MBEDTLS_OID_SIZE(MBEDTLS_OID_SUBJECT_ALT_NAME),
+    0, // not critical
+    p, length);
+}
 
 /**
  * Function to create the key for a self-signed certificate.
@@ -169,6 +226,12 @@ static int cert_write(SSLCert &certCtx, std::string dn, std::string validityFrom
   char dn_cstr[dn.length()+1];
   strcpy(dn_cstr, dn.c_str());
 
+  // Get the common name for the subject alternative name
+  std::string cn = get_cn(dn);
+  if (cn == "") {
+    return HTTPS_SERVER_ERROR_CERTGEN_CN;
+  }
+
   // Initialize the entropy source
   mbedtls_entropy_init( &entropy );
 
@@ -204,6 +267,13 @@ static int cert_write(SSLCert &certCtx, std::string dn, std::string validityFrom
     goto error_after_cert;
   }
   stepRes = mbedtls_x509write_crt_set_issuer_name( &crt, dn_cstr );
+  if (stepRes != 0) {
+    funcRes = HTTPS_SERVER_ERROR_CERTGEN_NAME;
+    goto error_after_cert;
+  }
+
+  // Set subject alternative name
+  stepRes = add_subject_alt_name( &crt, cn );
   if (stepRes != 0) {
     funcRes = HTTPS_SERVER_ERROR_CERTGEN_NAME;
     goto error_after_cert;
@@ -281,6 +351,7 @@ error_after_key:
 error_after_entropy:
   mbedtls_ctr_drbg_free( &ctr_drbg );
   mbedtls_entropy_free( &entropy );
+
   return funcRes;
 }
 

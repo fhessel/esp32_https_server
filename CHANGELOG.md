@@ -4,7 +4,7 @@
 
 New functionality:
 
-–
+– For self-signed certificates generated on the ESP32, the CN is now added as subjectAltName
 
 Bug fixes:
 
@@ -12,7 +12,7 @@ Bug fixes:
 
 Breaking changes:
 
-–
+– Generating self-signed certificates requires now a `CN=` as part of the distinguished name of the subject
 
 ## [v1.0.0](https://github.com/fhessel/esp32_https_server/releases/tag/v1.0.0)
 
