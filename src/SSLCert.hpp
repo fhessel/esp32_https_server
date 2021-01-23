@@ -27,6 +27,7 @@
 #define HTTPS_SERVER_ERROR_CERTGEN_NAME 0x17
 #define HTTPS_SERVER_ERROR_CERTGEN_SERIAL 0x18
 #define HTTPS_SERVER_ERROR_CERTGEN_VALIDITY 0x19
+#define HTTPS_SERVER_ERROR_CERTGEN_CN 0x1a
 
 #endif // !HTTPS_DISABLE_SELFSIGNING
 
@@ -164,6 +165,8 @@ enum SSLKeySize {
  * The distinguished name (dn) parameter has to follow the x509 specifications. An example
  * would be:
  *   CN=myesp.local,O=acme,C=US
+ * 
+ * The subjectAltName is extracted from the CN component of the distinguished name.
  * 
  * The strings validFrom and validUntil have to be formatted like this:
  * "20190101000000", "20300101000000"
