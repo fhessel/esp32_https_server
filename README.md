@@ -85,6 +85,7 @@ You will find several examples showing how you can use the library (roughly orde
 - [Self-Signed-Certificate](examples/Self-Signed-Certificate/Self-Signed-Certificate.ino): Shows how to generate a self-signed certificate on the fly on the ESP when the sketch starts. You do not need to run `create_cert.sh` to use this example.
 - [Middleware](examples/Middleware/Middleware.ino): Shows how to use the middleware API for logging. Middleware functions are defined very similar to webservers like Express.
 - [Authentication](examples/Authentication/Authentication.ino): Implements a chain of two middleware functions to handle authentication and authorization using HTTP Basic Auth.
+- [Captive-Portal](examples/Captive-Portal/Captive-Portal.ino): Very basic captive portal implementation. An AP is created that uses DNS redirects to lead all connected clients to a specific website. You do not need to run `create_cert.sh` to use this example.
 - [Websocket-Chat](examples/Websocket-Chat/Websocket-Chat.ino): Provides a browser-based chat built on top of websockets. **Note:** Websockets are still under development!
 - [REST-API](examples/REST-API/REST-API.ino): Uses [ArduinoJSON](https://arduinojson.org/) and [SPIFFS file upload](https://github.com/me-no-dev/arduino-esp32fs-plugin) to serve a small web interface that provides a REST API.
 
