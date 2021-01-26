@@ -63,11 +63,23 @@ int HTTPConnection::initialize(int serverSocketID, HTTPHeaders *defaultHeaders) 
  * Returns the client's IPv4
  */
 IPAddress HTTPConnection::getClientIP() {
-  if (_addrLen > 0 && _sockAddr.sa_family == AF_INET) {
+  if (_addrLen > 0 && _sockAddr.ss_family == AF_INET) {
     struct sockaddr_in *sockAddrIn = (struct sockaddr_in *)(&_sockAddr);
     return IPAddress(sockAddrIn->sin_addr.s_addr);
   }
   return IPAddress(0, 0, 0, 0);
+}
+
+/**
+ * Returns the client's IPv6
+ */
+IPv6Address HTTPConnection::getClientIPv6() {
+  if (_addrLen > 0 && _sockAddr.ss_family == AF_INET6) {
+    struct sockaddr_in6 *sockAddrIn6 = (struct sockaddr_in6 *)(&_sockAddr);
+    return IPv6Address(sockAddrIn6->sin6_addr.s6_addr);
+  }
+  const in6_addr address = { 0 };
+  return IPv6Address(address.s6_addr);
 }
 
 /**
@@ -101,6 +113,20 @@ bool HTTPConnection::isError() {
 }
 
 bool HTTPConnection::isSecure() {
+  return false;
+}
+
+/**
+ * Returns true if the connection is using IPv6
+ */
+bool HTTPConnection::isIPv6() {
+  if (_addrLen > 0 && _sockAddr.ss_family == AF_INET6) {
+    // Using IPv6
+    return true;
+  } else if (_addrLen > 0 && _sockAddr.ss_family == AF_INET) {
+    // Using IPv4
+    return false;
+  }
   return false;
 }
 

@@ -3,6 +3,7 @@
 
 #include <Arduino.h>
 #include <IPAddress.h>
+#include <IPv6Address.h>
 
 #include <string>
 #include <mbedtls/base64.h>
@@ -43,7 +44,9 @@ public:
   virtual int initialize(int serverSocketID, HTTPHeaders *defaultHeaders);
   virtual void closeConnection();
   virtual bool isSecure();
+  virtual bool isIPv6();
   virtual IPAddress getClientIP();
+  virtual IPv6Address getClientIPv6();
 
   void loop();
   bool isClosed();
@@ -133,7 +136,7 @@ private:
   int _bufferUnusedIdx;
 
   // Socket address, length etc for the connection
-  struct sockaddr _sockAddr;
+  struct sockaddr_storage _sockAddr;
   socklen_t _addrLen;
   int _socket;
 

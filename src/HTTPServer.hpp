@@ -29,7 +29,8 @@ namespace httpsserver {
  */
 class HTTPServer : public ResourceResolver {
 public:
-  HTTPServer(const uint16_t portHTTPS = 80, const uint8_t maxConnections = 8, const in_addr_t bindAddress = 0);
+  HTTPServer(const uint16_t portHTTPS = 80, const uint8_t maxConnections = 8, const in_addr_t bindAddress = INADDR_ANY);
+  HTTPServer(const uint16_t portHTTPS, const uint8_t maxConnections, const uint8_t bindAddress[16], const bool ipv6Only);
   virtual ~HTTPServer();
 
   uint8_t start();
@@ -47,8 +48,15 @@ protected:
 
   // Max parallel connections that the server will accept
   const uint8_t _maxConnections;
-  // Address to bind to (0 = all interfaces)
-  const in_addr_t _bindAddress;
+  // Address to bind to (INADDR_ANY or IN6ADDR_ANY_INIT = all interfaces)
+  union bindAddressv4v6 {
+    struct in_addr ipv4bindAddress;
+    struct in6_addr ipv6bindAddress;
+  };
+  bindAddressv4v6 _bindAddress;
+  // Internal flags for IPv6 support
+  const bool _useIPv6;
+  const bool _useIPv6Only;
 
   //// Runtime data ============================================
   // The array of connections that are currently active
@@ -59,7 +67,7 @@ protected:
   int _socket;
 
   // The server socket address, that our service is bound to
-  sockaddr_in _sock_addr;
+  sockaddr_storage _sock_addr;
   // Headers that are included in every response
   HTTPHeaders _defaultHeaders;
 

@@ -61,6 +61,10 @@ IPAddress HTTPRequest::getClientIP() {
   return _con->getClientIP();
 }
 
+IPv6Address HTTPRequest::getClientIPv6() {
+  return _con->getClientIPv6();
+}
+
 size_t HTTPRequest::readBytes(byte * buffer, size_t length) {
 
   // Limit reading to content length
@@ -177,6 +181,9 @@ bool HTTPRequest::isSecure() {
   return _con->isSecure();
 }
 
+bool HTTPRequest::isIPv6() {
+  return _con->isIPv6();
+}
 
 void HTTPRequest::setWebsocketHandler(WebsocketHandler *wsHandler) {
   _con->setWebsocketHandler(wsHandler);

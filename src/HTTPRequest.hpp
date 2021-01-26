@@ -3,6 +3,7 @@
 
 #include <Arduino.h>
 #include <IPAddress.h>
+#include <IPv6Address.h>
 #include <string>
 
 #include <mbedtls/base64.h>
@@ -31,6 +32,7 @@ public:
   std::string getMethod();
   std::string getTag();
   IPAddress getClientIP();
+  IPv6Address getClientIPv6();
 
   size_t readChars(char * buffer, size_t length);
   size_t readBytes(byte * buffer, size_t length);
@@ -42,6 +44,7 @@ public:
   std::string getBasicAuthUser();
   std::string getBasicAuthPassword();
   bool   isSecure();
+  bool   isIPv6();
   void setWebsocketHandler(WebsocketHandler *wsHandler);
 
 private:
