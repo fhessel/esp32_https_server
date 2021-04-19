@@ -131,6 +131,8 @@ private:
   int _bufferProcessed;
   // The index on the receive_buffer that is the first one which is empty at the end.
   int _bufferUnusedIdx;
+  // If \r character has been read, in this case we expect \n to terminate the line
+  bool partialTerminationParsed = false;
 
   // Socket address, length etc for the connection
   struct sockaddr _sockAddr;

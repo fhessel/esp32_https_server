@@ -289,26 +289,24 @@ void HTTPConnection::raiseError(uint16_t code, std::string reason) {
 void HTTPConnection::readLine(int lengthLimit) {
   while(_bufferProcessed < _bufferUnusedIdx) {
     char newChar = _receiveBuffer[_bufferProcessed];
-
-    if ( newChar == '\r') {
-      // Look ahead for \n (if not possible, wait for next round
-      if (_bufferProcessed+1 < _bufferUnusedIdx) {
-        if (_receiveBuffer[_bufferProcessed+1] == '\n') {
-          _bufferProcessed += 2;
-          _parserLine.parsingFinished = true;
-          return;
-        } else {
-          // Line has not been terminated by \r\n
-          HTTPS_LOGW("Line without \\r\\n (got only \\r). FID=%d", _socket);
-          raiseError(400, "Bad Request");
-          return;
-        }
+    _bufferProcessed++;
+    if ( partialTerminationParsed ){
+      partialTerminationParsed = false;
+      if (newChar == '\n') {
+        _parserLine.parsingFinished = true;
+      } else {
+        // Line has not been terminated by \r\n
+        HTTPS_LOGW("Line without \\r\\n (got only \\r). FID=%d", _socket);
+        raiseError(400, "Bad Request");
       }
+      return;
+    }
+    if ( newChar == '\r') {
+      partialTerminationParsed = true;
     } else {
       _parserLine.text += newChar;
     }
-    _bufferProcessed += 1;
-
+    
     // Check that the max request string size is not exceeded
     if (_parserLine.text.length() > lengthLimit) {
       HTTPS_LOGW("Header length exceeded. FID=%d", _socket);
