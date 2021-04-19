@@ -306,8 +306,8 @@ void HTTPConnection::readLine(int lengthLimit) {
       }
     } else {
       _parserLine.text += newChar;
-      _bufferProcessed += 1;
     }
+    _bufferProcessed += 1;
 
     // Check that the max request string size is not exceeded
     if (_parserLine.text.length() > lengthLimit) {
