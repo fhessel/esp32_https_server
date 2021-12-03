@@ -6,7 +6,11 @@
 
 #include <string>
 #include <mbedtls/base64.h>
+#ifdef ESP32
+#include <sha/sha_parallel_engine.h>
+#else
 #include <hwcrypto/sha.h>
+#endif
 #include <functional>
 
 // Required for sockets

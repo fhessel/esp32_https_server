@@ -14,7 +14,7 @@ HTTPConnection::HTTPConnection(ResourceResolver * resResolver):
   _clientState = CSTATE_UNDEFINED;
   _httpHeaders = NULL;
   _defaultHeaders = NULL;
-  _isKeepAlive = false;
+  _isKeepAlive = true;
   _lastTransmissionTS = millis();
   _shutdownTS = 0;
   _wsHandler = nullptr;
@@ -44,9 +44,9 @@ int HTTPConnection::initialize(int serverSocketID, HTTPHeaders *defaultHeaders) 
       refreshTimeout();
       return _socket;
     }
-     
+
     HTTPS_LOGE("Could not accept() new connection");
-   
+
     _addrLen = 0;
     _connectionState = STATE_ERROR;
     _clientState = CSTATE_ACTIVE;
@@ -452,15 +452,15 @@ void HTTPConnection::loop() {
                 [](unsigned char c){ return ::tolower(c); }
               );
             }
-            if (std::string("keep-alive").compare(connectionHeaderValue)==0) {
-              HTTPS_LOGD("Keep-Alive activated. FID=%d", _socket);
-              _isKeepAlive = true;
-            } else {
+            if (std::string("close").compare(connectionHeaderValue)==0) {
               HTTPS_LOGD("Keep-Alive disabled. FID=%d", _socket);
               _isKeepAlive = false;
+            } else {
+              HTTPS_LOGD("Keep-Alive activated. FID=%d", _socket);
+              _isKeepAlive = true;
             }
           } else {
-            _isKeepAlive = false;
+            _isKeepAlive = true;
           }
 
           // Create request context
@@ -520,7 +520,7 @@ void HTTPConnection::loop() {
           // Finally, after the handshake is done, we create the WebsocketHandler and change the internal state.
           if(websocketRequested) {
             _wsHandler = ((WebsocketNode*)resolvedResource.getMatchingNode())->newHandler();
-            _wsHandler->initialize(this);  // make websocket with this connection 
+            _wsHandler->initialize(this);  // make websocket with this connection
             _connectionState = STATE_WEBSOCKET;
           } else {
             // Handling the request is done
@@ -680,7 +680,7 @@ std::string websocketKeyResponseHash(std::string const &key) {
     (const unsigned char*)shaData,
     HTTPS_SHA1_LENGTH
   );
-  
+
   // Check result and return the encoded string
   if (res != 0) {
     return std::string();
