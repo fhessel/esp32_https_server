@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - master
+      - exp-jack-sha-header
 jobs:
   build-examples:
     strategy:
