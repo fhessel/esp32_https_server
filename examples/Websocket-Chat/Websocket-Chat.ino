@@ -169,6 +169,7 @@ void ChatHandler::onClose() {
       ChatHandler* client = activeClients[i];
       activeClients[i] = nullptr;
       delete client;
+      break;
     }
   }
 }
