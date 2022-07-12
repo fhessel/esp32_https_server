@@ -166,7 +166,10 @@ WebsocketHandler * ChatHandler::create() {
 void ChatHandler::onClose() {
   for(int i = 0; i < MAX_CLIENTS; i++) {
     if (activeClients[i] == this) {
+      ChatHandler* client = activeClients[i];
       activeClients[i] = nullptr;
+      delete client;
+      break;
     }
   }
 }
