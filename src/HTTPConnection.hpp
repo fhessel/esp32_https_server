@@ -6,7 +6,11 @@
 
 #include <string>
 #include <mbedtls/base64.h>
+#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL (4, 4, 0)
+#include <sha/sha_parallel_engine.h>
+#else
 #include <hwcrypto/sha.h>
+#endif
 #include <functional>
 
 // Required for sockets
