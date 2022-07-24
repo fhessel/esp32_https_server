@@ -6,7 +6,7 @@
 
 #include <string>
 #include <mbedtls/base64.h>
-#include <hwcrypto/sha.h>
+#include <mbedtls/sha1.h>
 #include <functional>
 
 // Required for sockets
