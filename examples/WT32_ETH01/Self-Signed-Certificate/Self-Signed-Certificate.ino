@@ -95,7 +95,7 @@ void setup()
   Serial.begin(115200);
   delay(3000); // wait for the monitor to reconnect after uploading.
 
-  Serial.print("\nStarting Self-Signed-Certificate on " + String(ARDUINO_BOARD));
+  Serial.print("\nStarting Self_Signed_Certificate on "); Serial.print(ARDUINO_BOARD);
   Serial.println(" with " + String(SHIELD_TYPE));
   Serial.println(WEBSERVER_WT32_ETH01_VERSION);
 

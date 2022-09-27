@@ -1,23 +1,23 @@
 /**
- * Example for the ESP32 HTTP(S) Webserver
- *
- * IMPORTANT NOTE:
- * To run this script, you need to
- *  1) Enter your WiFi SSID and PSK below this comment
- *
- * This script will install an HTTPS Server on your ESP32 with the following
- * functionalities:
- *  - Show simple page on web server root
- *  - 404 for everything else
- * 
- * In contrast to the other examples, the certificate and the private key will be
- * generated on the ESP32, so you do not need to provide them here.
- * (this means no need to run create_cert.sh)
- */
+   Example for the ESP32 HTTP(S) Webserver
+
+   IMPORTANT NOTE:
+   To run this script, you need to
+    1) Enter your WiFi SSID and PSK below this comment
+
+   This script will install an HTTPS Server on your ESP32 with the following
+   functionalities:
+    - Show simple page on web server root
+    - 404 for everything else
+
+   In contrast to the other examples, the certificate and the private key will be
+   generated on the ESP32, so you do not need to provide them here.
+   (this means no need to run create_cert.sh)
+*/
 
 // TODO: Configure your WiFi here
-#define WIFI_SSID "<your ssid goes here>"
-#define WIFI_PSK  "<your pre-shared key goes here>"
+#define WIFI_SSID       "your_ssid"
+#define WIFI_PSK        "12345678"
 
 // We will use wifi
 #include <WiFi.h>
@@ -34,14 +34,57 @@ using namespace httpsserver;
 SSLCert * cert;
 HTTPSServer * secureServer;
 
-// Declare some handler functions for the various URLs on the server
-void handleRoot(HTTPRequest * req, HTTPResponse * res);
-void handle404(HTTPRequest * req, HTTPResponse * res);
+// Handler functions for the various URLs on the server
 
-void setup() {
+void handleRoot(HTTPRequest * req, HTTPResponse * res)
+{
+  // Status code is 200 OK by default.
+  // We want to deliver a simple HTML page, so we send a corresponding content type:
+  res->setHeader("Content-Type", "text/html");
+
+  // The response implements the Print interface, so you can use it just like
+  // you would write to Serial etc.
+  res->println("<!DOCTYPE html>");
+  res->println("<html>");
+  res->println("<head><title>Hello World!</title></head>");
+  res->println("<body>");
+  res->println("<h1>Hello World!</h1>");
+  res->print("<p>Your server is running for ");
+  // A bit of dynamic data: Show the uptime
+  res->print((int)(millis() / 1000), DEC);
+  res->println(" seconds.</p>");
+  res->println("</body>");
+  res->println("</html>");
+}
+
+void handle404(HTTPRequest * req, HTTPResponse * res)
+{
+  // Discard request body, if we received any
+  // We do this, as this is the default node and may also server POST/PUT requests
+  req->discardRequestBody();
+
+  // Set the response status
+  res->setStatusCode(404);
+  res->setStatusText("Not Found");
+
+  // Set content type of the response
+  res->setHeader("Content-Type", "text/html");
+
+  // Write a tiny HTTP page
+  res->println("<!DOCTYPE html>");
+  res->println("<html>");
+  res->println("<head><title>Not Found</title></head>");
+  res->println("<body><h1>404 Not Found</h1><p>The requested resource was not found on this server.</p></body>");
+  res->println("</html>");
+}
+
+void setup() 
+{
   // For logging
   Serial.begin(115200);
   delay(3000); // wait for the monitor to reconnect after uploading.
+
+  Serial.print("\nStarting Self_Signed_Certificate on "); Serial.println(ARDUINO_BOARD);
 
   Serial.println("Creating a new self-signed certificate.");
   Serial.println("This may take up to a minute, so be patient ;-)");
@@ -59,18 +102,22 @@ void setup() {
   // - Dates for certificate validity (optional, default is 2019-2029, both included)
   //   Format is YYYYMMDDhhmmss
   int createCertResult = createSelfSignedCert(
-    *cert,
-    KEYSIZE_2048,
-    "CN=myesp32.local,O=FancyCompany,C=DE",
-    "20190101000000",
-    "20300101000000"
-  );
+                           *cert,
+                           KEYSIZE_2048,
+                           "CN=myesp32.local,O=FancyCompany,C=DE",
+                           "20190101000000",
+                           "20300101000000"
+                         );
 
   // Now check if creating that worked
-  if (createCertResult != 0) {
+  if (createCertResult != 0) 
+  {
     Serial.printf("Cerating certificate failed. Error Code = 0x%02X, check SSLCert.hpp for details", createCertResult);
-    while(true) delay(500);
+    
+    while (true) 
+      delay(500);
   }
+  
   Serial.println("Creating the certificate was successful");
 
   // If you're working on a serious project, this would be a good place to initialize some form of non-volatile storage
@@ -99,10 +146,13 @@ void setup() {
   // Connect to WiFi
   Serial.println("Setting up WiFi");
   WiFi.begin(WIFI_SSID, WIFI_PSK);
-  while (WiFi.status() != WL_CONNECTED) {
+  
+  while (WiFi.status() != WL_CONNECTED) 
+  {
     Serial.print(".");
     delay(500);
   }
+  
   Serial.print("Connected. IP=");
   Serial.println(WiFi.localIP());
 
@@ -118,55 +168,18 @@ void setup() {
 
   Serial.println("Starting server...");
   secureServer->start();
-  if (secureServer->isRunning()) {
+  
+  if (secureServer->isRunning()) 
+  {
     Serial.println("Server ready.");
   }
 }
 
-void loop() {
+void loop() 
+{
   // This call will let the server do its work
   secureServer->loop();
 
   // Other code would go here...
   delay(1);
-}
-
-void handleRoot(HTTPRequest * req, HTTPResponse * res) {
-  // Status code is 200 OK by default.
-  // We want to deliver a simple HTML page, so we send a corresponding content type:
-  res->setHeader("Content-Type", "text/html");
-
-  // The response implements the Print interface, so you can use it just like
-  // you would write to Serial etc.
-  res->println("<!DOCTYPE html>");
-  res->println("<html>");
-  res->println("<head><title>Hello World!</title></head>");
-  res->println("<body>");
-  res->println("<h1>Hello World!</h1>");
-  res->print("<p>Your server is running for ");
-  // A bit of dynamic data: Show the uptime
-  res->print((int)(millis()/1000), DEC);
-  res->println(" seconds.</p>");
-  res->println("</body>");
-  res->println("</html>");
-}
-
-void handle404(HTTPRequest * req, HTTPResponse * res) {
-  // Discard request body, if we received any
-  // We do this, as this is the default node and may also server POST/PUT requests
-  req->discardRequestBody();
-
-  // Set the response status
-  res->setStatusCode(404);
-  res->setStatusText("Not Found");
-
-  // Set content type of the response
-  res->setHeader("Content-Type", "text/html");
-
-  // Write a tiny HTTP page
-  res->println("<!DOCTYPE html>");
-  res->println("<html>");
-  res->println("<head><title>Not Found</title></head>");
-  res->println("<body><h1>404 Not Found</h1><p>The requested resource was not found on this server.</p></body>");
-  res->println("</html>");
 }

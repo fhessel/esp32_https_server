@@ -330,7 +330,7 @@ void setup()
 
   ///////////////////////////////////////////////
 
-  Serial.print("\nStarting Parameter on " + String(ARDUINO_BOARD));
+  Serial.print("\nStarting Parameters on "); Serial.print(ARDUINO_BOARD);
   Serial.println(" with " + String(SHIELD_TYPE));
   Serial.println(WEBSERVER_WT32_ETH01_VERSION);
 

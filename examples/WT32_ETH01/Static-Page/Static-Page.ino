@@ -20,7 +20,6 @@
 // Binary data for the favicon
 #include "favicon.h"
 
-
 //////////////////////////////////////////////////
 
 // For WT32_ETH01
@@ -123,7 +122,7 @@ void setup()
 
   ///////////////////////////////////////////////
 
-  Serial.print("\nStarting Static-Page on " + String(ARDUINO_BOARD));
+  Serial.print("\nStarting Static_Page on "); Serial.print(ARDUINO_BOARD);
   Serial.println(" with " + String(SHIELD_TYPE));
   Serial.println(WEBSERVER_WT32_ETH01_VERSION);
 

@@ -128,7 +128,7 @@ void setup()
 
   ///////////////////////////////////////////////
 
-  Serial.print("\nStarting Middleware on " + String(ARDUINO_BOARD));
+  Serial.print("\nStarting Middleware on "); Serial.print(ARDUINO_BOARD);  
   Serial.println(" with " + String(SHIELD_TYPE));
   Serial.println(WEBSERVER_WT32_ETH01_VERSION);
 

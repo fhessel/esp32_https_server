@@ -418,7 +418,7 @@ void setup()
 
   ///////////////////////////////////////////////
 
-  Serial.print("\nStarting HTML_Forms on " + String(ARDUINO_BOARD));
+  Serial.print("\nStarting HTML_Forms on "); Serial.print(ARDUINO_BOARD);
   Serial.println(" with " + String(SHIELD_TYPE));
   Serial.println(WEBSERVER_WT32_ETH01_VERSION);
 

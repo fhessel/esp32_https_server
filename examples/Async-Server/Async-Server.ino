@@ -1,31 +1,31 @@
 /**
- * Example for the ESP32 HTTP(S) Webserver
- *
- * IMPORTANT NOTE:
- * To run this script, your need to
- *  1) Enter your WiFi SSID and PSK below this comment
- *  2) Make sure to have certificate data available. You will find a
- *     shell script and instructions to do so in the library folder
- *     under extras/
- *
- * This script will install an HTTPS Server on your ESP32 with the following
- * functionalities:
- *  - Show simple page on web server root
- *  - 404 for everything else
- * The server will be run in a separate task, so that you can do your own stuff
- * in the loop() function.
- * Everything else is just like the Static-Page example
- */
+   Example for the ESP32 HTTP(S) Webserver
+
+   IMPORTANT NOTE:
+   To run this script, your need to
+    1) Enter your WiFi SSID and PSK below this comment
+    2) Make sure to have certificate data available. You will find a
+       shell script and instructions to do so in the library folder
+       under extras/
+
+   This script will install an HTTPS Server on your ESP32 with the following
+   functionalities:
+    - Show simple page on web server root
+    - 404 for everything else
+   The server will be run in a separate task, so that you can do your own stuff
+   in the loop() function.
+   Everything else is just like the Static-Page example
+*/
 
 // TODO: Configure your WiFi here
-#define WIFI_SSID "<your ssid goes here>"
-#define WIFI_PSK  "<your pre-shared key goes here>"
+#define WIFI_SSID       "your_ssid"
+#define WIFI_PSK        "12345678"
 
 /** Check if we have multiple cores */
 #if CONFIG_FREERTOS_UNICORE
-#define ARDUINO_RUNNING_CORE 0
+  #define ARDUINO_RUNNING_CORE    0
 #else
-#define ARDUINO_RUNNING_CORE 1
+  #define ARDUINO_RUNNING_CORE    1
 #endif
 
 // Include certificate data (see note above)
@@ -46,53 +46,15 @@ using namespace httpsserver;
 
 // Create an SSL certificate object from the files included above
 SSLCert cert = SSLCert(
-  example_crt_DER, example_crt_DER_len,
-  example_key_DER, example_key_DER_len
-);
+                 example_crt_DER, example_crt_DER_len,
+                 example_key_DER, example_key_DER_len
+               );
 
 // Create an SSL-enabled server that uses the certificate
 HTTPSServer secureServer = HTTPSServer(&cert);
 
-// Declare some handler functions for the various URLs on the server
-void handleRoot(HTTPRequest * req, HTTPResponse * res);
-void handle404(HTTPRequest * req, HTTPResponse * res);
-
-// We declare a function that will be the entry-point for the task that is going to be
-// created.
-void serverTask(void *params);
-
-void setup() {
-  // For logging
-  Serial.begin(115200);
-
-  // Connect to WiFi
-  Serial.println("Setting up WiFi");
-  WiFi.begin(WIFI_SSID, WIFI_PSK);
-  while (WiFi.status() != WL_CONNECTED) {
-    Serial.print(".");
-    delay(500);
-  }
-  Serial.print("Connected. IP=");
-  Serial.println(WiFi.localIP());
-
-  // Setup the server as a separate task.
-  Serial.println("Creating server task... ");
-  // We pass:
-  // serverTask - the function that should be run as separate task
-  // "https443" - a name for the task (mainly used for logging)
-  // 6144       - stack size in byte. If you want up to four clients, you should
-  //              not go below 6kB. If your stack is too small, you will encounter
-  //              Panic and stack canary exceptions, usually during the call to
-  //              SSL_accept.
-  xTaskCreatePinnedToCore(serverTask, "https443", 6144, NULL, 1, NULL, ARDUINO_RUNNING_CORE);
-}
-
-void loop() {
-  Serial.println("loop()");
-  delay(5000);
-}
-
-void serverTask(void *params) {
+void serverTask(void *params) 
+{
   // In the separate task we first do everything that we would have done in the
   // setup() function, if we would run the server synchronously.
 
@@ -112,11 +74,14 @@ void serverTask(void *params) {
 
   Serial.println("Starting server...");
   secureServer.start();
-  if (secureServer.isRunning()) {
+  
+  if (secureServer.isRunning()) 
+  {
     Serial.println("Server ready.");
 
     // "loop()" function of the separate task
-    while(true) {
+    while (true) 
+    {
       // This call will let the server do its work
       secureServer.loop();
 
@@ -126,7 +91,8 @@ void serverTask(void *params) {
   }
 }
 
-void handleRoot(HTTPRequest * req, HTTPResponse * res) {
+void handleRoot(HTTPRequest * req, HTTPResponse * res) 
+{
   // Status code is 200 OK by default.
   // We want to deliver a simple HTML page, so we send a corresponding content type:
   res->setHeader("Content-Type", "text/html");
@@ -140,13 +106,14 @@ void handleRoot(HTTPRequest * req, HTTPResponse * res) {
   res->println("<h1>Hello World!</h1>");
   res->print("<p>Your server is running for ");
   // A bit of dynamic data: Show the uptime
-  res->print((int)(millis()/1000), DEC);
+  res->print((int)(millis() / 1000), DEC);
   res->println(" seconds.</p>");
   res->println("</body>");
   res->println("</html>");
 }
 
-void handle404(HTTPRequest * req, HTTPResponse * res) {
+void handle404(HTTPRequest * req, HTTPResponse * res) 
+{
   // Discard request body, if we received any
   // We do this, as this is the default node and may also server POST/PUT requests
   req->discardRequestBody();
@@ -164,4 +131,45 @@ void handle404(HTTPRequest * req, HTTPResponse * res) {
   res->println("<head><title>Not Found</title></head>");
   res->println("<body><h1>404 Not Found</h1><p>The requested resource was not found on this server.</p></body>");
   res->println("</html>");
+}
+
+void setup() 
+{
+  // For logging
+  Serial.begin(115200);
+  while (!Serial && millis() < 5000);
+
+  ///////////////////////////////////////////////
+
+  Serial.print("\nStarting Async_Server on "); Serial.println(ARDUINO_BOARD);
+
+  // Connect to WiFi
+  Serial.println("Setting up WiFi");
+  WiFi.begin(WIFI_SSID, WIFI_PSK);
+  
+  while (WiFi.status() != WL_CONNECTED) 
+  {
+    Serial.print(".");
+    delay(500);
+  }
+  
+  Serial.print("Connected. IP=");
+  Serial.println(WiFi.localIP());
+
+  // Setup the server as a separate task.
+  Serial.println("Creating server task... ");
+  // We pass:
+  // serverTask - the function that should be run as separate task
+  // "https443" - a name for the task (mainly used for logging)
+  // 6144       - stack size in byte. If you want up to four clients, you should
+  //              not go below 6kB. If your stack is too small, you will encounter
+  //              Panic and stack canary exceptions, usually during the call to
+  //              SSL_accept.
+  xTaskCreatePinnedToCore(serverTask, "https443", 6144, NULL, 1, NULL, ARDUINO_RUNNING_CORE);
+}
+
+void loop() 
+{
+  Serial.println("loop()");
+  delay(5000);
 }

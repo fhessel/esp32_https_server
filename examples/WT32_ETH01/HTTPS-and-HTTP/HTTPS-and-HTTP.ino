@@ -117,7 +117,7 @@ void setup()
 
   ///////////////////////////////////////////////
 
-  Serial.print("\nStarting HTTP-and-HTTPS on " + String(ARDUINO_BOARD));
+  Serial.print("\nStarting HTTPS_and_HTTP on "); Serial.print(ARDUINO_BOARD);
   Serial.println(" with " + String(SHIELD_TYPE));
   Serial.println(WEBSERVER_WT32_ETH01_VERSION);
 

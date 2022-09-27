@@ -23,7 +23,6 @@
 #include "cert.h"
 #include "private_key.h"
 
-
 //////////////////////////////////////////////////
 
 // For WT32_ETH01
@@ -43,7 +42,6 @@ IPAddress mySN(255, 255, 255, 0);
 IPAddress myDNS(8, 8, 8, 8);
 
 //////////////////////////////////////////////////
-
 
 // For the middleware
 #include <functional>
@@ -335,7 +333,7 @@ void setup()
 
   ///////////////////////////////////////////////
 
-  Serial.print("\nStarting HTTP-and-HTTPS on " + String(ARDUINO_BOARD));
+  Serial.print("\nStarting Authentication on "); Serial.print(ARDUINO_BOARD);
   Serial.println(" with " + String(SHIELD_TYPE));
   Serial.println(WEBSERVER_WT32_ETH01_VERSION);
 

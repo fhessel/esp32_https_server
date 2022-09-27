@@ -450,7 +450,6 @@ void handlePostEvent(HTTPRequest * req, HTTPResponse * res)
     }
   }
 
-
   // Check if we could store the event
   if (eventID > -1) 
   {
@@ -514,7 +513,7 @@ void setup()
 
   ///////////////////////////////////////////////
 
-  Serial.print("\nStarting REST-API on " + String(ARDUINO_BOARD));
+  Serial.print("\nStarting REST_API on "); Serial.print(ARDUINO_BOARD);
   Serial.println(" with " + String(SHIELD_TYPE));
   Serial.println(WEBSERVER_WT32_ETH01_VERSION);
 
@@ -538,23 +537,29 @@ void setup()
     Serial.println();
 
     // If the user did not accept to try formatting SPIFFS or formatting failed:
-    if (Serial.read() != 'y' || !SPIFFS.begin(true)) {
+    if (Serial.read() != 'y' || !SPIFFS.begin(true)) 
+    {
       Serial.println("SPIFFS not available. Stop.");
       while (true);
     }
+    
     Serial.println("SPIFFS has been formated.");
   }
+  
   Serial.println("SPIFFS has been mounted.");
 
   // Now that SPIFFS is ready, we can create or load the certificate
   SSLCert *cert = getCertificate();
-  if (cert == NULL) {
+  
+  if (cert == NULL) 
+  {
     Serial.println("Could not load certificate. Stop.");
     while (true);
   }
 
   // Initialize event structure:
-  for (int i = 0; i < MAX_EVENTS; i++) {
+  for (int i = 0; i < MAX_EVENTS; i++) 
+  {
     events[i].active = false;
     events[i].gpio = 0;
     events[i].state = LOW;

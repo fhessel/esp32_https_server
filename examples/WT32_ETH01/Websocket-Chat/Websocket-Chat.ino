@@ -133,7 +133,10 @@ void ChatHandler::onClose()
   {
     if (activeClients[i] == this)
     {
+      ChatHandler* client = activeClients[i];
       activeClients[i] = nullptr;
+      delete client;
+      break;
     }
   }
 }
@@ -273,7 +276,7 @@ void setup()
 
   ///////////////////////////////////////////////
 
-  Serial.print("\nStarting HTTP-and-HTTPS on " + String(ARDUINO_BOARD));
+  Serial.print("\nStarting WebSocket_Chat on "); Serial.print(ARDUINO_BOARD);
   Serial.println(" with " + String(SHIELD_TYPE));
   Serial.println(WEBSERVER_WT32_ETH01_VERSION);
 
