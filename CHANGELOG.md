@@ -14,6 +14,18 @@ Breaking changes:
 
 –
 
+## [v1.1.0](https://github.com/fhessel/esp32_https_server/releases/tag/v1.0.0)
+
+New functionality:
+
+* Add examples to support WT32_ETH01 using LAN8720
+
+Bug fixes:
+
+* Fix compile error for using `hwcrypto/sha.h`
+
+=========================================================
+
 ## [v1.0.0](https://github.com/fhessel/esp32_https_server/releases/tag/v1.0.0)
 
 New functionality:

@@ -1,6 +1,6 @@
 {
   "name": "esp32_https_server",
-  "keywords": "communication, esp32, http, https, server, ssl, tls, webserver, websockets",
+  "keywords": "communication, esp32, http, https, server, ssl, tls, webserver, websockets, wt32-eth01",
   "description": "Alternative ESP32 Webserver implementation for the ESP32, supporting HTTPS and HTTP. The library provides TLS support and simultaneous connections. It can be used to run an HTTP or HTTPS server, or both in parallel. The server's resources are defined through handler and middleware functions, giving an easy start to everyone who has worked with frameworks like Express or Servlets before.",
   "repository":
   {
@@ -8,7 +8,7 @@
     "url": "https://github.com/fhessel/esp32_https_server.git"
   },
   "license": "MIT",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "frameworks": "arduino",
   "platforms": ["espressif32"]
 }
