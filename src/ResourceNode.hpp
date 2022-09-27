@@ -10,7 +10,7 @@ namespace httpsserver {
 
 /**
  * \brief This HTTPNode represents a route that maps to a regular HTTP request for a resource (static or dynamic)
- * 
+ *
  * It therefore contrasts to the WebsocketNode, which handles requests for Websockets.
  */
 class ResourceNode : public HTTPNode {

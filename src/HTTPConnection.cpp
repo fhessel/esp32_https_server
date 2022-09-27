@@ -137,8 +137,10 @@ void HTTPConnection::closeConnection() {
     _httpHeaders = NULL;
   }
 
-  if (_wsHandler != nullptr) {
+  if (_wsHandler != nullptr) 
+  {
     HTTPS_LOGD("Free WS Handler");
+    _wsHandler->onClose(); 
     delete _wsHandler;
     _wsHandler = NULL;
   }
@@ -206,7 +208,7 @@ int HTTPConnection::updateBuffer() {
         } else {
           // An error occured
           _connectionState = STATE_ERROR;
-          HTTPS_LOGE("An receive error occured, FID=%d", _socket);
+          HTTPS_LOGE("A receive error occurred, FID=%d, code=%d", _socket, readReturnCode); 
           closeConnection();
           return -1;
         }
@@ -252,9 +254,13 @@ size_t HTTPConnection::readBuffer(byte* buffer, size_t length) {
   return length;
 }
 
-size_t HTTPConnection::pendingBufferSize() {
+size_t HTTPConnection::pendingBufferSize() 
+{
   updateBuffer();
-
+  
+  if (isClosed()) 
+    return 0;
+    
   return _bufferUnusedIdx - _bufferProcessed + pendingByteCount();
 }
 
@@ -588,17 +594,21 @@ void HTTPConnection::loop() {
       }
 
       // If the handler has terminated the connection, clean up and close the socket too
-      if (_wsHandler->closed() || _clientState == CSTATE_CLOSED) {
-        HTTPS_LOGI("WS closed, freeing Handler, FID=%d", _socket);
-        delete _wsHandler;
-        _wsHandler = nullptr;
-        _connectionState = STATE_CLOSING;
+      if (_wsHandler != nullptr){
+        if (_wsHandler->closed() || _clientState == CSTATE_CLOSED) {
+          HTTPS_LOGI("WS closed, freeing Handler, FID=%d", _socket);
+          delete _wsHandler;
+          _wsHandler = nullptr;
+          _connectionState = STATE_CLOSING;
+        }
+      } else {
+        HTTPS_LOGI("WS closed due to SSL level issue and cleanded up");  
       }
       break;
-    default:;
+    default:
+      break;
     }
   }
-
 }
 
 
