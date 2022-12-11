@@ -29,27 +29,16 @@ int HTTPSConnection::initialize(int serverSocketID, esp_tls_t * sslCtx, esp_tls_
     
     // Build up SSL Connection context if the socket has been created successfully
     if (resSocket >= 0) {
-//      _ssl = SSL_new(sslCtx);
       int res=esp_tls_server_session_create(cfgSrv,resSocket,sslCtx);
       if (0==res) {
         esp_tls_cfg_server_session_tickets_init(cfgSrv);
         _ssl = sslCtx;
         _cfg = cfgSrv;
-        
-        // Bind SSL to the socket
-        // int success = SSL_set_fd(_ssl, resSocket);
         if (ESP_OK == esp_tls_get_conn_sockfd(sslCtx,&resSocket)) {
-          
-        //   // Perform the handshake
-        //   success = SSL_accept(_ssl);
-        //   if (success) {
             return resSocket;
         } else {
              HTTPS_LOGE("SSL_accept failed. Aborting handshake. FID=%d", resSocket);
         }
-        // } else {
-        //   HTTPS_LOGE("SSL_set_fd failed. Aborting handshake. FID=%d", resSocket);
-        // }
       } else {
         HTTPS_LOGE("SSL_new failed. Aborting handshake. Error=%d", res);
       }

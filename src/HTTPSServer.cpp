@@ -34,7 +34,6 @@ uint8_t HTTPSServer::setupSocket() {
 
     if (!setupCert()) {
       Serial.println("setupCert failed");
-//      SSL_CTX_free(_sslctx);
       _sslctx = NULL;
       return 0;
     }
@@ -43,7 +42,6 @@ uint8_t HTTPSServer::setupSocket() {
       return 1;
     } else {
       Serial.println("setupSockets failed");
-//      SSL_CTX_free(_sslctx);
       _sslctx = NULL;
       return 0;
     }
@@ -58,8 +56,7 @@ void HTTPSServer::teardownSocket() {
 
   // Tear down the SSL context
   if (NULL != _sslctx)
-  //SSL_CTX_free(_sslctx);
-  _sslctx = NULL;
+    _sslctx = NULL;
 }
 
 int HTTPSServer::createConnection(int idx) {
@@ -76,8 +73,6 @@ uint8_t HTTPSServer::setupSSLCTX() {
 //  _sslctx = SSL_CTX_new(TLSv1_2_server_method());
   _sslctx =  esp_tls_init();
   if (NULL != _sslctx) {
-    // Set SSL Timeout to 5 minutes
-//    SSL_CTX_set_timeout(_sslctx, 300);
     return 1;
   } else {
     return 0;
@@ -94,22 +89,6 @@ uint8_t HTTPSServer::setupCert() {
   _cfg->servercert_bytes = _cert->getPKLength();
   _cfg->serverkey_buf= _cert->getPKData();
   _cfg->serverkey_bytes= _cert->getPKLength();
-
-  // uint8_t ret = SSL_CTX_use_certificate_ASN1(
-  //   _sslctx,
-  //   _cert->getCertLength(),
-  //   _cert->getCertData()
-  // );
-
-  // // Then set the private key accordingly
-  // if (ret) {
-  //   ret = SSL_CTX_use_RSAPrivateKey_ASN1(
-  //     _sslctx,
-  //     _cert->getPKData(),
-  //     _cert->getPKLength()
-  //   );
-  // }
-
   return 1;
 }
 
