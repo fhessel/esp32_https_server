@@ -39,15 +39,12 @@ private:
   SSLCert * _cert;
  
   //// Runtime data ============================================
-  //SSL_CTX * _sslctx;
-  esp_tls_t * _sslctx;
   esp_tls_cfg_server_t * _cfg;
   // Status of the server: Are we running, or not?
 
   // Setup functions
   virtual uint8_t setupSocket();
   virtual void teardownSocket();
-  uint8_t setupSSLCTX();
   uint8_t setupCert();
 
   // Helper functions

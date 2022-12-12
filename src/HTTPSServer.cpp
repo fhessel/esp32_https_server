@@ -2,18 +2,18 @@
 
 namespace httpsserver {
 
-constexpr char * alpn_protos[] = { "h2", NULL } ;
+constexpr const char * alpn_protos[] = { "http/1.1", NULL } ;
 
 HTTPSServer::HTTPSServer(SSLCert * cert, const uint16_t port, const uint8_t maxConnections, const in_addr_t bindAddress):
   HTTPServer(port, maxConnections, bindAddress),
   _cert(cert) {
-  
   // Configure runtime data
-  _sslctx = NULL;
   _cfg = new esp_tls_cfg_server();
   _cfg->alpn_protos = (const char **)alpn_protos;
+  _cfg->cacert_buf = NULL;
+  _cfg->cacert_bytes = 0;
   _cfg->servercert_buf =cert->getCertData();
-  _cfg->servercert_bytes = cert->getPKLength();
+  _cfg->servercert_bytes = cert->getCertLength();
   _cfg->serverkey_buf= cert->getPKData();
   _cfg->serverkey_bytes= cert->getPKLength();
 }
@@ -27,22 +27,15 @@ HTTPSServer::~HTTPSServer() {
  */
 uint8_t HTTPSServer::setupSocket() {
   if (!isRunning()) {
-    if (!setupSSLCTX()) {
-      Serial.println("setupSSLCTX failed");
-      return 0;
-    }
-
-    if (!setupCert()) {
-      Serial.println("setupCert failed");
-      _sslctx = NULL;
-      return 0;
-    }
+    _cfg->servercert_buf= _cert->getCertData();
+    _cfg->servercert_bytes = _cert->getCertLength();
+    _cfg->serverkey_buf= _cert->getPKData();
+    _cfg->serverkey_bytes= _cert->getPKLength();
 
     if (HTTPServer::setupSocket()) {
       return 1;
     } else {
       Serial.println("setupSockets failed");
-      _sslctx = NULL;
       return 0;
     }
   } else {
@@ -54,29 +47,12 @@ void HTTPSServer::teardownSocket() {
 
   HTTPServer::teardownSocket();
 
-  // Tear down the SSL context
-  if (NULL != _sslctx)
-    _sslctx = NULL;
 }
 
 int HTTPSServer::createConnection(int idx) {
   HTTPSConnection * newConnection = new HTTPSConnection(this);
   _connections[idx] = newConnection;
-  return newConnection->initialize(_socket, _sslctx, _cfg , &_defaultHeaders);
-}
-
-/**
- * This method configures the ssl context that is used for the server
- */
-uint8_t HTTPSServer::setupSSLCTX() {
-
-//  _sslctx = SSL_CTX_new(TLSv1_2_server_method());
-  _sslctx =  esp_tls_init();
-  if (NULL != _sslctx) {
-    return 1;
-  } else {
-    return 0;
-  }
+  return newConnection->initialize(_socket, _cfg , &_defaultHeaders);
 }
 
 /**
@@ -86,7 +62,7 @@ uint8_t HTTPSServer::setupSSLCTX() {
 uint8_t HTTPSServer::setupCert() {
   // Configure the certificate first
   _cfg->servercert_buf= _cert->getCertData();
-  _cfg->servercert_bytes = _cert->getPKLength();
+  _cfg->servercert_bytes = _cert->getCertLength();
   _cfg->serverkey_buf= _cert->getPKData();
   _cfg->serverkey_bytes= _cert->getPKLength();
   return 1;

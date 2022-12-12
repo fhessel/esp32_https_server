@@ -5,7 +5,7 @@ namespace httpsserver {
 
 HTTPSConnection::HTTPSConnection(ResourceResolver * resResolver):
   HTTPConnection(resResolver) {
-  _ssl = NULL;
+  _ssl = esp_tls_init();
 }
 
 HTTPSConnection::~HTTPSConnection() {
@@ -22,19 +22,19 @@ bool HTTPSConnection::isSecure() {
  *
  * The call WILL BLOCK if accept(serverSocketID) blocks. So use select() to check for that in advance.
  */
-int HTTPSConnection::initialize(int serverSocketID, esp_tls_t * sslCtx, esp_tls_cfg_server_t * cfgSrv, HTTPHeaders *defaultHeaders) {
+int HTTPSConnection::initialize(int serverSocketID, esp_tls_cfg_server_t * cfgSrv, HTTPHeaders *defaultHeaders) {
   if (_connectionState == STATE_UNDEFINED) {
     // Let the base class connect the plain tcp socket
     int resSocket = HTTPConnection::initialize(serverSocketID, defaultHeaders);
-    
+    HTTPS_LOGI("Cert len:%d, apn:%s\n",cfgSrv->servercert_bytes,cfgSrv->alpn_protos[0]);
     // Build up SSL Connection context if the socket has been created successfully
     if (resSocket >= 0) {
-      int res=esp_tls_server_session_create(cfgSrv,resSocket,sslCtx);
+      int res=esp_tls_server_session_create(cfgSrv,resSocket,_ssl);
       if (0==res) {
         esp_tls_cfg_server_session_tickets_init(cfgSrv);
-        _ssl = sslCtx;
         _cfg = cfgSrv;
-        if (ESP_OK == esp_tls_get_conn_sockfd(sslCtx,&resSocket)) {
+        // Bind SSL to the socket
+        if (ESP_OK == esp_tls_get_conn_sockfd(_ssl,&resSocket)) {
             return resSocket;
         } else {
              HTTPS_LOGE("SSL_accept failed. Aborting handshake. FID=%d", resSocket);
@@ -46,10 +46,8 @@ int HTTPSConnection::initialize(int serverSocketID, esp_tls_t * sslCtx, esp_tls_
     } else {
       HTTPS_LOGE("Could not accept() new connection. FID=%d", resSocket);
     }
-
     _connectionState = STATE_ERROR;
     _clientState = CSTATE_ACTIVE;
-
     // This will only be called if the connection could not be established and cleanup
     // variables like _ssl etc.
     closeConnection();

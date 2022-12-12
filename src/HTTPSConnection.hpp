@@ -35,7 +35,7 @@ public:
   HTTPSConnection(ResourceResolver * resResolver);
   virtual ~HTTPSConnection();
 
-  virtual int initialize(int serverSocketID, esp_tls_t * sslCtx,esp_tls_cfg_server_t * cfgSrv, HTTPHeaders *defaultHeaders);
+  virtual int initialize(int serverSocketID,esp_tls_cfg_server_t * cfgSrv, HTTPHeaders *defaultHeaders);
   virtual void closeConnection();
   virtual bool isSecure();
 
