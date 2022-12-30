@@ -5,9 +5,9 @@
 #include <IPAddress.h>
 
 // Required for SSL
-#include "openssl/ssl.h"
-#undef read
-
+//#include "openssl/ssl.h"
+//#undef read
+#include <esp_tls.h>
 namespace httpsserver {
 
 class WebsocketHandler;
