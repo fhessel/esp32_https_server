@@ -6,7 +6,6 @@
 
 #include <string>
 #include <mbedtls/base64.h>
-// #include <hwcrypto/sha.h>
 #include <sha/sha_parallel_engine.h>
 #include <functional>
 
